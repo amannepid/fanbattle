@@ -25,7 +25,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (user) {
         // Check if user is admin
         const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(',').map(e => e.trim()) || [];
-        setIsAdmin(adminEmails.includes(user.email || ''));
+        const userIsAdmin = adminEmails.includes(user.email || '');
+        
+        console.log('🔐 Admin Check:', {
+          userEmail: user.email,
+          adminEmails: adminEmails,
+          isAdmin: userIsAdmin,
+          envVariable: process.env.NEXT_PUBLIC_ADMIN_EMAILS
+        });
+        
+        setIsAdmin(userIsAdmin);
       } else {
         setIsAdmin(false);
       }
