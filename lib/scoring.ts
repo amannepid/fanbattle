@@ -26,14 +26,21 @@ export function getPenaltyFee(matchType: MatchType): number {
 
 /**
  * Determine the score category from a score value
+ * A: Under 130 (0-129)
+ * B: 131-145
+ * C: 146-160
+ * D: 161-175
+ * E: 176-190
+ * F: 191 and above
  */
 export function getScoreCategory(score: number): ScoreCategory {
-  if (score <= 100) return 'A';
-  if (score <= 130) return 'B';
-  if (score <= 160) return 'C';
-  if (score <= 190) return 'D';
-  if (score <= 220) return 'E';
-  return 'F';
+  if (score < 130) return 'A';      // 0-129 (Under 130)
+  if (score === 130) return 'A';    // Edge case: 130 treated as A (under 130)
+  if (score >= 131 && score <= 145) return 'B';  // 131-145
+  if (score >= 146 && score <= 160) return 'C';  // 146-160
+  if (score >= 161 && score <= 175) return 'D';  // 161-175
+  if (score >= 176 && score <= 190) return 'E';  // 176-190
+  return 'F';                        // 191+
 }
 
 /**
@@ -94,9 +101,16 @@ export function calculatePoints(
   }
 
   // Score category bonus (only if innings valid)
-  if (isInningsValid && prediction.predictedScoreCategory && match.firstInningsScore !== undefined) {
+  // Check if the prediction for the team that batted first matches the actual score category
+  if (isInningsValid && match.firstInningsScore !== undefined && match.firstInningsBattingTeamId) {
     const actualCategory = getScoreCategory(match.firstInningsScore);
-    const isCorrectScoreCategory = prediction.predictedScoreCategory === actualCategory;
+    
+    // Get the prediction for the team that actually batted first
+    const predictedCategory = match.firstInningsBattingTeamId === match.teamAId
+      ? prediction.teamAScoreCategory
+      : prediction.teamBScoreCategory;
+    
+    const isCorrectScoreCategory = predictedCategory !== undefined && predictedCategory === actualCategory;
     result.isCorrectScoreCategory = isCorrectScoreCategory;
     if (isCorrectScoreCategory) {
       result.breakdown.scoreBonus = 1;
@@ -104,8 +118,14 @@ export function calculatePoints(
   }
 
   // Wickets bonus (only if innings valid)
-  if (isInningsValid && prediction.predictedWickets !== undefined && match.firstInningsWickets !== undefined) {
-    const isCorrectWickets = prediction.predictedWickets === match.firstInningsWickets;
+  // Check if the prediction for the team that batted first matches the actual wickets
+  if (isInningsValid && match.firstInningsWickets !== undefined && match.firstInningsBattingTeamId) {
+    // Get the prediction for the team that actually batted first
+    const predictedWickets = match.firstInningsBattingTeamId === match.teamAId
+      ? prediction.teamAWickets
+      : prediction.teamBWickets;
+    
+    const isCorrectWickets = predictedWickets !== undefined && predictedWickets === match.firstInningsWickets;
     result.isCorrectWickets = isCorrectWickets;
     if (isCorrectWickets) {
       result.breakdown.wicketsBonus = 1;
@@ -113,9 +133,9 @@ export function calculatePoints(
   }
 
   // Calculate total points
+  // Note: basePoints already includes the winner points, winnerBonus is not used
   result.points =
     result.breakdown.basePoints +
-    result.breakdown.winnerBonus +
     result.breakdown.momBonus +
     result.breakdown.scoreBonus +
     result.breakdown.wicketsBonus +

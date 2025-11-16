@@ -52,6 +52,7 @@ export interface Match {
   winnerName?: string;
   momId?: string;
   momName?: string;
+  firstInningsBattingTeamId?: string;
   firstInningsScore?: number;
   firstInningsWickets?: number;
   isReducedOvers?: boolean;

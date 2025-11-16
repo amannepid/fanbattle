@@ -96,10 +96,8 @@ const teams = [
   { name: "Sudurpaschim Royals", shortCode: "SPR", logoUrl: "/teams/sudurpaschim-royals.jpg", primaryColor: "#2563EB", secondaryColor: "#FBBF24" },
 ];
 
-// Dummy players (20 per team)
-const playerRoles = ['batsman', 'bowler', 'all-rounder', 'wicket-keeper'] as const;
-const firstNames = ['Rahul', 'Virat', 'Rohit', 'Suresh', 'Gyanendra', 'Dipendra', 'Kushal', 'Paras', 'Sandeep', 'Sompal', 'Anil', 'Binod', 'Prakash', 'Sharad', 'Aamir', 'Lalit', 'Kushal', 'Dipendra', 'Basant', 'Subash'];
-const lastNames = ['Sharma', 'Khadka', 'Paudel', 'Malla', 'Airee', 'Bhandari', 'Thapa', 'Regmi', 'Lamichhane', 'Bhurtel', 'Sah', 'Kami', 'Jora', 'Vesawkar', 'Sheikh', 'Rajbanshi', 'Malla', 'Singh', 'Shah', 'Khawas'];
+// Note: Players are imported separately via CSV/JSON import scripts
+// Run: npm run import-players (for CSV) or npm run import-players-json (for JSON)
 
 async function seedDatabase() {
   console.log('🌱 Starting database seed...\n');
@@ -136,25 +134,12 @@ async function seedDatabase() {
     }
     console.log('✅ All teams created\n');
 
-    // 3. Create players
-    console.log('Creating players...');
-    let playerCount = 0;
-    for (const team of teams) {
-      const teamId = team.shortCode.toLowerCase();
-      for (let i = 0; i < 20; i++) {
-        const playerId = `${teamId}-player-${i + 1}`;
-        const playerRef = doc(db, 'players', playerId);
-        await setDoc(playerRef, {
-          teamId,
-          name: `${firstNames[i % firstNames.length]} ${lastNames[i % lastNames.length]}`,
-          role: playerRoles[i % playerRoles.length],
-          photoUrl: `https://via.placeholder.com/150?text=Player${i + 1}`,
-        });
-        playerCount++;
-      }
-      console.log(`  ✓ ${team.name}: 20 players`);
-    }
-    console.log(`✅ ${playerCount} players created\n`);
+    // 3. Skip player creation (players are imported separately via CSV/JSON)
+    console.log('Skipping player creation...');
+    console.log('  ℹ️  Players should be imported separately using:');
+    console.log('     - npm run import-players (for CSV)');
+    console.log('     - npm run import-players-json (for JSON)');
+    console.log('  ℹ️  Current players in database will be preserved\n');
 
     // 4. Create matches
     console.log('Creating matches...');
@@ -162,14 +147,16 @@ async function seedDatabase() {
       const item = scheduleData[i];
       const matchNumber = i + 1;
       
-      // Determine match type
-      let matchType: 'league' | 'playoff' | 'final';
-      if (matchNumber <= 28) {
-        matchType = 'league';
-      } else if (matchNumber <= 31) {
-        matchType = 'playoff';
-      } else {
+      // Determine match type from match name
+      let matchType: 'league' | 'qualifier' | 'eliminator' | 'final';
+      if (item.match.includes('Qualifier 1') || item.match.includes('Qualifier 2')) {
+        matchType = 'qualifier';
+      } else if (item.match.includes('Eliminator')) {
+        matchType = 'eliminator';
+      } else if (item.match.includes('Final') || item.match.includes('Finale')) {
         matchType = 'final';
+      } else {
+        matchType = 'league';
       }
       
       // Parse teams
@@ -222,7 +209,7 @@ async function seedDatabase() {
     console.log('\n📋 Summary:');
     console.log(`  - 1 tournament`);
     console.log(`  - 8 teams`);
-    console.log(`  - ${playerCount} players`);
+    console.log(`  - Players (import separately via CSV/JSON)`);
     console.log(`  - 31 matches`);
     console.log('\n✨ Ready to start!');
     

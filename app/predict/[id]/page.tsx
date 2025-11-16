@@ -13,12 +13,12 @@ import type { Match, Player, UserEntry, ScoreCategory } from '@/types';
 import PlayerSearchSelect from '@/components/PlayerSearchSelect';
 
 const SCORE_CATEGORIES: { value: ScoreCategory; label: string }[] = [
-  { value: 'A', label: '0-100' },
-  { value: 'B', label: '101-130' },
-  { value: 'C', label: '131-160' },
-  { value: 'D', label: '161-190' },
-  { value: 'E', label: '191-220' },
-  { value: 'F', label: '221+' },
+  { value: 'A', label: 'Under 130 (0-129)' },
+  { value: 'B', label: '131-145' },
+  { value: 'C', label: '146-160' },
+  { value: 'D', label: '161-175' },
+  { value: 'E', label: '176-190' },
+  { value: 'F', label: '191+' },
 ];
 
 export default function PredictPage() {
