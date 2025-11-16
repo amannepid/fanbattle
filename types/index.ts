@@ -102,6 +102,10 @@ export interface Prediction {
   teamBScoreCategory?: ScoreCategory;
   teamBWickets?: number;
   
+  // Actual predictions used for scoring (determined after match based on which team batted first)
+  predictedScoreCategory?: ScoreCategory;
+  predictedWickets?: number;
+  
   // Match-specific predictions
   highestRunBatsmanId?: string;
   highestRunBatsmanName?: string;

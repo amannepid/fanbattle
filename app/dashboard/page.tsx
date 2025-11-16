@@ -415,7 +415,7 @@ export default function DashboardPage() {
                     )}
                   </div>
 
-                  {prediction.seasonTeamAdjustment !== 0 && (
+                  {prediction.seasonTeamAdjustment !== undefined && prediction.seasonTeamAdjustment !== 0 && (
                     <div className="mt-2 text-sm">
                       <span className="text-gray-600 dark:text-gray-400">Season Team:</span>{' '}
                       <span className={prediction.seasonTeamAdjustment > 0 ? 'text-green-600 font-medium' : 'text-red-600 font-medium'}>

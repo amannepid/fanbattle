@@ -85,8 +85,8 @@ export function calculatePoints(
   const isInningsValid = !match.isReducedOvers;
 
   // Player of the Match bonus
-  if (prediction.predictedMomId && match.momId) {
-    const isCorrectPom = prediction.predictedMomId === match.momId;
+  if (prediction.predictedPomId && match.momId) {
+    const isCorrectPom = prediction.predictedPomId === match.momId;
     result.isCorrectPom = isCorrectPom;
     if (isCorrectPom) {
       result.breakdown.momBonus = 1;
@@ -193,7 +193,7 @@ export const testScenarios = [
     },
     prediction: {
       predictedWinnerId: 'team-a',
-      predictedMomId: 'player-1',
+      predictedPomId: 'player-1',
       predictedScoreCategory: 'C' as ScoreCategory,
       predictedWickets: 7,
     },
@@ -214,7 +214,7 @@ export const testScenarios = [
     },
     prediction: {
       predictedWinnerId: 'team-b',
-      predictedMomId: 'player-2',
+      predictedPomId: 'player-2',
       predictedScoreCategory: 'C' as ScoreCategory,
       predictedWickets: 7,
     },
@@ -235,7 +235,7 @@ export const testScenarios = [
     },
     prediction: {
       predictedWinnerId: 'team-b', // Predicted against season team
-      predictedMomId: 'player-2',
+      predictedPomId: 'player-2',
       predictedScoreCategory: 'C' as ScoreCategory,
       predictedWickets: 7,
     },
@@ -256,7 +256,7 @@ export const testScenarios = [
     },
     prediction: {
       predictedWinnerId: 'team-a',
-      predictedMomId: 'player-1',
+      predictedPomId: 'player-1',
       predictedScoreCategory: 'C' as ScoreCategory,
       predictedWickets: 7,
     },
@@ -277,7 +277,7 @@ export const testScenarios = [
     },
     prediction: {
       predictedWinnerId: 'team-a', // Wrong prediction
-      predictedMomId: 'player-1',
+      predictedPomId: 'player-1',
       predictedScoreCategory: 'C' as ScoreCategory,
       predictedWickets: 7,
     },
