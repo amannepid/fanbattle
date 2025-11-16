@@ -1,0 +1,25 @@
+{
+  "name": "NPL Fan Battle - Cricket Prediction Game",
+  "short_name": "NPL Fan Battle",
+  "description": "Predict Nepal Premier League matches and compete with friends",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0A233F",
+  "theme_color": "#0A233F",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
+
