@@ -129,6 +129,11 @@ export async function updateUserEntry(userId: string, data: Partial<UserEntry>):
   await updateDoc(docRef, data);
 }
 
+export async function updateTournament(id: string, data: Partial<Tournament>): Promise<void> {
+  const docRef = doc(db, COLLECTIONS.tournaments, id);
+  await updateDoc(docRef, data);
+}
+
 export async function getLeaderboard(tournamentId: string): Promise<UserEntry[]> {
   const q = query(
     collection(db, COLLECTIONS.userEntries),

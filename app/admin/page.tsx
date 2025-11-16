@@ -3,13 +3,14 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
-import { getActiveTournament, getMatches, getAllPlayers, getMatchPredictions, updatePrediction, getLeaderboard, getUserEntry, updateUserEntry, getMatch, getUserPredictions } from '@/lib/firestore';
+import { getActiveTournament, getMatches, getAllPlayers, getMatchPredictions, updatePrediction, getLeaderboard, getUserEntry, updateUserEntry, getMatch, getUserPredictions, getTeams, updateTournament } from '@/lib/firestore';
 import { doc, updateDoc, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Loader2, Shield, Trophy, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { calculatePoints, calculatePenaltyFee } from '@/lib/scoring';
-import type { Match, Tournament, Player, Prediction, UserEntry } from '@/types';
+import { applyTournamentBonuses } from '@/lib/tournament-bonuses';
+import type { Match, Tournament, Player, Prediction, UserEntry, Team } from '@/types';
 
 export default function AdminPage() {
   const { user, isAdmin, loading: authLoading } = useAuth();
@@ -17,9 +18,16 @@ export default function AdminPage() {
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [matches, setMatches] = useState<Match[]>([]);
   const [players, setPlayers] = useState<Player[]>([]);
+  const [teams, setTeams] = useState<Team[]>([]);
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
+  
+  // Tournament results state
+  const [tournamentWinnerId, setTournamentWinnerId] = useState('');
+  const [playerOfTournamentId, setPlayerOfTournamentId] = useState('');
+  const [highestRunScorerId, setHighestRunScorerId] = useState('');
+  const [highestWicketTakerId, setHighestWicketTakerId] = useState('');
 
   // Form state
   const [winnerId, setWinnerId] = useState('');
@@ -56,6 +64,23 @@ export default function AdminPage() {
 
       const playersData = await getAllPlayers(activeTournament.id);
       setPlayers(playersData);
+      
+      const teamsData = await getTeams(activeTournament.id);
+      setTeams(teamsData);
+      
+      // Load tournament results if they exist
+      if (activeTournament.winnerTeamId) {
+        setTournamentWinnerId(activeTournament.winnerTeamId);
+      }
+      if (activeTournament.playerOfTournamentId) {
+        setPlayerOfTournamentId(activeTournament.playerOfTournamentId);
+      }
+      if (activeTournament.highestRunScorerId) {
+        setHighestRunScorerId(activeTournament.highestRunScorerId);
+      }
+      if (activeTournament.highestWicketTakerId) {
+        setHighestWicketTakerId(activeTournament.highestWicketTakerId);
+      }
     } catch (error) {
       console.error('Error loading data:', error);
       setMessage('Error loading data');
@@ -213,6 +238,71 @@ export default function AdminPage() {
       await updateUserEntry(leaderboard[i].userId, {
         currentRank: i + 1,
       });
+    }
+  }
+
+  async function handleTournamentResults(e: React.FormEvent) {
+    e.preventDefault();
+    if (!tournament || !tournamentWinnerId || !playerOfTournamentId || !highestRunScorerId || !highestWicketTakerId) {
+      setMessage('❌ Please fill in all tournament results');
+      return;
+    }
+
+    // Check if Final match is completed
+    const finalMatch = matches.find(m => m.matchType === 'final');
+    if (!finalMatch || finalMatch.status !== 'completed') {
+      setMessage('❌ Final match must be completed before setting tournament results');
+      return;
+    }
+
+    setProcessing(true);
+    setMessage('');
+
+    try {
+      // Get names for the IDs
+      const winnerTeam = teams.find(t => t.id === tournamentWinnerId);
+      const potPlayer = players.find(p => p.id === playerOfTournamentId);
+      const runScorerPlayer = players.find(p => p.id === highestRunScorerId);
+      const wicketTakerPlayer = players.find(p => p.id === highestWicketTakerId);
+
+      // Update tournament with results
+      await updateTournament(tournament.id, {
+        winnerTeamId: tournamentWinnerId,
+        winnerTeamName: winnerTeam?.name || '',
+        playerOfTournamentId: playerOfTournamentId,
+        playerOfTournamentName: potPlayer?.name || '',
+        highestRunScorerId: highestRunScorerId,
+        highestRunScorerName: runScorerPlayer?.name || '',
+        highestWicketTakerId: highestWicketTakerId,
+        highestWicketTakerName: wicketTakerPlayer?.name || '',
+        status: 'completed',
+      });
+
+      // Apply tournament bonuses to all users
+      const updatedTournament = {
+        ...tournament,
+        winnerTeamId: tournamentWinnerId,
+        winnerTeamName: winnerTeam?.name || '',
+        playerOfTournamentId: playerOfTournamentId,
+        playerOfTournamentName: potPlayer?.name || '',
+        highestRunScorerId: highestRunScorerId,
+        highestRunScorerName: runScorerPlayer?.name || '',
+        highestWicketTakerId: highestWicketTakerId,
+        highestWicketTakerName: wicketTakerPlayer?.name || '',
+        status: 'completed' as const,
+      };
+
+      await applyTournamentBonuses(updatedTournament);
+
+      setMessage('✅ Tournament results saved and bonuses applied to all users!');
+      
+      // Reload data
+      await loadData();
+    } catch (error) {
+      console.error('Error saving tournament results:', error);
+      setMessage('❌ Error saving tournament results. Please try again.');
+    } finally {
+      setProcessing(false);
     }
   }
 
@@ -574,6 +664,156 @@ export default function AdminPage() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Tournament Results Section */}
+      <div className="mt-8 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div className="px-6 py-4 bg-gradient-to-r from-purple-600 to-purple-700">
+          <div className="flex items-center space-x-3">
+            <Trophy className="h-6 w-6 text-white" />
+            <h2 className="text-xl font-bold text-white">Tournament End Results</h2>
+          </div>
+          <p className="text-sm text-purple-100 mt-1">Set tournament results after Final match is completed</p>
+        </div>
+        
+        {/* Check if Final is completed */}
+        {(() => {
+          const finalMatch = matches.find(m => m.matchType === 'final');
+          const isFinalCompleted = finalMatch && finalMatch.status === 'completed';
+          
+          if (!isFinalCompleted) {
+            return (
+              <div className="p-6">
+                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-400 dark:border-yellow-600 rounded-lg p-4">
+                  <div className="flex items-center space-x-2">
+                    <AlertCircle className="h-5 w-5 text-yellow-600" />
+                    <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                      <strong>Note:</strong> Tournament results can only be set after the Final match is completed.
+                      {finalMatch && (
+                        <span className="block mt-1">
+                          Final match status: <span className="font-semibold">{finalMatch.status}</span>
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            );
+          }
+          
+          return (
+            <form onSubmit={handleTournamentResults} className="p-6 space-y-6">
+          {/* Tournament Winner */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Tournament Winner *
+            </label>
+            <select
+              value={tournamentWinnerId}
+              onChange={(e) => setTournamentWinnerId(e.target.value)}
+              className="w-full px-4 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-primary-600 focus:outline-none bg-white dark:bg-gray-700"
+              required
+            >
+              <option value="">Select winner team</option>
+              {teams.map((team) => (
+                <option key={team.id} value={team.id}>
+                  {team.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Player of Tournament */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Player of Tournament *
+            </label>
+            <select
+              value={playerOfTournamentId}
+              onChange={(e) => setPlayerOfTournamentId(e.target.value)}
+              className="w-full px-4 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-primary-600 focus:outline-none bg-white dark:bg-gray-700"
+              required
+            >
+              <option value="">Select player</option>
+              {players.map((player) => (
+                <option key={player.id} value={player.id}>
+                  {player.name} ({teams.find(t => t.id === player.teamId)?.name || 'Unknown'})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Highest Run Scorer */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Highest Run Scorer *
+            </label>
+            <select
+              value={highestRunScorerId}
+              onChange={(e) => setHighestRunScorerId(e.target.value)}
+              className="w-full px-4 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-primary-600 focus:outline-none bg-white dark:bg-gray-700"
+              required
+            >
+              <option value="">Select player</option>
+              {players.map((player) => (
+                <option key={player.id} value={player.id}>
+                  {player.name} ({teams.find(t => t.id === player.teamId)?.name || 'Unknown'})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Highest Wicket Taker */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Highest Wicket Taker *
+            </label>
+            <select
+              value={highestWicketTakerId}
+              onChange={(e) => setHighestWicketTakerId(e.target.value)}
+              className="w-full px-4 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-primary-600 focus:outline-none bg-white dark:bg-gray-700"
+              required
+            >
+              <option value="">Select player</option>
+              {players.map((player) => (
+                <option key={player.id} value={player.id}>
+                  {player.name} ({teams.find(t => t.id === player.teamId)?.name || 'Unknown'})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Info Box */}
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-400 dark:border-blue-600 rounded-lg p-4">
+            <p className="text-sm text-blue-800 dark:text-blue-200">
+              <strong>Note:</strong> Setting tournament results will automatically calculate and apply bonuses:
+              <ul className="list-disc list-inside mt-2 space-y-1">
+                <li>Season team wins title: +5 points</li>
+                <li>Player of Tournament: +5 points if correct</li>
+                <li>Highest Run Scorer: +5 points if correct</li>
+                <li>Highest Wicket Taker: +5 points if correct</li>
+              </ul>
+            </p>
+          </div>
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={!tournamentWinnerId || !playerOfTournamentId || !highestRunScorerId || !highestWicketTakerId || processing}
+            className="w-full px-6 py-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+          >
+            {processing ? (
+              <span className="flex items-center justify-center">
+                <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                Processing...
+              </span>
+            ) : (
+              'Save Tournament Results & Apply Bonuses'
+            )}
+          </button>
+        </form>
+          );
+        })()}
       </div>
     </div>
   );

@@ -11,6 +11,16 @@ export interface Tournament {
   startDate: Timestamp;
   endDate: Timestamp;
   status: 'draft' | 'active' | 'completed';
+  
+  // Tournament results (set when tournament ends)
+  winnerTeamId?: string;
+  winnerTeamName?: string;
+  playerOfTournamentId?: string;
+  playerOfTournamentName?: string;
+  highestRunScorerId?: string;
+  highestRunScorerName?: string;
+  highestWicketTakerId?: string;
+  highestWicketTakerName?: string;
 }
 
 export interface Team {
@@ -79,6 +89,15 @@ export interface UserEntry {
   totalPenalties: number;
   netPoints: number;
   currentRank: number;
+  
+  // Tournament end bonuses (calculated when tournament ends)
+  tournamentBonuses?: {
+    seasonTeamWinsTitle: number; // +5 if season team wins title
+    playerOfTournament: number; // +5 if correct
+    highestRunScorer: number; // +5 if correct
+    highestWicketTaker: number; // +5 if correct
+  };
+  
   isPaid: boolean;
   createdAt: Timestamp;
 }
