@@ -114,6 +114,10 @@ export interface Prediction {
   isCorrectPom?: boolean;
   isCorrectScoreCategory?: boolean;
   isCorrectWickets?: boolean;
+  isCorrectTeamAScore?: boolean;
+  isCorrectTeamAWickets?: boolean;
+  isCorrectTeamBScore?: boolean;
+  isCorrectTeamBWickets?: boolean;
   isCorrectHighestRunBatsman?: boolean;
   isCorrectHighestWicketBowler?: boolean;
   seasonTeamAdjustment?: number; // +1, -1, or 0
