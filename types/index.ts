@@ -115,6 +115,7 @@ export interface Prediction {
   
   // Scoring (calculated after match)
   pointsEarned?: number;
+  penaltyFee?: number; // Penalty fee in dollars ($2/$3/$5) for incorrect winner prediction
   isCorrectWinner?: boolean;
   isCorrectPom?: boolean;
   isCorrectScoreCategory?: boolean;

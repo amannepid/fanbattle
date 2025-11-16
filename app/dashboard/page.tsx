@@ -405,6 +405,11 @@ export default function DashboardPage() {
                             : '-'}
                         </div>
                         <div className="text-xs text-gray-600 dark:text-gray-400">points</div>
+                        {prediction.penaltyFee !== undefined && prediction.penaltyFee > 0 && (
+                          <div className="text-xs font-semibold text-red-600 dark:text-red-400 mt-1">
+                            -${prediction.penaltyFee} penalty
+                          </div>
+                        )}
                       </div>
                       {isExpanded ? (
                         <ChevronUp className="h-5 w-5 text-gray-400 flex-shrink-0" />
@@ -639,6 +644,19 @@ export default function DashboardPage() {
                                 <span>
                                   {prediction.seasonTeamAdjustment > 0 ? '+' : ''}{prediction.seasonTeamAdjustment}
                                 </span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Penalty Fee */}
+                        {prediction.penaltyFee !== undefined && prediction.penaltyFee > 0 && (
+                          <div className="bg-red-50 dark:bg-red-900/20 border border-red-400 dark:border-red-600 rounded-lg p-3">
+                            <div className="text-sm flex justify-between items-center">
+                              <span className="text-gray-700 dark:text-gray-300">Penalty Fee:</span>
+                              <div className="flex items-center space-x-1 px-3 py-1 rounded-full font-bold bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400">
+                                <XCircle className="h-4 w-4 text-red-600" />
+                                <span>${prediction.penaltyFee}</span>
                               </div>
                             </div>
                           </div>
