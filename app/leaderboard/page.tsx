@@ -60,12 +60,29 @@ export default function LeaderboardPage() {
       setLeaderboard(leaderboardData);
       setMatches(matchesData);
 
+      // Debug: Log overall data
+      console.log('📊 Leaderboard Data:', {
+        totalUsers: leaderboardData.length,
+        totalMatches: matchesData.length,
+        totalPredictions: predictionsData.length,
+        completedMatches: matchesData.filter(m => m.status === 'completed').length
+      });
+
       // Build player rows with match results
       const rows: PlayerRow[] = leaderboardData.map((entry, index) => {
         const matchesMap = new Map<string, MatchResult>();
         
         // Get predictions for this user
         const userPredictions = predictionsData.filter(p => p.userId === entry.userId);
+        
+        // Debug: Log user and their predictions
+        console.log(`🔍 User: ${entry.userName} (${entry.userId}) - Total Points: ${entry.totalPoints}`);
+        console.log(`   Found ${userPredictions.length} predictions:`, userPredictions.map(p => ({
+          matchId: p.matchId,
+          matchNumber: p.matchNumber,
+          points: p.pointsEarned,
+          bonus: p.seasonTeamAdjustment
+        })));
         
         // For each match, get the result
         matchesData.forEach(match => {
