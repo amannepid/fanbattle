@@ -135,7 +135,7 @@ export default function AdminPage() {
       await updatePrediction(prediction.id, {
         pointsEarned: scoringResult.points,
         isCorrectWinner: scoringResult.isCorrectWinner,
-        isCorrectMom: scoringResult.isCorrectMom,
+        isCorrectPom: scoringResult.isCorrectPom,
         isCorrectScoreCategory: scoringResult.isCorrectScoreCategory,
         isCorrectWickets: scoringResult.isCorrectWickets,
         seasonTeamAdjustment: scoringResult.breakdown.seasonTeamAdjustment,

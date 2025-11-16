@@ -59,7 +59,7 @@ export function calculatePoints(
       seasonTeamAdjustment: 0,
     },
     isCorrectWinner: false,
-    isCorrectMom: false,
+    isCorrectPom: false,
     isCorrectScoreCategory: false,
     isCorrectWickets: false,
   };
@@ -84,11 +84,11 @@ export function calculatePoints(
   // 3. Bonus Points (only if innings are valid - not reduced overs)
   const isInningsValid = !match.isReducedOvers;
 
-  // Man of the Match bonus
+  // Player of the Match bonus
   if (prediction.predictedMomId && match.momId) {
-    const isCorrectMom = prediction.predictedMomId === match.momId;
-    result.isCorrectMom = isCorrectMom;
-    if (isCorrectMom) {
+    const isCorrectPom = prediction.predictedMomId === match.momId;
+    result.isCorrectPom = isCorrectPom;
+    if (isCorrectPom) {
       result.breakdown.momBonus = 1;
     }
   }

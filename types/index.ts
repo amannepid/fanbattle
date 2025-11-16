@@ -131,7 +131,7 @@ export interface ScoringResult {
     seasonTeamAdjustment: number;
   };
   isCorrectWinner: boolean;
-  isCorrectMom: boolean;
+  isCorrectPom: boolean;
   isCorrectScoreCategory: boolean;
   isCorrectWickets: boolean;
 }
