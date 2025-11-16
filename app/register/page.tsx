@@ -121,6 +121,8 @@ export default function RegisterPage() {
         highestRunScorerName: highestRunScorer.name,
         
         totalPoints: 0,
+        totalPenalties: 0,
+        netPoints: 0,
         currentRank: 0,
         isPaid: true, // Since payments are manual, we set this to true
         createdAt: Timestamp.now(),

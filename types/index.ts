@@ -75,6 +75,8 @@ export interface UserEntry {
   highestRunScorerName?: string;
   
   totalPoints: number;
+  totalPenalties: number;
+  netPoints: number;
   currentRank: number;
   isPaid: boolean;
   createdAt: Timestamp;
