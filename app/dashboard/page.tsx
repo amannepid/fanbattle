@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
 import { getActiveTournament, getUserEntry, getUserPredictions, getMatches } from '@/lib/firestore';
-import { Loader2, Trophy, Target, CheckCircle, XCircle, Clock, TrendingUp } from 'lucide-react';
+import { Loader2, Trophy, Target, CheckCircle, XCircle, Clock, TrendingUp, ChevronDown, ChevronUp } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
 import type { Tournament, UserEntry, Prediction, Match } from '@/types';
@@ -17,6 +17,7 @@ export default function DashboardPage() {
   const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [matches, setMatches] = useState<Map<string, Match>>(new Map());
   const [loading, setLoading] = useState(true);
+  const [expandedPredictions, setExpandedPredictions] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -344,268 +345,307 @@ export default function DashboardPage() {
               };
               
               const actualScoreCategory = match.isReducedOvers ? '-' : getScoreCategory(actualScore);
+              const isExpanded = expandedPredictions.has(prediction.id);
+
+              const toggleExpand = () => {
+                setExpandedPredictions((prev) => {
+                  const newSet = new Set(prev);
+                  if (newSet.has(prediction.id)) {
+                    newSet.delete(prediction.id);
+                  } else {
+                    newSet.add(prediction.id);
+                  }
+                  return newSet;
+                });
+              };
 
               return (
                 <div
                   key={prediction.id}
-                  className={`bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border-l-4 ${
+                  className={`bg-white dark:bg-gray-800 rounded-lg shadow-lg border-l-4 ${
                     prediction.isCorrectWinner
                       ? 'border-green-500'
                       : 'border-red-500'
                   }`}
                 >
-                  {/* Header */}
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center space-x-3">
+                  {/* Collapsible Header */}
+                  <button
+                    onClick={toggleExpand}
+                    className="w-full p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                  >
+                    <div className="flex items-center space-x-3 flex-1">
                       {prediction.isCorrectWinner ? (
-                        <CheckCircle className="h-6 w-6 text-green-600 flex-shrink-0" />
+                        <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
                       ) : (
-                        <XCircle className="h-6 w-6 text-red-600 flex-shrink-0" />
+                        <XCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
                       )}
-                      <div>
-                        <div className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                      <div className="text-left flex-1">
+                        <div className="text-sm font-medium text-gray-900 dark:text-white">
                           Match {prediction.matchNumber} • {match.matchType}
                         </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-500">
+                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                           {format(match.matchDate.toDate(), 'MMM dd, yyyy')}
                         </div>
+                        <div className="text-sm font-semibold text-gray-700 dark:text-gray-300 mt-1">
+                          {match.teamAName} vs {match.teamBName}
+                        </div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="text-2xl font-bold text-primary-600">
-                        {prediction.pointsEarned !== undefined ? `+${prediction.pointsEarned}` : '-'}
+                    <div className="flex items-center space-x-3">
+                      <div className="text-right">
+                        <div className={`text-xl font-bold ${
+                          (prediction.pointsEarned || 0) > 0 
+                            ? 'text-green-600' 
+                            : (prediction.pointsEarned || 0) < 0
+                            ? 'text-red-600'
+                            : 'text-gray-600 dark:text-gray-400'
+                        }`}>
+                          {prediction.pointsEarned !== undefined 
+                            ? (prediction.pointsEarned > 0 ? '+' : '') + prediction.pointsEarned 
+                            : '-'}
+                        </div>
+                        <div className="text-xs text-gray-600 dark:text-gray-400">points</div>
                       </div>
-                      <div className="text-xs text-gray-600 dark:text-gray-400">points</div>
+                      {isExpanded ? (
+                        <ChevronUp className="h-5 w-5 text-gray-400 flex-shrink-0" />
+                      ) : (
+                        <ChevronDown className="h-5 w-5 text-gray-400 flex-shrink-0" />
+                      )}
                     </div>
-                  </div>
+                  </button>
 
-                  {/* Match Teams */}
-                  <div className="mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1 text-center">
-                        <div className="font-bold text-gray-900 dark:text-white text-lg">
-                          {match.teamAName}
-                        </div>
-                        {match.winnerId === match.teamAId && (
-                          <div className="text-xs text-green-600 font-medium mt-1">Winner</div>
-                        )}
-                      </div>
-                      <div className="px-4 text-gray-400 font-bold">vs</div>
-                      <div className="flex-1 text-center">
-                        <div className="font-bold text-gray-900 dark:text-white text-lg">
-                          {match.teamBName}
-                        </div>
-                        {match.winnerId === match.teamBId && (
-                          <div className="text-xs text-green-600 font-medium mt-1">Winner</div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Predictions vs Results */}
-                  <div className="space-y-4">
-                    {/* Winner Prediction vs Result */}
-                    <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Winner</span>
-                        {prediction.isCorrectWinner ? (
-                          <div className="flex items-center space-x-1 bg-green-100 dark:bg-green-900/30 px-3 py-1 rounded-full">
-                            <CheckCircle className="h-4 w-4 text-green-600" />
-                            <span className="text-sm font-bold text-green-700 dark:text-green-400">
-                              +{match.matchType === 'league' ? '3' : match.matchType === 'playoff' ? '5' : '7'}
-                            </span>
-                          </div>
-                        ) : (
-                          <XCircle className="h-5 w-5 text-red-600" />
-                        )}
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Your Prediction</div>
-                          <div className={`font-medium ${prediction.isCorrectWinner ? 'text-green-600' : 'text-gray-700 dark:text-gray-300'}`}>
-                            {prediction.predictedWinnerName}
-                          </div>
-                        </div>
-                        <div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Actual Result</div>
-                          <div className="font-medium text-gray-900 dark:text-white">
-                            {match.winnerName || '-'}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Player of the Match */}
-                    {(prediction.predictedPomName || actualPom) && (
-                      <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Player of the Match</span>
-                          {prediction.isCorrectPom ? (
-                            <div className="flex items-center space-x-1 bg-green-100 dark:bg-green-900/30 px-3 py-1 rounded-full">
-                              <CheckCircle className="h-4 w-4 text-green-600" />
-                              <span className="text-sm font-bold text-green-700 dark:text-green-400">+1</span>
+                  {/* Expanded Content */}
+                  {isExpanded && (
+                    <div className="px-4 pb-6 space-y-4">
+                      {/* Match Teams */}
+                      <div className="mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1 text-center">
+                            <div className="font-bold text-gray-900 dark:text-white text-lg">
+                              {match.teamAName}
                             </div>
-                          ) : (
-                            <XCircle className="h-5 w-5 text-red-600" />
-                          )}
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Your Prediction</div>
-                            <div className={`font-medium ${prediction.isCorrectPom ? 'text-green-600' : 'text-gray-700 dark:text-gray-300'}`}>
-                              {prediction.predictedPomName || '-'}
-                            </div>
+                            {match.winnerId === match.teamAId && (
+                              <div className="text-xs text-green-600 font-medium mt-1">Winner</div>
+                            )}
                           </div>
-                          <div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Actual Result</div>
-                            <div className="font-medium text-gray-900 dark:text-white">
-                              {actualPom || '-'}
+                          <div className="px-4 text-gray-400 font-bold">vs</div>
+                          <div className="flex-1 text-center">
+                            <div className="font-bold text-gray-900 dark:text-white text-lg">
+                              {match.teamBName}
                             </div>
+                            {match.winnerId === match.teamBId && (
+                              <div className="text-xs text-green-600 font-medium mt-1">Winner</div>
+                            )}
                           </div>
                         </div>
                       </div>
-                    )}
 
-                    {/* First Innings Predictions (only if not reduced overs) */}
-                    {!match.isReducedOvers && (actualScore !== undefined || prediction.teamAScoreCategory || prediction.teamBScoreCategory) && (
-                      <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-3">
-                          <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                            First Innings Predictions
-                          </span>
-                          {(() => {
-                            const scorePoints = prediction.isCorrectScoreCategory ? 1 : 0;
-                            const wicketsPoints = prediction.isCorrectWickets ? 1 : 0;
-                            const total = scorePoints + wicketsPoints;
-                            
-                            if (total === 0) {
-                              return <XCircle className="h-5 w-5 text-red-600" />;
-                            }
-                            
-                            return (
+                      {/* Predictions vs Results */}
+                      <div className="space-y-4">
+                        {/* Winner Prediction vs Result */}
+                        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Winner</span>
+                            {prediction.isCorrectWinner ? (
                               <div className="flex items-center space-x-1 bg-green-100 dark:bg-green-900/30 px-3 py-1 rounded-full">
                                 <CheckCircle className="h-4 w-4 text-green-600" />
                                 <span className="text-sm font-bold text-green-700 dark:text-green-400">
-                                  {scorePoints > 0 && wicketsPoints > 0 ? '1 + 1' : '1'}
+                                  +{match.matchType === 'league' ? '3' : match.matchType === 'playoff' ? '5' : '7'}
                                 </span>
                               </div>
-                            );
-                          })()}
+                            ) : (
+                              <XCircle className="h-5 w-5 text-red-600" />
+                            )}
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Your Prediction</div>
+                              <div className={`font-medium ${prediction.isCorrectWinner ? 'text-green-600' : 'text-gray-700 dark:text-gray-300'}`}>
+                                {prediction.predictedWinnerName}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Actual Result</div>
+                              <div className="font-medium text-gray-900 dark:text-white">
+                                {match.winnerName || '-'}
+                              </div>
+                            </div>
+                          </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
-                          {/* Your Predictions */}
-                          <div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">Your Prediction</div>
-                            <div className="space-y-2">
-                              {/* Team A Prediction */}
-                              {(prediction.teamAScoreCategory !== undefined || prediction.teamAWickets !== undefined) && (() => {
-                                // Check if this prediction matches the actual result (only if this team batted first)
-                                const isTeamAUsed = firstInningsBattingTeam === match.teamAId;
-                                const teamAMatchesScore = isTeamAUsed && prediction.teamAScoreCategory === actualScoreCategory;
-                                const teamAMatchesWickets = isTeamAUsed && prediction.teamAWickets !== undefined && prediction.teamAWickets === actualWickets;
-                                const teamAMatches = teamAMatchesScore || teamAMatchesWickets;
-                                
-                                return (
-                                  <div className={`font-medium text-sm p-2 rounded ${teamAMatches ? 'bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700' : ''}`}>
-                                    <span className="font-semibold">{match.teamAName}</span>
-                                    {' / '}
-                                    {prediction.teamAScoreCategory ? (
-                                      <span className={teamAMatchesScore ? 'text-green-700 dark:text-green-400 font-semibold' : ''}>
-                                        {prediction.teamAScoreCategory} <span className="text-xs font-normal">({getScoreRange(prediction.teamAScoreCategory)})</span>
-                                      </span>
-                                    ) : '-'}
-                                    {prediction.teamAScoreCategory && prediction.teamAWickets !== undefined ? ' / ' : ''}
-                                    {prediction.teamAWickets !== undefined ? (
-                                      <span className={teamAMatchesWickets ? 'text-green-700 dark:text-green-400 font-semibold' : ''}>
-                                        {prediction.teamAWickets} Wickets
-                                      </span>
-                                    ) : ''}
-                                  </div>
-                                );
-                              })()}
+                        {/* Player of the Match */}
+                        {(prediction.predictedPomName || actualPom) && (
+                          <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Player of the Match</span>
+                              {prediction.isCorrectPom ? (
+                                <div className="flex items-center space-x-1 bg-green-100 dark:bg-green-900/30 px-3 py-1 rounded-full">
+                                  <CheckCircle className="h-4 w-4 text-green-600" />
+                                  <span className="text-sm font-bold text-green-700 dark:text-green-400">+1</span>
+                                </div>
+                              ) : (
+                                <XCircle className="h-5 w-5 text-red-600" />
+                              )}
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Your Prediction</div>
+                                <div className={`font-medium ${prediction.isCorrectPom ? 'text-green-600' : 'text-gray-700 dark:text-gray-300'}`}>
+                                  {prediction.predictedPomName || '-'}
+                                </div>
+                              </div>
+                              <div>
+                                <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Actual Result</div>
+                                <div className="font-medium text-gray-900 dark:text-white">
+                                  {actualPom || '-'}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
 
-                              {/* Team B Prediction */}
-                              {(prediction.teamBScoreCategory !== undefined || prediction.teamBWickets !== undefined) && (() => {
-                                // Check if this prediction matches the actual result (only if this team batted first)
-                                const isTeamBUsed = firstInningsBattingTeam === match.teamBId;
-                                const teamBMatchesScore = isTeamBUsed && prediction.teamBScoreCategory === actualScoreCategory;
-                                const teamBMatchesWickets = isTeamBUsed && prediction.teamBWickets !== undefined && prediction.teamBWickets === actualWickets;
-                                const teamBMatches = teamBMatchesScore || teamBMatchesWickets;
+                        {/* First Innings Predictions (only if not reduced overs) */}
+                        {!match.isReducedOvers && (actualScore !== undefined || prediction.teamAScoreCategory || prediction.teamBScoreCategory) && (
+                          <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
+                            <div className="flex items-center justify-between mb-3">
+                              <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                                First Innings Predictions
+                              </span>
+                              {(() => {
+                                const scorePoints = prediction.isCorrectScoreCategory ? 1 : 0;
+                                const wicketsPoints = prediction.isCorrectWickets ? 1 : 0;
+                                const total = scorePoints + wicketsPoints;
+                                
+                                if (total === 0) {
+                                  return <XCircle className="h-5 w-5 text-red-600" />;
+                                }
                                 
                                 return (
-                                  <div className={`font-medium text-sm p-2 rounded ${teamBMatches ? 'bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700' : ''}`}>
-                                    <span className="font-semibold">{match.teamBName}</span>
-                                    {' / '}
-                                    {prediction.teamBScoreCategory ? (
-                                      <span className={teamBMatchesScore ? 'text-green-700 dark:text-green-400 font-semibold' : ''}>
-                                        {prediction.teamBScoreCategory} <span className="text-xs font-normal">({getScoreRange(prediction.teamBScoreCategory)})</span>
-                                      </span>
-                                    ) : '-'}
-                                    {prediction.teamBScoreCategory && prediction.teamBWickets !== undefined ? ' / ' : ''}
-                                    {prediction.teamBWickets !== undefined ? (
-                                      <span className={teamBMatchesWickets ? 'text-green-700 dark:text-green-400 font-semibold' : ''}>
-                                        {prediction.teamBWickets} Wickets
-                                      </span>
-                                    ) : ''}
+                                  <div className="flex items-center space-x-1 bg-green-100 dark:bg-green-900/30 px-3 py-1 rounded-full">
+                                    <CheckCircle className="h-4 w-4 text-green-600" />
+                                    <span className="text-sm font-bold text-green-700 dark:text-green-400">
+                                      {scorePoints > 0 && wicketsPoints > 0 ? '1 + 1' : '1'}
+                                    </span>
                                   </div>
                                 );
                               })()}
                             </div>
-                          </div>
 
-                          {/* Match Result */}
-                          <div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">Match Result</div>
-                            {actualScore !== undefined && (
-                              <div className="space-y-2">
-                                <div className="font-medium text-sm text-gray-900 dark:text-white p-2 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700">
-                                  <span className="font-semibold">
-                                    {firstInningsBattingTeam === match.teamAId ? match.teamAName : match.teamBName}
-                                  </span>
-                                  {' / '}
-                                  {actualScoreCategory} <span className="text-xs font-normal">({actualScore} runs)</span>
-                                  {actualWickets !== undefined && ` / ${actualWickets} Wickets`}
+                            <div className="grid grid-cols-2 gap-4">
+                              {/* Your Predictions */}
+                              <div>
+                                <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">Your Prediction</div>
+                                <div className="space-y-2">
+                                  {/* Team A Prediction */}
+                                  {(prediction.teamAScoreCategory !== undefined || prediction.teamAWickets !== undefined) && (() => {
+                                    // Check if this prediction matches the actual result (only if this team batted first)
+                                    const isTeamAUsed = firstInningsBattingTeam === match.teamAId;
+                                    const teamAMatchesScore = isTeamAUsed && prediction.teamAScoreCategory === actualScoreCategory;
+                                    const teamAMatchesWickets = isTeamAUsed && prediction.teamAWickets !== undefined && prediction.teamAWickets === actualWickets;
+                                    const teamAMatches = teamAMatchesScore || teamAMatchesWickets;
+                                    
+                                    return (
+                                      <div className={`font-medium text-sm p-2 rounded ${teamAMatches ? 'bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700' : ''}`}>
+                                        <span className="font-semibold">{match.teamAName}</span>
+                                        {' / '}
+                                        {prediction.teamAScoreCategory ? (
+                                          <span className={teamAMatchesScore ? 'text-green-700 dark:text-green-400 font-semibold' : ''}>
+                                            {prediction.teamAScoreCategory} <span className="text-xs font-normal">({getScoreRange(prediction.teamAScoreCategory)})</span>
+                                          </span>
+                                        ) : '-'}
+                                        {prediction.teamAScoreCategory && prediction.teamAWickets !== undefined ? ' / ' : ''}
+                                        {prediction.teamAWickets !== undefined ? (
+                                          <span className={teamAMatchesWickets ? 'text-green-700 dark:text-green-400 font-semibold' : ''}>
+                                            {prediction.teamAWickets} Wickets
+                                          </span>
+                                        ) : ''}
+                                      </div>
+                                    );
+                                  })()}
+
+                                  {/* Team B Prediction */}
+                                  {(prediction.teamBScoreCategory !== undefined || prediction.teamBWickets !== undefined) && (() => {
+                                    // Check if this prediction matches the actual result (only if this team batted first)
+                                    const isTeamBUsed = firstInningsBattingTeam === match.teamBId;
+                                    const teamBMatchesScore = isTeamBUsed && prediction.teamBScoreCategory === actualScoreCategory;
+                                    const teamBMatchesWickets = isTeamBUsed && prediction.teamBWickets !== undefined && prediction.teamBWickets === actualWickets;
+                                    const teamBMatches = teamBMatchesScore || teamBMatchesWickets;
+                                    
+                                    return (
+                                      <div className={`font-medium text-sm p-2 rounded ${teamBMatches ? 'bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700' : ''}`}>
+                                        <span className="font-semibold">{match.teamBName}</span>
+                                        {' / '}
+                                        {prediction.teamBScoreCategory ? (
+                                          <span className={teamBMatchesScore ? 'text-green-700 dark:text-green-400 font-semibold' : ''}>
+                                            {prediction.teamBScoreCategory} <span className="text-xs font-normal">({getScoreRange(prediction.teamBScoreCategory)})</span>
+                                          </span>
+                                        ) : '-'}
+                                        {prediction.teamBScoreCategory && prediction.teamBWickets !== undefined ? ' / ' : ''}
+                                        {prediction.teamBWickets !== undefined ? (
+                                          <span className={teamBMatchesWickets ? 'text-green-700 dark:text-green-400 font-semibold' : ''}>
+                                            {prediction.teamBWickets} Wickets
+                                          </span>
+                                        ) : ''}
+                                      </div>
+                                    );
+                                  })()}
                                 </div>
                               </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    )}
 
-                    {/* Reduced Overs Notice */}
-                    {match.isReducedOvers && (
-                      <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-400 dark:border-yellow-600 rounded-lg p-3">
-                        <div className="text-xs text-yellow-800 dark:text-yellow-200">
-                          ⚠️ Reduced Overs Match - Score/Wickets predictions not counted
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Season Team Adjustment */}
-                    {prediction.seasonTeamAdjustment !== undefined && prediction.seasonTeamAdjustment !== 0 && (
-                      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-400 dark:border-blue-600 rounded-lg p-3">
-                        <div className="text-sm flex justify-between items-center">
-                          <span className="text-gray-700 dark:text-gray-300">Season Team Adjustment:</span>
-                          <div className={`flex items-center space-x-1 px-3 py-1 rounded-full font-bold ${
-                            prediction.seasonTeamAdjustment > 0 
-                              ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' 
-                              : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
-                          }`}>
-                            {prediction.seasonTeamAdjustment > 0 ? (
-                              <CheckCircle className="h-4 w-4 text-green-600" />
-                            ) : (
-                              <XCircle className="h-4 w-4 text-red-600" />
-                            )}
-                            <span>
-                              {prediction.seasonTeamAdjustment > 0 ? '+' : ''}{prediction.seasonTeamAdjustment}
-                            </span>
+                              {/* Match Result */}
+                              <div>
+                                <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">Match Result</div>
+                                {actualScore !== undefined && (
+                                  <div className="space-y-2">
+                                    <div className="font-medium text-sm text-gray-900 dark:text-white p-2 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700">
+                                      <span className="font-semibold">
+                                        {firstInningsBattingTeam === match.teamAId ? match.teamAName : match.teamBName}
+                                      </span>
+                                      {' / '}
+                                      {actualScoreCategory} <span className="text-xs font-normal">({actualScore} runs)</span>
+                                      {actualWickets !== undefined && ` / ${actualWickets} Wickets`}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
                           </div>
-                        </div>
+                        )}
+
+                        {/* Reduced Overs Notice */}
+                        {match.isReducedOvers && (
+                          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-400 dark:border-yellow-600 rounded-lg p-3">
+                            <div className="text-xs text-yellow-800 dark:text-yellow-200">
+                              ⚠️ Reduced Overs Match - Score/Wickets predictions not counted
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Season Team Adjustment */}
+                        {prediction.seasonTeamAdjustment !== undefined && prediction.seasonTeamAdjustment !== 0 && (
+                          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-400 dark:border-blue-600 rounded-lg p-3">
+                            <div className="text-sm flex justify-between items-center">
+                              <span className="text-gray-700 dark:text-gray-300">Season Team Adjustment:</span>
+                              <div className={`flex items-center space-x-1 px-3 py-1 rounded-full font-bold ${
+                                prediction.seasonTeamAdjustment > 0 
+                                  ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' 
+                                  : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
+                              }`}>
+                                {prediction.seasonTeamAdjustment > 0 ? (
+                                  <CheckCircle className="h-4 w-4 text-green-600" />
+                                ) : (
+                                  <XCircle className="h-4 w-4 text-red-600" />
+                                )}
+                                <span>
+                                  {prediction.seasonTeamAdjustment > 0 ? '+' : ''}{prediction.seasonTeamAdjustment}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
               );
             })}
