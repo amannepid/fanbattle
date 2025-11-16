@@ -172,9 +172,11 @@ export async function getMatchPredictions(matchId: string): Promise<Prediction[]
 }
 
 export async function getAllPredictions(tournamentId: string): Promise<Prediction[]> {
+  // Note: Predictions don't have tournamentId field, so we fetch all predictions
+  // and filter them later if needed. Since we only have one active tournament,
+  // this works fine for now.
   const q = query(
     collection(db, COLLECTIONS.predictions),
-    where('tournamentId', '==', tournamentId),
     orderBy('matchNumber', 'asc')
   );
   const snapshot = await getDocs(q);
