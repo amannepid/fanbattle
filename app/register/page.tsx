@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
 import { getActiveTournament, getTeams, getUserEntry, createUserEntry } from '@/lib/firestore';
-import { Loader2, Trophy, Check, Shield } from 'lucide-react';
+import { Loader2, Trophy, Check, Shield, Copy, CheckCircle2 } from 'lucide-react';
 import { Timestamp, collection, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import type { Tournament, Team, Player } from '@/types';
@@ -27,6 +27,7 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -291,6 +292,57 @@ export default function RegisterPage() {
               placeholder="Search for your pick..."
             />
           </div>
+
+          {/* Copy Registration Content */}
+          {selectedTeam && playerOfTournament && highestWicketTaker && highestRunScorer && (
+            <div className="mb-8">
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                    <Copy className="h-4 w-4" />
+                    Share Your Registration
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const selectedTeamData = teams.find(t => t.id === selectedTeam);
+                      const content = `Season Team: ${selectedTeamData?.name || 'N/A'}
+
+Player of the Tournament: ${playerOfTournament.name}
+
+Highest Wicket Taker: ${highestWicketTaker.name}
+
+Highest Run Scorer: ${highestRunScorer.name}`;
+                      
+                      try {
+                        await navigator.clipboard.writeText(content);
+                        setCopied(true);
+                        setTimeout(() => setCopied(false), 2000);
+                      } catch (err) {
+                        console.error('Failed to copy:', err);
+                      }
+                    }}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium"
+                  >
+                    {copied ? (
+                      <>
+                        <CheckCircle2 className="h-4 w-4" />
+                        Copied!
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-4 w-4" />
+                        Copy
+                      </>
+                    )}
+                  </button>
+                </div>
+                <p className="text-xs text-gray-600 dark:text-gray-400">
+                  Copy your registration details to share on social media
+                </p>
+              </div>
+            </div>
+          )}
 
           {error && (
             <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-400 dark:border-red-600 rounded-lg">

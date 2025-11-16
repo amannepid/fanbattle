@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
-import { getActiveTournament, getUserEntry, getUserPredictions, getMatches } from '@/lib/firestore';
-import { Loader2, Trophy, Target, CheckCircle, XCircle, Clock, TrendingUp, ChevronDown, ChevronUp } from 'lucide-react';
+import { getActiveTournament, getUserEntry, getUserPredictions, getMatches, getTeams } from '@/lib/firestore';
+import { Loader2, Trophy, Target, CheckCircle, XCircle, Clock, TrendingUp, ChevronDown, ChevronUp, Copy, CheckCircle2 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
 import type { Tournament, UserEntry, Prediction, Match } from '@/types';
@@ -16,8 +16,10 @@ export default function DashboardPage() {
   const [userEntry, setUserEntry] = useState<UserEntry | null>(null);
   const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [matches, setMatches] = useState<Map<string, Match>>(new Map());
+  const [teams, setTeams] = useState<Map<string, { name: string; shortCode: string }>>(new Map());
   const [loading, setLoading] = useState(true);
   const [expandedPredictions, setExpandedPredictions] = useState<Set<string>>(new Set());
+  const [copiedPredictionId, setCopiedPredictionId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -54,6 +56,11 @@ export default function DashboardPage() {
       const matchesData = await getMatches(activeTournament.id);
       const matchMap = new Map(matchesData.map((m) => [m.id, m]));
       setMatches(matchMap);
+
+      // Load teams to get short codes
+      const teamsData = await getTeams(activeTournament.id);
+      const teamMap = new Map(teamsData.map((t) => [t.id, { name: t.name, shortCode: t.shortCode }]));
+      setTeams(teamMap);
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -91,6 +98,36 @@ export default function DashboardPage() {
     const match = matches.get(p.matchId);
     return match && match.status === 'completed';
   }).sort((a, b) => b.matchNumber - a.matchNumber);
+
+  // Helper function to get start of day
+  function getStartOfDay(date: Date): Date {
+    const start = new Date(date);
+    start.setHours(0, 0, 0, 0);
+    return start;
+  }
+
+  // Helper function to get first match of the day for a given match
+  function getFirstMatchOfDay(match: Match): Match | null {
+    const matchDate = match.matchDate.toDate();
+    const dayKey = getStartOfDay(matchDate).toISOString();
+    
+    // Get all matches and find the first one on the same day
+    const allMatches = Array.from(matches.values());
+    const sameDayMatches = allMatches.filter((m) => {
+      const mDate = m.matchDate.toDate();
+      const mDayKey = getStartOfDay(mDate).toISOString();
+      return mDayKey === dayKey && m.status === 'upcoming';
+    });
+    
+    if (sameDayMatches.length === 0) return null;
+    
+    // Sort by match date and return the first one
+    sameDayMatches.sort((a, b) => 
+      a.matchDate.toDate().getTime() - b.matchDate.toDate().getTime()
+    );
+    
+    return sameDayMatches[0];
+  }
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -192,8 +229,24 @@ export default function DashboardPage() {
               const match = matches.get(prediction.matchId);
               if (!match) return null;
 
+              // Get first match of the day
+              const firstMatchOfDay = getFirstMatchOfDay(match);
+              if (!firstMatchOfDay) return null;
+
+              const now = new Date();
+              const firstMatchStartTime = firstMatchOfDay.matchDate.toDate();
+              
+              // Edit button: visible until 6 hours before first match start time
+              const editCutoffTime = new Date(firstMatchStartTime);
+              editCutoffTime.setHours(editCutoffTime.getHours() - 6);
+              const canEdit = now < editCutoffTime;
+              
+              // Copy button: visible until 4 hours before first match start time
+              const copyCutoffTime = new Date(firstMatchStartTime);
+              copyCutoffTime.setHours(copyCutoffTime.getHours() - 4);
+              const canCopy = now < copyCutoffTime;
+
               const deadline = match.deadline.toDate();
-              const canEdit = new Date() < deadline;
 
               return (
                 <div key={prediction.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
@@ -258,7 +311,67 @@ export default function DashboardPage() {
                         </div>
                       )}
                     </div>
-                    <div className="flex justify-end mt-3">
+                    <div className="flex items-center justify-between mt-3">
+                      {canCopy && (
+                        <button
+                          type="button"
+                          onClick={async () => {
+                          const teamA = teams.get(match.teamAId);
+                          const teamB = teams.get(match.teamBId);
+                          const winnerTeam = teams.get(prediction.predictedWinnerId);
+                          
+                          const teamAShortCode = teamA?.shortCode || match.teamAName;
+                          const teamBShortCode = teamB?.shortCode || match.teamBName;
+                          const winnerShortCode = winnerTeam?.shortCode || prediction.predictedWinnerName || 'N/A';
+                          
+                          const matchType = match.matchType;
+                          
+                          let content = `Match ${prediction.matchNumber} . ${matchType}\n`;
+                          content += `${teamAShortCode} vs ${teamBShortCode}\n`;
+                          content += `Winner: ${winnerShortCode}\n`;
+                          
+                          // Team A prediction
+                          if (prediction.teamAScoreCategory || prediction.teamAWickets !== undefined) {
+                            const scoreCat = prediction.teamAScoreCategory || '-';
+                            const wickets = prediction.teamAWickets !== undefined ? prediction.teamAWickets : '-';
+                            content += `${teamAShortCode} / ${scoreCat} / ${wickets}\n`;
+                          }
+                          
+                          // Team B prediction
+                          if (prediction.teamBScoreCategory || prediction.teamBWickets !== undefined) {
+                            const scoreCat = prediction.teamBScoreCategory || '-';
+                            const wickets = prediction.teamBWickets !== undefined ? prediction.teamBWickets : '-';
+                            content += `${teamBShortCode} / ${scoreCat} / ${wickets}\n`;
+                          }
+                          
+                          // MoM
+                          if (prediction.predictedPomName) {
+                            content += `MoM: ${prediction.predictedPomName}`;
+                          }
+                          
+                          try {
+                            await navigator.clipboard.writeText(content);
+                            setCopiedPredictionId(prediction.id);
+                            setTimeout(() => setCopiedPredictionId(null), 2000);
+                          } catch (err) {
+                            console.error('Failed to copy:', err);
+                          }
+                        }}
+                        className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium"
+                      >
+                        {copiedPredictionId === prediction.id ? (
+                          <>
+                            <CheckCircle2 className="h-4 w-4" />
+                            Copied!
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="h-4 w-4" />
+                            Copy Prediction
+                          </>
+                        )}
+                      </button>
+                      )}
                       {canEdit ? (
                         <span className="text-xs text-blue-600 dark:text-blue-400">
                           {formatDistanceToNow(deadline, { addSuffix: true })}

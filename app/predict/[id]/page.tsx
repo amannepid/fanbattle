@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { useRouter, useParams } from 'next/navigation';
-import { getMatch, getUserEntry, getPrediction, createPrediction, updatePrediction } from '@/lib/firestore';
+import { getMatch, getMatches, getUserEntry, getPrediction, createPrediction, updatePrediction } from '@/lib/firestore';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Loader2, Trophy, User, BarChart3, Target } from 'lucide-react';
@@ -28,6 +28,7 @@ export default function PredictPage() {
   const matchId = params.id as string;
 
   const [match, setMatch] = useState<Match | null>(null);
+  const [allMatches, setAllMatches] = useState<Match[]>([]);
   const [matchPlayers, setMatchPlayers] = useState<Player[]>([]); // Only players from both teams
   const [allTeams, setAllTeams] = useState<any[]>([]);
   const [userEntry, setUserEntry] = useState<UserEntry | null>(null);
@@ -58,6 +59,35 @@ export default function PredictPage() {
     }
   }, [user, authLoading, matchId, router]);
 
+  // Helper function to get start of day
+  const getStartOfDay = (date: Date): Date => {
+    const start = new Date(date);
+    start.setHours(0, 0, 0, 0);
+    return start;
+  };
+
+  // Helper function to get first match of the day for a given match
+  const getFirstMatchOfDay = (match: Match): Match | null => {
+    const matchDate = match.matchDate.toDate();
+    const dayKey = getStartOfDay(matchDate).toISOString();
+    
+    // Get all matches and find the first one on the same day
+    const sameDayMatches = allMatches.filter((m) => {
+      const mDate = m.matchDate.toDate();
+      const mDayKey = getStartOfDay(mDate).toISOString();
+      return mDayKey === dayKey && m.status === 'upcoming';
+    });
+    
+    if (sameDayMatches.length === 0) return null;
+    
+    // Sort by match date and return the first one
+    sameDayMatches.sort((a, b) => 
+      a.matchDate.toDate().getTime() - b.matchDate.toDate().getTime()
+    );
+    
+    return sameDayMatches[0];
+  };
+
   async function loadData() {
     try {
       if (!user) return;
@@ -76,6 +106,10 @@ export default function PredictPage() {
         return;
       }
       setMatch(matchData);
+
+      // Load all matches to find first match of the day
+      const matchesData = await getMatches(matchData.tournamentId);
+      setAllMatches(matchesData);
 
       // Load teams for display
       const teamsSnapshot = await getDocs(collection(db, 'teams'));
@@ -121,11 +155,20 @@ export default function PredictPage() {
     e.preventDefault();
     if (!predictedWinnerId || !match || !user || !userEntry) return;
 
-    // Check deadline
+    // Check deadline: 6 hours before first match of the day
     const now = new Date();
-    const deadline = match.deadline.toDate();
-    if (now >= deadline) {
-      setError('Prediction deadline has passed');
+    const firstMatchOfDay = getFirstMatchOfDay(match);
+    if (!firstMatchOfDay) {
+      setError('Unable to determine match deadline');
+      return;
+    }
+
+    const firstMatchStartTime = firstMatchOfDay.matchDate.toDate();
+    const editCutoffTime = new Date(firstMatchStartTime);
+    editCutoffTime.setHours(editCutoffTime.getHours() - 6);
+    
+    if (now >= editCutoffTime) {
+      setError('Prediction deadline has passed. You can no longer edit predictions 6 hours before the first match of the day.');
       return;
     }
 
@@ -190,8 +233,18 @@ export default function PredictPage() {
     return null;
   }
 
-  const deadline = match.deadline.toDate();
-  const isPastDeadline = new Date() >= deadline;
+  // Calculate deadline based on first match of the day (6 hours before)
+  const firstMatchOfDay = getFirstMatchOfDay(match);
+  const editCutoffTime = firstMatchOfDay 
+    ? (() => {
+        const firstMatchStartTime = firstMatchOfDay.matchDate.toDate();
+        const cutoff = new Date(firstMatchStartTime);
+        cutoff.setHours(cutoff.getHours() - 6);
+        return cutoff;
+      })()
+    : match.deadline.toDate();
+  
+  const isPastDeadline = new Date() >= editCutoffTime;
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -238,7 +291,7 @@ export default function PredictPage() {
           </p>
           {!isPastDeadline && (
             <p className="text-gold-500 font-bold">
-              Deadline: {formatDistanceToNow(deadline, { addSuffix: true })}
+              Deadline: {formatDistanceToNow(editCutoffTime, { addSuffix: true })} (6 hours before first match of the day)
             </p>
           )}
         </div>

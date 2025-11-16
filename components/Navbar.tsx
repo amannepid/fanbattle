@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
-import { Home, BarChart3, User, LogOut, Shield, Trophy } from 'lucide-react';
+import { Home, BarChart3, User, LogOut, Shield, Trophy, Users } from 'lucide-react';
 
 export default function Navbar() {
   const { user, signOut, isAdmin } = useAuth();
@@ -73,6 +73,10 @@ export default function Navbar() {
                     <User className="h-4 w-4" />
                     <span>Dashboard</span>
                   </Link>
+                  <Link href="/battleground" className={getNavLinkClasses('/battleground')}>
+                    <Users className="h-4 w-4" />
+                    <span>Battle Ground</span>
+                  </Link>
                   <Link href="/leaderboard" className={getNavLinkClasses('/leaderboard')}>
                     <BarChart3 className="h-4 w-4" />
                     <span>Leaderboard</span>
@@ -86,6 +90,9 @@ export default function Navbar() {
                   </Link>
                   <Link href="/dashboard" className={getNavLinkClasses('/dashboard')}>
                     <User className="h-5 w-5" />
+                  </Link>
+                  <Link href="/battleground" className={getNavLinkClasses('/battleground')}>
+                    <Users className="h-5 w-5" />
                   </Link>
                   <Link href="/leaderboard" className={getNavLinkClasses('/leaderboard')}>
                     <BarChart3 className="h-5 w-5" />
