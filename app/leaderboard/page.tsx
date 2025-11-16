@@ -67,6 +67,25 @@ export default function LeaderboardPage() {
         totalPredictions: predictionsData.length,
         completedMatches: matchesData.filter(m => m.status === 'completed').length
       });
+      
+      // Debug: Log completed matches
+      const completedMatches = matchesData.filter(m => m.status === 'completed');
+      console.log('✅ Completed Matches:', completedMatches.map(m => ({
+        id: m.id,
+        matchNumber: m.matchNumber,
+        teams: `${m.teamAName} vs ${m.teamBName}`,
+        winner: m.winnerName
+      })));
+      
+      // Debug: Log ALL predictions
+      console.log('🎯 All Predictions:', predictionsData.map(p => ({
+        userId: p.userId,
+        userName: leaderboardData.find(u => u.userId === p.userId)?.userName || 'Unknown',
+        matchId: p.matchId,
+        matchNumber: p.matchNumber,
+        points: p.pointsEarned,
+        bonus: p.seasonTeamAdjustment
+      })));
 
       // Build player rows with match results
       const rows: PlayerRow[] = leaderboardData.map((entry, index) => {
