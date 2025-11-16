@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { getActiveTournament, getLeaderboard, getMatches, getAllPredictions } from '@/lib/firestore';
-import { Loader2, Trophy, Medal, Crown, TrendingUp, CheckCircle, Clock, Lock, Award } from 'lucide-react';
+import { Loader2, Trophy, Medal, Crown, TrendingUp, CheckCircle, Clock, Lock, Award, XCircle } from 'lucide-react';
 import type { Tournament, UserEntry, Match, Prediction } from '@/types';
 
 interface MatchResult {
@@ -12,6 +12,7 @@ interface MatchResult {
   points: number;
   bonus: number;
   status: 'completed' | 'upcoming';
+  hasPrediction: boolean;
 }
 
 interface PlayerRow {
@@ -70,25 +71,39 @@ export default function LeaderboardPage() {
         matchesData.forEach(match => {
           const prediction = userPredictions.find(p => p.matchId === match.id);
           
-          if (prediction && match.status === 'completed') {
-            // Calculate bonus (season team adjustment if applicable)
-            const bonus = prediction.seasonTeamAdjustment || 0;
-            
-            matchesMap.set(match.id, {
-              matchId: match.id,
-              matchNumber: match.matchNumber,
-              points: prediction.pointsEarned || 0,
-              bonus: bonus,
-              status: 'completed'
-            });
+          if (match.status === 'completed') {
+            // Match is completed - show result regardless of prediction
+            if (prediction) {
+              // User made a prediction
+              const bonus = prediction.seasonTeamAdjustment || 0;
+              matchesMap.set(match.id, {
+                matchId: match.id,
+                matchNumber: match.matchNumber,
+                points: prediction.pointsEarned || 0,
+                bonus: bonus,
+                status: 'completed',
+                hasPrediction: true
+              });
+            } else {
+              // User didn't predict - show 0 points for completed match
+              matchesMap.set(match.id, {
+                matchId: match.id,
+                matchNumber: match.matchNumber,
+                points: 0,
+                bonus: 0,
+                status: 'completed',
+                hasPrediction: false
+              });
+            }
           } else {
-            // Upcoming match or no prediction yet
+            // Upcoming match
             matchesMap.set(match.id, {
               matchId: match.id,
               matchNumber: match.matchNumber,
               points: 0,
               bonus: 0,
-              status: 'upcoming'
+              status: 'upcoming',
+              hasPrediction: false
             });
           }
         });
@@ -340,11 +355,20 @@ export default function LeaderboardPage() {
                               }`}>
                                 {isCompleted ? (
                                   <div className="flex items-center justify-center gap-1">
-                                    <span className="text-lg font-bold text-navy-600 dark:text-white">
-                                      {result.points}
-                                    </span>
-                                    {result.points > 0 && (
-                                      <CheckCircle className="h-4 w-4 text-green-500" />
+                                    {result.hasPrediction ? (
+                                      <>
+                                        <span className="text-lg font-bold text-navy-600 dark:text-white">
+                                          {result.points}
+                                        </span>
+                                        {result.points > 0 && (
+                                          <CheckCircle className="h-4 w-4 text-green-500" />
+                                        )}
+                                      </>
+                                    ) : (
+                                      <div className="flex flex-col items-center gap-0.5">
+                                        <XCircle className="h-5 w-5 text-red-500" />
+                                        <span className="text-xs text-red-600 dark:text-red-400 font-medium">MISS</span>
+                                      </div>
                                     )}
                                   </div>
                                 ) : (
@@ -395,6 +419,10 @@ export default function LeaderboardPage() {
                 <div className="flex items-center gap-1">
                   <CheckCircle className="h-3 w-3 text-green-500" />
                   <span>Points Earned</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <XCircle className="h-3 w-3 text-red-500" />
+                  <span>Missed Prediction</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Lock className="h-3 w-3 text-gray-400" />
