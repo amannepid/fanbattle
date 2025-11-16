@@ -171,6 +171,16 @@ export async function getMatchPredictions(matchId: string): Promise<Prediction[]
   return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Prediction));
 }
 
+export async function getAllPredictions(tournamentId: string): Promise<Prediction[]> {
+  const q = query(
+    collection(db, COLLECTIONS.predictions),
+    where('tournamentId', '==', tournamentId),
+    orderBy('matchNumber', 'asc')
+  );
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Prediction));
+}
+
 export async function createPrediction(prediction: Omit<Prediction, 'id'>): Promise<void> {
   const predictionId = `${prediction.userId}_${prediction.matchId}`;
   const docRef = doc(db, COLLECTIONS.predictions, predictionId);
