@@ -987,7 +987,8 @@ export default function BattleGroundPage() {
           id: 'tournament-1',
           name: 'NPL Season 2',
           status: 'active',
-          createdAt: Timestamp.now(),
+          startDate: Timestamp.fromDate(new Date()),
+          endDate: Timestamp.fromDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)),
         } as Tournament);
 
         const matchMap = new Map(mockData.matches.map((m) => [m.id, m]));

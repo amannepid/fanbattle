@@ -263,13 +263,13 @@ async function seedTestData() {
     const allPlayers = playersSnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
-    }));
+    } as { id: string; name: string; teamId: string }));
 
     // Get players from each team
-    const team1Players = allPlayers.filter((p: any) => p.teamId === 'test-team-1');
-    const team2Players = allPlayers.filter((p: any) => p.teamId === 'test-team-2');
-    const team3Players = allPlayers.filter((p: any) => p.teamId === 'test-team-3');
-    const team4Players = allPlayers.filter((p: any) => p.teamId === 'test-team-4');
+    const team1Players = allPlayers.filter((p) => p.teamId === 'test-team-1');
+    const team2Players = allPlayers.filter((p) => p.teamId === 'test-team-2');
+    const team3Players = allPlayers.filter((p) => p.teamId === 'test-team-3');
+    const team4Players = allPlayers.filter((p) => p.teamId === 'test-team-4');
     const allTeamPlayers = [...team1Players, ...team2Players, ...team3Players, ...team4Players];
 
     for (let i = 0; i < testUserEntries.length; i++) {

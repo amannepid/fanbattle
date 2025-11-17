@@ -164,7 +164,12 @@ async function recalculateMatch(matchId: string) {
 
       // Add tournament bonuses if they exist
       if (userEntry.tournamentBonuses) {
-        newTotalPoints += userEntry.tournamentBonuses.total || 0;
+        const bonusTotal = 
+          (userEntry.tournamentBonuses.seasonTeamWinsTitle || 0) +
+          (userEntry.tournamentBonuses.playerOfTournament || 0) +
+          (userEntry.tournamentBonuses.highestRunScorer || 0) +
+          (userEntry.tournamentBonuses.highestWicketTaker || 0);
+        newTotalPoints += bonusTotal;
       }
 
       // Recalculate total penalties
