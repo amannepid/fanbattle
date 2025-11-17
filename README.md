@@ -48,7 +48,7 @@ FanBattle/
 ├── public/              # Static assets
 │   ├── teams/          # Team logos
 │   └── hero-banner.jpg # Hero image
-└── player-data/        # Player CSV data
+└── players-by-team.csv  # Player CSV data (team-wise)
 
 ```
 
@@ -120,7 +120,11 @@ This will populate your Firestore with:
 - Tournament data
 - Match schedules
 - Team information
-- Player data
+
+**Note**: Players should be imported separately using:
+```bash
+npm run import-players scripts/players-by-team.csv
+```
 
 ### 6. Run Development Server
 

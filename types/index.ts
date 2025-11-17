@@ -1,6 +1,6 @@
 import { Timestamp } from 'firebase/firestore';
 
-export type MatchType = 'league' | 'playoff' | 'final';
+export type MatchType = 'league' | 'qualifier' | 'eliminator' | 'playoff' | 'final';
 export type MatchStatus = 'upcoming' | 'live' | 'completed' | 'cancelled';
 export type PlayerRole = 'batsman' | 'bowler' | 'all-rounder' | 'wicket-keeper';
 export type ScoreCategory = 'A' | 'B' | 'C' | 'D' | 'E' | 'F';

@@ -67,6 +67,9 @@ async function importPlayersFromCSV(csvPath: string) {
     for (const line of dataLines) {
       if (!line.trim()) continue;
       
+      // Skip comment lines (starting with #)
+      if (line.trim().startsWith('#')) continue;
+      
       const [teamId, name, role, battingStyle, bowlingStyle, isAbroadPlayer, photoUrl] = line.split(',');
       
       if (!teamId || !name) continue;

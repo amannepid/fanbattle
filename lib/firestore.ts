@@ -14,6 +14,15 @@ import {
 import { db } from './firebase';
 import type { Tournament, Team, Player, Match, UserEntry, Prediction } from '@/types';
 
+// Check if test mode is enabled (works on both client and server)
+const isTestModeEnabled = () => {
+  if (typeof window !== 'undefined') {
+    return process.env.NEXT_PUBLIC_ENABLE_TEST_MODE === 'true';
+  }
+  // Server-side: check environment variable
+  return process.env.NEXT_PUBLIC_ENABLE_TEST_MODE === 'true';
+};
+
 // Collections
 const COLLECTIONS = {
   tournaments: 'tournaments',
@@ -32,6 +41,17 @@ export async function getTournament(id: string): Promise<Tournament | null> {
 }
 
 export async function getActiveTournament(): Promise<Tournament | null> {
+  // In test mode, prioritize test tournament
+  if (isTestModeEnabled()) {
+    const testTournamentRef = doc(db, COLLECTIONS.tournaments, 'test-tournament-2025');
+    const testTournamentSnap = await getDoc(testTournamentRef);
+    if (testTournamentSnap.exists()) {
+      const testTournament = { id: testTournamentSnap.id, ...testTournamentSnap.data() } as Tournament;
+      console.log('🧪 Test mode: Using test tournament', testTournament.id);
+      return testTournament;
+    }
+  }
+
   const q = query(
     collection(db, COLLECTIONS.tournaments),
     where('status', '==', 'active'),

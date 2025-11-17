@@ -24,7 +24,6 @@ export default function AdminPage() {
   const [processing, setProcessing] = useState(false);
   
   // Tournament results state
-  const [tournamentWinnerId, setTournamentWinnerId] = useState('');
   const [playerOfTournamentId, setPlayerOfTournamentId] = useState('');
   const [highestRunScorerId, setHighestRunScorerId] = useState('');
   const [highestWicketTakerId, setHighestWicketTakerId] = useState('');
@@ -69,9 +68,6 @@ export default function AdminPage() {
       setTeams(teamsData);
       
       // Load tournament results if they exist
-      if (activeTournament.winnerTeamId) {
-        setTournamentWinnerId(activeTournament.winnerTeamId);
-      }
       if (activeTournament.playerOfTournamentId) {
         setPlayerOfTournamentId(activeTournament.playerOfTournamentId);
       }
@@ -188,16 +184,23 @@ export default function AdminPage() {
       if (!currentUserEntry) continue;
 
       // Update prediction with scoring results
-      await updatePrediction(prediction.id, {
+      // Only include penaltyFee if it's a valid number (not undefined)
+      const updateData: any = {
         pointsEarned: scoringResult.points,
-        penaltyFee: penaltyFee,
         isCorrectWinner: scoringResult.isCorrectWinner,
         isCorrectPom: scoringResult.isCorrectPom,
         isCorrectScoreCategory: scoringResult.isCorrectScoreCategory,
         isCorrectWickets: scoringResult.isCorrectWickets,
         seasonTeamAdjustment: scoringResult.breakdown.seasonTeamAdjustment,
         scoredAt: Timestamp.now(),
-      });
+      };
+      
+      // Only add penaltyFee if it's defined and a number
+      if (penaltyFee !== undefined && penaltyFee !== null) {
+        updateData.penaltyFee = penaltyFee;
+      }
+      
+      await updatePrediction(prediction.id, updateData);
 
       // Update user entry with new total points
       const currentTotalPoints = currentUserEntry.totalPoints || 0;
@@ -243,15 +246,23 @@ export default function AdminPage() {
 
   async function handleTournamentResults(e: React.FormEvent) {
     e.preventDefault();
-    if (!tournament || !tournamentWinnerId || !playerOfTournamentId || !highestRunScorerId || !highestWicketTakerId) {
-      setMessage('❌ Please fill in all tournament results');
-      return;
-    }
-
+    
     // Check if Final match is completed
     const finalMatch = matches.find(m => m.matchType === 'final');
     if (!finalMatch || finalMatch.status !== 'completed') {
       setMessage('❌ Final match must be completed before setting tournament results');
+      return;
+    }
+
+    // Get tournament winner from final match
+    const tournamentWinnerId = finalMatch.winnerId;
+    if (!tournamentWinnerId) {
+      setMessage('❌ Final match winner must be set before setting tournament results');
+      return;
+    }
+
+    if (!tournament || !playerOfTournamentId || !highestRunScorerId || !highestWicketTakerId) {
+      setMessage('❌ Please fill in all tournament results');
       return;
     }
 
@@ -327,6 +338,16 @@ export default function AdminPage() {
   const upcomingMatches = matches.filter((m) => m.status === 'upcoming');
   const completedMatches = matches.filter((m) => m.status === 'completed');
 
+  // Helper function to check if a match can be edited
+  // A match cannot be edited if there are completed matches after it
+  function canEditMatch(match: Match): boolean {
+    // Check if there are any completed matches with a higher match number
+    const hasCompletedMatchesAfter = completedMatches.some(
+      (m) => m.matchNumber > match.matchNumber
+    );
+    return !hasCompletedMatchesAfter;
+  }
+
   return (
     <div className="max-w-7xl mx-auto">
       <div className="flex items-center space-x-3 mb-8">
@@ -383,37 +404,59 @@ export default function AdminPage() {
             {completedMatches.length === 0 ? (
               <p className="text-gray-600 dark:text-gray-400 text-sm">No completed matches</p>
             ) : (
-              completedMatches.map((match) => (
-                <button
-                  key={match.id}
-                  onClick={() => selectMatch(match)}
-                  className={`w-full text-left p-4 border-2 rounded-lg transition ${
-                    selectedMatch?.id === match.id
-                      ? 'border-primary-600 bg-primary-50 dark:bg-primary-900/20'
-                      : 'border-green-400 dark:border-green-600 bg-green-50 dark:bg-green-900/20 hover:border-primary-400'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                      Match {match.matchNumber} • {match.matchType}
-                    </span>
-                    <span className="text-xs text-green-600 dark:text-green-400 font-medium">
-                      ✓ Completed
-                    </span>
-                  </div>
-                  <h3 className="font-bold text-gray-900 dark:text-white mb-1">
-                    {match.teamAName} vs {match.teamBName}
-                  </h3>
-                  <div className="text-sm text-green-800 dark:text-green-200">
-                    Winner: {match.winnerName}
-                  </div>
-                  {selectedMatch?.id === match.id && (
-                    <div className="text-xs text-primary-600 dark:text-primary-400 mt-2 font-medium">
-                      Click to edit result
+              completedMatches.map((match) => {
+                const canEdit = canEditMatch(match);
+                return (
+                  <button
+                    key={match.id}
+                    onClick={() => {
+                      if (canEdit) {
+                        selectMatch(match);
+                      }
+                    }}
+                    disabled={!canEdit}
+                    className={`w-full text-left p-4 border-2 rounded-lg transition ${
+                      !canEdit
+                        ? 'border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-800/50 opacity-60 cursor-not-allowed'
+                        : selectedMatch?.id === match.id
+                        ? 'border-primary-600 bg-primary-50 dark:bg-primary-900/20'
+                        : 'border-green-400 dark:border-green-600 bg-green-50 dark:bg-green-900/20 hover:border-primary-400'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                        Match {match.matchNumber} • {match.matchType}
+                      </span>
+                      <div className="flex items-center space-x-2">
+                        {!canEdit && (
+                          <span className="text-xs text-red-600 dark:text-red-400 font-medium">
+                            🔒 Locked
+                          </span>
+                        )}
+                        <span className="text-xs text-green-600 dark:text-green-400 font-medium">
+                          ✓ Completed
+                        </span>
+                      </div>
                     </div>
-                  )}
-                </button>
-              ))
+                    <h3 className="font-bold text-gray-900 dark:text-white mb-1">
+                      {match.teamAName} vs {match.teamBName}
+                    </h3>
+                    <div className="text-sm text-green-800 dark:text-green-200">
+                      Winner: {match.winnerName}
+                    </div>
+                    {!canEdit && (
+                      <div className="text-xs text-red-600 dark:text-red-400 mt-2">
+                        Cannot edit: There are completed matches after this one
+                      </div>
+                    )}
+                    {selectedMatch?.id === match.id && canEdit && (
+                      <div className="text-xs text-primary-600 dark:text-primary-400 mt-2 font-medium">
+                        Click to edit result
+                      </div>
+                    )}
+                  </button>
+                );
+              })
             )}
           </div>
         </div>
@@ -703,24 +746,24 @@ export default function AdminPage() {
           
           return (
             <form onSubmit={handleTournamentResults} className="p-6 space-y-6">
-          {/* Tournament Winner */}
+          {/* Tournament Winner (Read-only, from Final match) */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
               Tournament Winner *
             </label>
-            <select
-              value={tournamentWinnerId}
-              onChange={(e) => setTournamentWinnerId(e.target.value)}
-              className="w-full px-4 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-primary-600 focus:outline-none bg-white dark:bg-gray-700"
-              required
-            >
-              <option value="">Select winner team</option>
-              {teams.map((team) => (
-                <option key={team.id} value={team.id}>
-                  {team.name}
-                </option>
-              ))}
-            </select>
+            <div className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300 flex items-center justify-between">
+              <span className="font-medium">
+                {finalMatch.winnerName || 'Not set'}
+              </span>
+              <span className="text-xs text-gray-500 dark:text-gray-400 italic">
+                (From Final match - not editable)
+              </span>
+            </div>
+            {!finalMatch.winnerId && (
+              <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                Please complete the Final match first
+              </p>
+            )}
           </div>
 
           {/* Player of Tournament */}
@@ -799,7 +842,7 @@ export default function AdminPage() {
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={!tournamentWinnerId || !playerOfTournamentId || !highestRunScorerId || !highestWicketTakerId || processing}
+            disabled={!finalMatch.winnerId || !playerOfTournamentId || !highestRunScorerId || !highestWicketTakerId || processing}
             className="w-full px-6 py-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
           >
             {processing ? (

@@ -20,7 +20,7 @@ const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0
 const db = getFirestore(app);
 
 async function cleanupUsers() {
-  console.log('🧹 Cleaning up user entries...\n');
+  console.log('🧹 Cleaning up database (users, predictions, matches, and players)...\n');
 
   try {
     // Delete all user entries
@@ -41,8 +41,26 @@ async function cleanupUsers() {
       console.log(`  ✓ Deleted prediction: ${docSnapshot.id}`);
     }
 
+    // Delete all matches
+    const matchesSnapshot = await getDocs(collection(db, 'matches'));
+    console.log(`\nFound ${matchesSnapshot.size} matches to delete`);
+    
+    for (const docSnapshot of matchesSnapshot.docs) {
+      await deleteDoc(docSnapshot.ref);
+      console.log(`  ✓ Deleted match: ${docSnapshot.id}`);
+    }
+
+    // Delete all players
+    const playersSnapshot = await getDocs(collection(db, 'players'));
+    console.log(`\nFound ${playersSnapshot.size} players to delete`);
+    
+    for (const docSnapshot of playersSnapshot.docs) {
+      await deleteDoc(docSnapshot.ref);
+      console.log(`  ✓ Deleted player: ${docSnapshot.id}`);
+    }
+
     console.log('\n✅ Cleanup complete!');
-    console.log('You can now register again with a fresh start.');
+    console.log('Database is now clean. You can seed again with: npm run seed');
     
     process.exit(0);
   } catch (error) {

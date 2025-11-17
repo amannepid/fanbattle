@@ -8,9 +8,12 @@
     "start": "next start",
     "lint": "next lint",
     "seed": "tsx scripts/seed.ts",
+    "seed-test": "tsx scripts/seed-test-data.ts",
+    "calculate-test-player-2": "tsx scripts/calculate-test-player-2.ts",
+    "recalculate-match": "tsx scripts/recalculate-match.ts",
+    "test-scoring": "tsx scripts/test-scoring.ts",
     "cleanup-users": "tsx scripts/cleanup-users.ts",
-    "import-players": "tsx scripts/import-players-csv.ts",
-    "import-players-json": "tsx scripts/import-players-json.ts"
+    "import-players": "tsx scripts/import-players-csv.ts"
   },
   "dependencies": {
     "date-fns": "^4.1.0",

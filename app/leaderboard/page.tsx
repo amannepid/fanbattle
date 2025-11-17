@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { getActiveTournament, getLeaderboard, getMatches, getAllPredictions } from '@/lib/firestore';
+import { getPointsBreakdown } from '@/lib/scoring';
 import { Loader2, Trophy, Medal, Crown, TrendingUp, CheckCircle, Clock, Lock, Award, XCircle, DollarSign, AlertCircle } from 'lucide-react';
 import type { Tournament, UserEntry, Match, Prediction } from '@/types';
 
@@ -102,28 +103,23 @@ export default function LeaderboardPage() {
       // Debug: Log ALL predictions
       console.log('🎯 All Predictions:', predictionsData.map(p => {
         const match = matchesData.find(m => m.id === p.matchId);
-        const basePoints = p.isCorrectWinner 
-          ? (match?.matchType === 'league' ? 3 : match?.matchType === 'playoff' ? 5 : 7)
-          : 0;
-        const points = basePoints + 
-                      (p.isCorrectScoreCategory ? 1 : 0) + 
-                      (p.seasonTeamAdjustment || 0);
-        const bonus = (p.isCorrectPom ? 1 : 0) + (p.isCorrectWickets ? 1 : 0);
-        
+        if (!match) return null;
+        const breakdown = getPointsBreakdown(p, match);
         return {
           userId: p.userId,
           userName: leaderboardData.find(u => u.userId === p.userId)?.userName || 'Unknown',
           matchId: p.matchId,
           matchNumber: p.matchNumber,
-          points: points,
-          penaltyFee: p.penaltyFee,
-          bonus: bonus
+          points: breakdown.points,
+          penaltyFee: breakdown.penaltyFee,
+          bonus: breakdown.bonus
         };
-      }));
+      }).filter(Boolean));
 
       // Build player rows with match results
       const rows: PlayerRow[] = leaderboardData.map((entry, index) => {
         const matchesMap = new Map<string, MatchResult>();
+        const userEntry = leaderboardData.find(e => e.userId === entry.userId);
         
         // Get predictions for this user
         const userPredictions = predictionsData.filter(p => p.userId === entry.userId);
@@ -156,28 +152,15 @@ export default function LeaderboardPage() {
           if (match.status === 'completed') {
             // Match is completed - show result regardless of prediction
             if (prediction) {
-              // User made a prediction
-              // Calculate base points (3/5/7 for correct winner)
-              const basePoints = prediction.isCorrectWinner 
-                ? (match.matchType === 'league' ? 3 : match.matchType === 'playoff' ? 5 : 7)
-                : 0;
-              
-              // Points = basePoints + scoreBonus + seasonTeamAdjustment
-              const points = basePoints + 
-                            (prediction.isCorrectScoreCategory ? 1 : 0) + 
-                            (prediction.seasonTeamAdjustment || 0);
-              
-              // Bonus = POM bonus + Wickets bonus only
-              const bonusPoints = 
-                (prediction.isCorrectPom ? 1 : 0) +
-                (prediction.isCorrectWickets ? 1 : 0);
+              // User made a prediction - use centralized helper function
+              const breakdown = getPointsBreakdown(prediction, match);
               
               matchesMap.set(match.id, {
                 matchId: match.id,
                 matchNumber: match.matchNumber,
-                points: points,
-                penaltyFee: prediction.penaltyFee || 0,
-                bonus: bonusPoints,
+                points: breakdown.points,
+                penaltyFee: breakdown.penaltyFee,
+                bonus: breakdown.bonus,
                 status: 'completed',
                 hasPrediction: true
               });
@@ -412,7 +395,7 @@ export default function LeaderboardPage() {
               <thead className="sticky top-0 z-10 bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 shadow-sm">
                 <tr>
                   {/* Players Column */}
-                  <th className="sticky left-0 z-20 bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 px-5 py-4 text-left border-r-2 border-slate-300 dark:border-slate-700 min-w-[200px] shadow-sm">
+                  <th className="sticky left-0 z-20 bg-gradient-to-br from-slate-100 via-slate-200 to-slate-300 dark:from-slate-800 dark:via-slate-900 dark:to-slate-950 px-5 py-4 text-left border-r-2 border-slate-300 dark:border-slate-700 min-w-[200px] shadow-sm">
                     <div className="flex items-center gap-2">
                       <div className="h-2 w-2 rounded-full bg-crimson-500"></div>
                       <div className="font-bold text-crimson-600 dark:text-crimson-400 uppercase text-sm tracking-wide">Players</div>
@@ -499,7 +482,7 @@ export default function LeaderboardPage() {
                   })}
                   
                   {/* Total Column */}
-                  <th className="sticky right-0 z-20 border-l-2 border-slate-300 dark:border-slate-700 min-w-[220px] bg-white dark:bg-slate-800/30">
+                  <th className="sticky right-0 z-20 border-l-2 border-slate-300 dark:border-slate-700 min-w-[220px] bg-gradient-to-br from-slate-100 via-slate-200 to-slate-300 dark:from-slate-800 dark:via-slate-900 dark:to-slate-950">
                     <div className="px-4 py-3 bg-gradient-to-br from-navy-50 to-indigo-50 dark:from-navy-900/30 dark:to-indigo-900/30 border-b border-slate-200 dark:border-slate-700">
                       <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm bg-gradient-to-r from-navy-500 to-indigo-500 text-white`}>
                         <TrendingUp className="h-3 w-3" />
@@ -537,8 +520,8 @@ export default function LeaderboardPage() {
                       {/* Player Name */}
                       <td className={`sticky left-0 z-10 px-5 py-4 border-r-2 border-slate-300 dark:border-slate-700 font-semibold shadow-sm ${
                         isCurrentUser 
-                          ? 'bg-gradient-to-r from-gold-100 to-amber-100 dark:from-gold-900/30 dark:to-amber-900/30 text-navy-700 dark:text-white' 
-                          : 'bg-white dark:bg-slate-800 text-navy-600 dark:text-slate-200'
+                          ? 'bg-gradient-to-r from-gold-100 to-amber-100 dark:from-gold-900/50 dark:to-amber-900/50 text-navy-700 dark:text-white' 
+                          : 'bg-slate-50 dark:bg-slate-800 text-navy-600 dark:text-slate-200'
                       }`}>
                         <div className="flex items-center gap-2">
                           <div className={`h-2 w-2 rounded-full ${isCurrentUser ? 'bg-gold-500' : 'bg-slate-400'}`}></div>
@@ -694,8 +677,8 @@ export default function LeaderboardPage() {
                       {/* Total Points and Penalties */}
                       <td className={`sticky right-0 z-10 border-l-2 border-slate-300 dark:border-slate-700 shadow-sm ${
                         isCurrentUser 
-                          ? 'bg-gradient-to-r from-gold-100 to-amber-100 dark:from-gold-900/30 dark:to-amber-900/30' 
-                          : 'bg-white dark:bg-slate-800'
+                          ? 'bg-gradient-to-r from-gold-100 to-amber-100 dark:from-gold-900/50 dark:to-amber-900/50' 
+                          : 'bg-slate-50 dark:bg-slate-800'
                       }`}>
                         <div className="flex divide-x divide-slate-200 dark:divide-slate-700">
                           {/* Points Column */}
@@ -709,6 +692,18 @@ export default function LeaderboardPage() {
                                     totalPoints += result.points + result.bonus;
                                   }
                                 });
+                                
+                                // Add tournament bonuses if tournament is completed
+                                const userEntry = leaderboard.find(e => e.userId === row.userId);
+                                if (tournament?.status === 'completed' && userEntry?.tournamentBonuses) {
+                                  const tournamentBonusTotal = 
+                                    (userEntry.tournamentBonuses.seasonTeamWinsTitle || 0) +
+                                    (userEntry.tournamentBonuses.playerOfTournament || 0) +
+                                    (userEntry.tournamentBonuses.highestRunScorer || 0) +
+                                    (userEntry.tournamentBonuses.highestWicketTaker || 0);
+                                  totalPoints += tournamentBonusTotal;
+                                }
+                                
                                 return totalPoints;
                               })()}
                             </div>

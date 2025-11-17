@@ -4,24 +4,46 @@ import type { Match, Prediction, ScoringResult, ScoreCategory, MatchType } from 
  * Get base points for a match type
  */
 export function getBasePoints(matchType: MatchType): number {
-  const pointsMap = {
-    league: 3,
-    playoff: 5,
-    final: 7,
-  };
-  return pointsMap[matchType];
+  // League matches: 3 points
+  if (matchType === 'league') {
+    return 3;
+  }
+  
+  // Playoff matches (qualifier, eliminator, playoff): 5 points
+  if (matchType === 'qualifier' || matchType === 'eliminator' || matchType === 'playoff') {
+    return 5;
+  }
+  
+  // Final: 7 points
+  if (matchType === 'final') {
+    return 7;
+  }
+  
+  // Default to 0 if match type not recognized
+  return 0;
 }
 
 /**
  * Get penalty fee for a match type
  */
 export function getPenaltyFee(matchType: MatchType): number {
-  const penaltyMap = {
-    league: 2,
-    playoff: 3,
-    final: 5,
-  };
-  return penaltyMap[matchType];
+  // League matches: $2 penalty
+  if (matchType === 'league') {
+    return 2;
+  }
+  
+  // Playoff matches (qualifier, eliminator, playoff): $3 penalty
+  if (matchType === 'qualifier' || matchType === 'eliminator' || matchType === 'playoff') {
+    return 3;
+  }
+  
+  // Final: $5 penalty
+  if (matchType === 'final') {
+    return 5;
+  }
+  
+  // Default to 0 if match type not recognized
+  return 0;
 }
 
 /**
@@ -147,8 +169,9 @@ export function calculatePoints(
 /**
  * Calculate season team adjustment
  * Rules:
- * - If season team wins AND user predicted correctly: +1 bonus
- * - If season team loses: -1 penalty (regardless of user prediction)
+ * - If season team wins AND user predicted correctly: +1 bonus (for ALL matches including final)
+ * - If season team loses: -1 penalty (regardless of user prediction, for ALL matches including final)
+ * Note: Tournament bonus (+5) is separate and added on top of match points
  */
 function calculateSeasonTeamAdjustment(
   match: Match,
@@ -168,14 +191,52 @@ function calculateSeasonTeamAdjustment(
 
   if (didSeasonTeamWin) {
     // Season team won
-    // +1 bonus only if user predicted season team to win
+    // +1 bonus only if user predicted season team to win (applies to ALL matches including final)
     const didUserPredictSeasonTeam = predictedWinnerId === seasonTeamId;
     return didUserPredictSeasonTeam && isCorrectPrediction ? 1 : 0;
   } else {
     // Season team lost
-    // -1 penalty always (regardless of user prediction)
+    // -1 penalty always (regardless of user prediction, applies to ALL matches including final)
     return -1;
   }
+}
+
+/**
+ * Get points breakdown for display purposes
+ * Uses stored prediction values (no recalculation needed)
+ * This is for display only - actual scoring should use calculatePoints()
+ */
+export function getPointsBreakdown(
+  prediction: Prediction,
+  match: Match
+): {
+  points: number;      // Base + score bonus + season adjustment (excludes POM and wickets)
+  bonus: number;       // POM bonus + wickets bonus
+  penaltyFee: number;
+} {
+  // Calculate base points (only if winner is correct)
+  const basePoints = prediction.isCorrectWinner ? getBasePoints(match.matchType) : 0;
+  
+  // Score category bonus
+  const scoreBonus = prediction.isCorrectScoreCategory ? 1 : 0;
+  
+  // Season team adjustment
+  const seasonAdjustment = prediction.seasonTeamAdjustment || 0;
+  
+  // Points = base + score bonus + season adjustment
+  const points = basePoints + scoreBonus + seasonAdjustment;
+  
+  // Bonus = POM + wickets
+  const pomBonus = prediction.isCorrectPom ? 1 : 0;
+  const wicketsBonus = prediction.isCorrectWickets ? 1 : 0;
+  const bonus = pomBonus + wicketsBonus;
+  
+  // Penalty fee (use stored value or calculate from match type)
+  const penaltyFee = prediction.penaltyFee !== undefined 
+    ? prediction.penaltyFee 
+    : getPenaltyFee(match.matchType);
+  
+  return { points, bonus, penaltyFee };
 }
 
 /**
