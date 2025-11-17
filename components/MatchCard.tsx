@@ -23,15 +23,16 @@ export default function MatchCard({
   const matchDate = match.matchDate.toDate();
   const now = new Date();
   
-  // SPECIAL CASE: Match 1 uses 18-hour window instead of stored deadline
+  // SPECIAL CASE: Match 1 uses 18-hour window from now (production exception)
   let deadline: Date;
   let isPastDeadline: boolean;
   
   if (match.matchNumber === 1) {
-    // For Match 1, deadline is 18 hours before match start
-    deadline = new Date(matchDate);
-    deadline.setHours(deadline.getHours() - 18);
+    // For Match 1, deadline is 18 hours from now (not from match start)
+    deadline = new Date(now);
+    deadline.setHours(deadline.getHours() + 18);
     const hoursUntilMatch = (matchDate.getTime() - now.getTime()) / (1000 * 60 * 60);
+    // Match 1 is available if it's in the future and within 18 hours from now
     isPastDeadline = hoursUntilMatch <= 0 || hoursUntilMatch > 18;
   } else {
     // For other matches, use the stored deadline

@@ -65,14 +65,20 @@ export function getPredictableMatches(
   
   console.log(`  📅 Found ${sortedDays.length} unique days with matches`);
   
-  // SPECIAL CASE: Match 1 is always available if within 18 hours (production requirement)
+  // SPECIAL CASE: Match 1 is always available for next 18 hours from now (production exception)
+  // This is a one-time exception because we went live just 6 hours before the match
   const match1 = allMatches.find(m => m.matchNumber === 1 && m.status === 'upcoming');
   if (match1) {
     const match1Date = match1.matchDate.toDate();
     const hoursUntilMatch1 = (match1Date.getTime() - now.getTime()) / (1000 * 60 * 60);
-    if (hoursUntilMatch1 > 0 && hoursUntilMatch1 <= 18) {
-      predictableMatchIds.add(match1.id);
-      console.log(`  🎯 Match 1 special case: Available for ${hoursUntilMatch1.toFixed(1)} hours (18-hour window)`);
+    // Match 1 is available if it's in the future and within 18 hours from now
+    if (hoursUntilMatch1 > 0) {
+      // Calculate hours from now (not from match start)
+      const hoursFromNow = hoursUntilMatch1;
+      if (hoursFromNow <= 18) {
+        predictableMatchIds.add(match1.id);
+        console.log(`  🎯 Match 1 special case: Available for next ${hoursFromNow.toFixed(1)} hours (18-hour exception window)`);
+      }
     }
   }
   
@@ -181,15 +187,16 @@ export function getUnpredictableReason(
 ): string | null {
   const now = new Date();
   
-  // SPECIAL CASE: Match 1 uses 18-hour window instead of stored deadline
+  // SPECIAL CASE: Match 1 uses 18-hour window from now (production exception)
   if (match.matchNumber === 1) {
     const match1Date = match.matchDate.toDate();
     const hoursUntilMatch1 = (match1Date.getTime() - now.getTime()) / (1000 * 60 * 60);
     
-    // If Match 1 is more than 18 hours away or in the past, deadline has passed
+    // Match 1 is available if it's in the future and within 18 hours from now
     if (hoursUntilMatch1 <= 0 || hoursUntilMatch1 > 18) {
       return 'Prediction deadline has passed';
     }
+    // If within 18 hours, allow it (don't return error)
   } else {
     // For other matches, use the stored deadline
     const deadline = match.deadline.toDate();

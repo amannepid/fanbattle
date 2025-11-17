@@ -156,15 +156,14 @@ export default function PredictPage() {
     if (!predictedWinnerId || !match || !user || !userEntry) return;
 
     // Check deadline: 6 hours before first match of the day
-    // SPECIAL CASE: Match 1 uses 18-hour window (deadline is 18 hours before match start)
+    // SPECIAL CASE: Match 1 uses 18-hour window from now (production exception)
     const now = new Date();
     
     let editCutoffTime: Date;
     if (match.matchNumber === 1) {
-      // Match 1: deadline is 18 hours before match start
-      const matchStartTime = match.matchDate.toDate();
-      editCutoffTime = new Date(matchStartTime);
-      editCutoffTime.setHours(editCutoffTime.getHours() - 18);
+      // Match 1: deadline is 18 hours from now (not from match start)
+      editCutoffTime = new Date(now);
+      editCutoffTime.setHours(editCutoffTime.getHours() + 18);
     } else {
       // Other matches: 6 hours before first match of the day
       const firstMatchOfDay = getFirstMatchOfDay(match);
@@ -179,7 +178,7 @@ export default function PredictPage() {
     
     if (now >= editCutoffTime) {
       const deadlineMsg = match.matchNumber === 1 
-        ? 'Prediction deadline has passed. Match 1 predictions close 18 hours before match start.'
+        ? 'Prediction deadline has passed. Match 1 predictions close 18 hours from now (special exception).'
         : 'Prediction deadline has passed. You can no longer edit predictions 6 hours before the first match of the day.';
       setError(deadlineMsg);
       return;
@@ -247,17 +246,16 @@ export default function PredictPage() {
   }
 
   // Calculate deadline
-  // SPECIAL CASE: Match 1 uses 18-hour window (deadline is 18 hours before match start)
+  // SPECIAL CASE: Match 1 uses 18-hour window from now (production exception)
   const now = new Date();
   let editCutoffTime: Date;
   let deadlineText: string;
   
   if (match.matchNumber === 1) {
-    // Match 1: deadline is 18 hours before match start
-    const matchStartTime = match.matchDate.toDate();
-    editCutoffTime = new Date(matchStartTime);
-    editCutoffTime.setHours(editCutoffTime.getHours() - 18);
-    deadlineText = '18 hours before match start';
+    // Match 1: deadline is 18 hours from now (not from match start)
+    editCutoffTime = new Date(now);
+    editCutoffTime.setHours(editCutoffTime.getHours() + 18);
+    deadlineText = '18 hours from now (special exception)';
   } else {
     // Other matches: 6 hours before first match of the day
     const firstMatchOfDay = getFirstMatchOfDay(match);
