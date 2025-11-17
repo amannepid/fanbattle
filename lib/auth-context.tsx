@@ -49,7 +49,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(user);
       if (user) {
         // Check if user is admin
-        const adminEmails = process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(',').map(e => e.trim().toLowerCase()) || [];
+        // Get admin emails from environment variable (available at build time for NEXT_PUBLIC_ vars)
+        const adminEmailsRaw = process.env.NEXT_PUBLIC_ADMIN_EMAILS || '';
+        const adminEmails = adminEmailsRaw.split(',').map(e => e.trim().toLowerCase()).filter(e => e.length > 0);
         const userEmailLower = (user.email || '').toLowerCase();
         
         // In test mode, User 1 is admin
@@ -57,16 +59,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (TEST_MODE_ENABLED && user.email === TEST_USER_EMAILS.USER_1) {
           userIsAdmin = true;
         } else {
-          userIsAdmin = adminEmails.includes(userEmailLower);
+          userIsAdmin = adminEmails.length > 0 && adminEmails.includes(userEmailLower);
         }
         
         console.log('🔐 Admin Check:', {
           userEmail: user.email,
           userEmailLower: userEmailLower,
           adminEmails: adminEmails,
+          adminEmailsRaw: adminEmailsRaw,
           isAdmin: userIsAdmin,
           testMode: TEST_MODE_ENABLED,
           envVariable: process.env.NEXT_PUBLIC_ADMIN_EMAILS,
+          envVariableExists: !!process.env.NEXT_PUBLIC_ADMIN_EMAILS,
           matchFound: adminEmails.includes(userEmailLower)
         });
         
