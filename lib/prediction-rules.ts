@@ -180,11 +180,22 @@ export function getUnpredictableReason(
   userPredictions: Prediction[]
 ): string | null {
   const now = new Date();
-  const deadline = match.deadline.toDate();
   
-  // Check if deadline has passed
-  if (deadline <= now) {
-    return 'Prediction deadline has passed';
+  // SPECIAL CASE: Match 1 uses 18-hour window instead of stored deadline
+  if (match.matchNumber === 1) {
+    const match1Date = match.matchDate.toDate();
+    const hoursUntilMatch1 = (match1Date.getTime() - now.getTime()) / (1000 * 60 * 60);
+    
+    // If Match 1 is more than 18 hours away or in the past, deadline has passed
+    if (hoursUntilMatch1 <= 0 || hoursUntilMatch1 > 18) {
+      return 'Prediction deadline has passed';
+    }
+  } else {
+    // For other matches, use the stored deadline
+    const deadline = match.deadline.toDate();
+    if (deadline <= now) {
+      return 'Prediction deadline has passed';
+    }
   }
   
   // Check if match is completed

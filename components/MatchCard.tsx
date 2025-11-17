@@ -21,9 +21,23 @@ export default function MatchCard({
   hasPredicted = false
 }: MatchCardProps) {
   const matchDate = match.matchDate.toDate();
-  const deadline = match.deadline.toDate();
   const now = new Date();
-  const isPastDeadline = deadline < now;
+  
+  // SPECIAL CASE: Match 1 uses 18-hour window instead of stored deadline
+  let deadline: Date;
+  let isPastDeadline: boolean;
+  
+  if (match.matchNumber === 1) {
+    // For Match 1, deadline is 18 hours before match start
+    deadline = new Date(matchDate);
+    deadline.setHours(deadline.getHours() - 18);
+    const hoursUntilMatch = (matchDate.getTime() - now.getTime()) / (1000 * 60 * 60);
+    isPastDeadline = hoursUntilMatch <= 0 || hoursUntilMatch > 18;
+  } else {
+    // For other matches, use the stored deadline
+    deadline = match.deadline.toDate();
+    isPastDeadline = deadline < now;
+  }
 
   return (
     <div className="bg-white dark:bg-navy-600 rounded-card shadow-card hover:shadow-card-hover transition-all p-6 border border-slate-100 dark:border-navy-400">

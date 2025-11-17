@@ -156,19 +156,32 @@ export default function PredictPage() {
     if (!predictedWinnerId || !match || !user || !userEntry) return;
 
     // Check deadline: 6 hours before first match of the day
+    // SPECIAL CASE: Match 1 uses 18-hour window (deadline is 18 hours before match start)
     const now = new Date();
-    const firstMatchOfDay = getFirstMatchOfDay(match);
-    if (!firstMatchOfDay) {
-      setError('Unable to determine match deadline');
-      return;
+    
+    let editCutoffTime: Date;
+    if (match.matchNumber === 1) {
+      // Match 1: deadline is 18 hours before match start
+      const matchStartTime = match.matchDate.toDate();
+      editCutoffTime = new Date(matchStartTime);
+      editCutoffTime.setHours(editCutoffTime.getHours() - 18);
+    } else {
+      // Other matches: 6 hours before first match of the day
+      const firstMatchOfDay = getFirstMatchOfDay(match);
+      if (!firstMatchOfDay) {
+        setError('Unable to determine match deadline');
+        return;
+      }
+      const firstMatchStartTime = firstMatchOfDay.matchDate.toDate();
+      editCutoffTime = new Date(firstMatchStartTime);
+      editCutoffTime.setHours(editCutoffTime.getHours() - 6);
     }
-
-    const firstMatchStartTime = firstMatchOfDay.matchDate.toDate();
-    const editCutoffTime = new Date(firstMatchStartTime);
-    editCutoffTime.setHours(editCutoffTime.getHours() - 6);
     
     if (now >= editCutoffTime) {
-      setError('Prediction deadline has passed. You can no longer edit predictions 6 hours before the first match of the day.');
+      const deadlineMsg = match.matchNumber === 1 
+        ? 'Prediction deadline has passed. Match 1 predictions close 18 hours before match start.'
+        : 'Prediction deadline has passed. You can no longer edit predictions 6 hours before the first match of the day.';
+      setError(deadlineMsg);
       return;
     }
 
@@ -233,18 +246,33 @@ export default function PredictPage() {
     return null;
   }
 
-  // Calculate deadline based on first match of the day (6 hours before)
-  const firstMatchOfDay = getFirstMatchOfDay(match);
-  const editCutoffTime = firstMatchOfDay 
-    ? (() => {
-        const firstMatchStartTime = firstMatchOfDay.matchDate.toDate();
-        const cutoff = new Date(firstMatchStartTime);
-        cutoff.setHours(cutoff.getHours() - 6);
-        return cutoff;
-      })()
-    : match.deadline.toDate();
+  // Calculate deadline
+  // SPECIAL CASE: Match 1 uses 18-hour window (deadline is 18 hours before match start)
+  const now = new Date();
+  let editCutoffTime: Date;
+  let deadlineText: string;
   
-  const isPastDeadline = new Date() >= editCutoffTime;
+  if (match.matchNumber === 1) {
+    // Match 1: deadline is 18 hours before match start
+    const matchStartTime = match.matchDate.toDate();
+    editCutoffTime = new Date(matchStartTime);
+    editCutoffTime.setHours(editCutoffTime.getHours() - 18);
+    deadlineText = '18 hours before match start';
+  } else {
+    // Other matches: 6 hours before first match of the day
+    const firstMatchOfDay = getFirstMatchOfDay(match);
+    if (firstMatchOfDay) {
+      const firstMatchStartTime = firstMatchOfDay.matchDate.toDate();
+      editCutoffTime = new Date(firstMatchStartTime);
+      editCutoffTime.setHours(editCutoffTime.getHours() - 6);
+      deadlineText = '6 hours before first match of the day';
+    } else {
+      editCutoffTime = match.deadline.toDate();
+      deadlineText = 'before deadline';
+    }
+  }
+  
+  const isPastDeadline = now >= editCutoffTime;
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -291,7 +319,7 @@ export default function PredictPage() {
           </p>
           {!isPastDeadline && (
             <p className="text-gold-500 font-bold">
-              Deadline: {formatDistanceToNow(editCutoffTime, { addSuffix: true })} (6 hours before first match of the day)
+              Deadline: {formatDistanceToNow(editCutoffTime, { addSuffix: true })} ({deadlineText})
             </p>
           )}
         </div>
