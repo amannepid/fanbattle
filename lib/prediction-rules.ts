@@ -65,6 +65,17 @@ export function getPredictableMatches(
   
   console.log(`  📅 Found ${sortedDays.length} unique days with matches`);
   
+  // SPECIAL CASE: Match 1 is always available if within 18 hours (production requirement)
+  const match1 = allMatches.find(m => m.matchNumber === 1 && m.status === 'upcoming');
+  if (match1) {
+    const match1Date = match1.matchDate.toDate();
+    const hoursUntilMatch1 = (match1Date.getTime() - now.getTime()) / (1000 * 60 * 60);
+    if (hoursUntilMatch1 > 0 && hoursUntilMatch1 <= 18) {
+      predictableMatchIds.add(match1.id);
+      console.log(`  🎯 Match 1 special case: Available for ${hoursUntilMatch1.toFixed(1)} hours (18-hour window)`);
+    }
+  }
+  
   // Process each day
   for (let dayIndex = 0; dayIndex < sortedDays.length; dayIndex++) {
     const dayKey = sortedDays[dayIndex];
@@ -77,13 +88,18 @@ export function getPredictableMatches(
     let isDayUnlocked = false;
     
     // Rule 1: Check if first match of this day is less than 24 hours away
+    // SPECIAL CASE: First match (Match 1) is available for 18 hours instead of 24
     const firstMatchOfDay = dayMatches[0];
     const firstMatchDate = firstMatchOfDay.matchDate.toDate();
     const hoursUntilMatch = (firstMatchDate.getTime() - now.getTime()) / (1000 * 60 * 60);
     
-    if (hoursUntilMatch < 24) {
+    // Special handling for Match 1: allow predictions for 18 hours
+    const isFirstMatch = firstMatchOfDay.matchNumber === 1;
+    const hoursThreshold = isFirstMatch ? 18 : 24;
+    
+    if (hoursUntilMatch < hoursThreshold && hoursUntilMatch > 0) {
       isDayUnlocked = true;
-      console.log(`    ✅ Day unlocked: First match is ${hoursUntilMatch.toFixed(1)} hours away (< 24 hours)`);
+      console.log(`    ✅ Day unlocked: First match is ${hoursUntilMatch.toFixed(1)} hours away (< ${hoursThreshold} hours${isFirstMatch ? ' - Match 1 special case' : ''})`);
     } else {
       // Rule 2: Check if all matches from previous days are completed
       let allPreviousDaysCompleted = true;
