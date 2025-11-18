@@ -18,15 +18,48 @@ export default function MatchCard({
   match, 
   showPredictButton = true,
   canPredict = true,
-  hasPredicted = false
+  hasPredicted = false,
+  allMatches = []
 }: MatchCardProps) {
   const matchDate = match.matchDate.toDate();
   const now = new Date();
   
-  // SPECIAL CASE: Match 1 uses 18-hour window from now (production exception)
+  // Helper function to get start of day
+  function getStartOfDay(date: Date): Date {
+    const start = new Date(date);
+    start.setHours(0, 0, 0, 0);
+    return start;
+  }
+
+  // Helper function to get first match of the day for a given match
+  function getFirstMatchOfDay(match: Match): Match | null {
+    if (!allMatches || allMatches.length === 0) return null;
+    
+    const matchDate = match.matchDate.toDate();
+    const dayKey = getStartOfDay(matchDate).toISOString();
+    
+    // Include both upcoming and completed matches to get the actual first match of the day
+    const sameDayMatches = allMatches.filter((m) => {
+      const mDate = m.matchDate.toDate();
+      const mDayKey = getStartOfDay(mDate).toISOString();
+      return mDayKey === dayKey;
+    });
+    
+    if (sameDayMatches.length === 0) return null;
+    
+    // Sort by match date and return the first one (regardless of status)
+    sameDayMatches.sort((a, b) => 
+      a.matchDate.toDate().getTime() - b.matchDate.toDate().getTime()
+    );
+    
+    return sameDayMatches[0];
+  }
+  
+  // Calculate deadline and isPastDeadline using the same logic as other pages
   let deadline: Date;
   let isPastDeadline: boolean;
   
+  // SPECIAL CASE: Match 1 uses 18-hour window from now (production exception)
   if (match.matchNumber === 1) {
     // For Match 1, deadline is 18 hours from now (not from match start)
     deadline = new Date(now);
@@ -35,9 +68,26 @@ export default function MatchCard({
     // Match 1 is available if it's in the future and within 18 hours from now
     isPastDeadline = hoursUntilMatch <= 0 || hoursUntilMatch > 18;
   } else {
-    // For other matches, use the stored deadline
-    deadline = match.deadline.toDate();
-    isPastDeadline = deadline < now;
+    // Other matches: 6 hours before first match of the day
+    const firstMatchOfDay = getFirstMatchOfDay(match);
+    if (!firstMatchOfDay) {
+      // Fallback to stored deadline if we can't determine first match
+      deadline = match.deadline.toDate();
+      isPastDeadline = deadline < now;
+    } else {
+      const firstMatchStartTime = firstMatchOfDay.matchDate.toDate();
+      
+      // If the first match of the day is already completed or started, editing should be blocked
+      if (firstMatchOfDay.status === 'completed' || now >= firstMatchStartTime) {
+        isPastDeadline = true;
+        deadline = firstMatchStartTime; // Use first match start time for display
+      } else {
+        // Edit cutoff is 6 hours before first match start time
+        deadline = new Date(firstMatchStartTime);
+        deadline.setHours(deadline.getHours() - 6);
+        isPastDeadline = now >= deadline;
+      }
+    }
   }
 
   return (
