@@ -13,7 +13,10 @@
     "recalculate-match": "tsx scripts/recalculate-match.ts",
     "test-scoring": "tsx scripts/test-scoring.ts",
     "cleanup-users": "tsx scripts/cleanup-users.ts",
-    "import-players": "tsx scripts/import-players-csv.ts"
+    "import-players": "tsx scripts/import-players-csv.ts",
+    "insert-match1-predictions": "tsx scripts/insert-match1-predictions.ts",
+    "bulk-insert-match1-predictions": "tsx scripts/bulk-insert-match1-predictions.ts",
+    "restore-prediction": "tsx scripts/restore-prediction.ts"
   },
   "dependencies": {
     "date-fns": "^4.1.0",

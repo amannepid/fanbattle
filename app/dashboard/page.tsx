@@ -113,16 +113,17 @@ export default function DashboardPage() {
     const dayKey = getStartOfDay(matchDate).toISOString();
     
     // Get all matches and find the first one on the same day
+    // Include both upcoming and completed matches to get the actual first match of the day
     const allMatches = Array.from(matches.values());
     const sameDayMatches = allMatches.filter((m) => {
       const mDate = m.matchDate.toDate();
       const mDayKey = getStartOfDay(mDate).toISOString();
-      return mDayKey === dayKey && m.status === 'upcoming';
+      return mDayKey === dayKey;
     });
     
     if (sameDayMatches.length === 0) return null;
     
-    // Sort by match date and return the first one
+    // Sort by match date and return the first one (regardless of status)
     sameDayMatches.sort((a, b) => 
       a.matchDate.toDate().getTime() - b.matchDate.toDate().getTime()
     );
@@ -238,9 +239,12 @@ export default function DashboardPage() {
               const firstMatchStartTime = firstMatchOfDay.matchDate.toDate();
               
               // Edit button: visible until 6 hours before first match start time
+              // Also block if first match is already completed or started
               const editCutoffTime = new Date(firstMatchStartTime);
               editCutoffTime.setHours(editCutoffTime.getHours() - 6);
-              const canEdit = now < editCutoffTime;
+              const canEdit = now < editCutoffTime && 
+                             firstMatchOfDay.status !== 'completed' && 
+                             now < firstMatchStartTime;
               
               // Copy button: visible until 4 hours before first match start time
               const copyCutoffTime = new Date(firstMatchStartTime);

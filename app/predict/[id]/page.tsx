@@ -72,15 +72,16 @@ export default function PredictPage() {
     const dayKey = getStartOfDay(matchDate).toISOString();
     
     // Get all matches and find the first one on the same day
+    // Include both upcoming and completed matches to get the actual first match of the day
     const sameDayMatches = allMatches.filter((m) => {
       const mDate = m.matchDate.toDate();
       const mDayKey = getStartOfDay(mDate).toISOString();
-      return mDayKey === dayKey && m.status === 'upcoming';
+      return mDayKey === dayKey;
     });
     
     if (sameDayMatches.length === 0) return null;
     
-    // Sort by match date and return the first one
+    // Sort by match date and return the first one (regardless of status)
     sameDayMatches.sort((a, b) => 
       a.matchDate.toDate().getTime() - b.matchDate.toDate().getTime()
     );
@@ -172,6 +173,13 @@ export default function PredictPage() {
         return;
       }
       const firstMatchStartTime = firstMatchOfDay.matchDate.toDate();
+      
+      // If the first match of the day is already completed or started, editing should be blocked
+      if (firstMatchOfDay.status === 'completed' || now >= firstMatchStartTime) {
+        setError('Prediction deadline has passed. The first match of the day has already started or completed.');
+        return;
+      }
+      
       editCutoffTime = new Date(firstMatchStartTime);
       editCutoffTime.setHours(editCutoffTime.getHours() - 6);
     }
@@ -261,9 +269,16 @@ export default function PredictPage() {
     const firstMatchOfDay = getFirstMatchOfDay(match);
     if (firstMatchOfDay) {
       const firstMatchStartTime = firstMatchOfDay.matchDate.toDate();
-      editCutoffTime = new Date(firstMatchStartTime);
-      editCutoffTime.setHours(editCutoffTime.getHours() - 6);
-      deadlineText = '6 hours before first match of the day';
+      
+      // If first match is already completed or started, deadline has passed
+      if (firstMatchOfDay.status === 'completed' || now >= firstMatchStartTime) {
+        editCutoffTime = new Date(0); // Set to epoch to ensure isPastDeadline is true
+        deadlineText = 'first match of the day has started/completed';
+      } else {
+        editCutoffTime = new Date(firstMatchStartTime);
+        editCutoffTime.setHours(editCutoffTime.getHours() - 6);
+        deadlineText = '6 hours before first match of the day';
+      }
     } else {
       editCutoffTime = match.deadline.toDate();
       deadlineText = 'before deadline';

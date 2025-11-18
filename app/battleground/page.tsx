@@ -51,14 +51,16 @@ export default function BattleGroundPage() {
     const matchDate = match.matchDate.toDate();
     const dayKey = getStartOfDay(matchDate).toISOString();
     
+    // Include both upcoming and completed matches to get the actual first match of the day
     const sameDayMatches = allMatches.filter((m) => {
       const mDate = m.matchDate.toDate();
       const mDayKey = getStartOfDay(mDate).toISOString();
-      return mDayKey === dayKey && m.status === 'upcoming';
+      return mDayKey === dayKey;
     });
     
     if (sameDayMatches.length === 0) return null;
     
+    // Sort by match date and return the first one (regardless of status)
     sameDayMatches.sort((a, b) => 
       a.matchDate.toDate().getTime() - b.matchDate.toDate().getTime()
     );
@@ -73,13 +75,29 @@ export default function BattleGroundPage() {
       return true;
     }
 
-    // If match is upcoming, check if past edit cutoff (6 hours before first match of day)
+    // If match is upcoming, check if past edit cutoff
     if (match.status === 'upcoming') {
+      const now = new Date();
+      
+      // SPECIAL CASE: Match 1 uses 18-hour window from now (production exception)
+      if (match.matchNumber === 1) {
+        const match1Date = match.matchDate.toDate();
+        const hoursUntilMatch1 = (match1Date.getTime() - now.getTime()) / (1000 * 60 * 60);
+        // Match 1 is visible if it's in the future and within 18 hours from now
+        return hoursUntilMatch1 > 0 && hoursUntilMatch1 <= 18;
+      }
+      
+      // Other matches: 6 hours before first match of day
       const firstMatchOfDay = getFirstMatchOfDay(match, allMatches);
       if (!firstMatchOfDay) return false;
 
-      const now = new Date();
       const firstMatchStartTime = firstMatchOfDay.matchDate.toDate();
+      
+      // If first match is already completed or started, predictions should be visible
+      if (firstMatchOfDay.status === 'completed' || now >= firstMatchStartTime) {
+        return true;
+      }
+      
       const editCutoffTime = new Date(firstMatchStartTime);
       editCutoffTime.setHours(editCutoffTime.getHours() - 6);
 
