@@ -12,7 +12,7 @@ function getStartOfDay(date: Date): Date {
 /**
  * TEMPORARY: Check if current time is past 7 PM CST
  * Users can make/update predictions until 7 PM CST daily
- * After 7 PM CST, all predictions are blocked regardless of match start time
+ * After 7 PM CST, predictions for the "next" match are blocked
  * 
  * TODO: Remove this temporary logic when no longer needed
  */
@@ -33,6 +33,72 @@ export function isPast7PMCST(): boolean {
   
   // Check if it's 7 PM (19:00) or later in Central Time
   return hour >= 19;
+}
+
+/**
+ * Get the "next" match (earliest upcoming match that hasn't started)
+ * This is used to determine which match should be blocked at 7 PM CST
+ */
+export function getNextMatch(allMatches: Match[]): Match | null {
+  const now = new Date();
+  
+  // Filter for upcoming matches that haven't started
+  const upcomingMatches = allMatches
+    .filter(match => {
+      const matchDate = match.matchDate.toDate();
+      return match.status === 'upcoming' && matchDate > now;
+    })
+    .sort((a, b) => a.matchDate.toDate().getTime() - b.matchDate.toDate().getTime());
+  
+  return upcomingMatches.length > 0 ? upcomingMatches[0] : null;
+}
+
+/**
+ * Get all matches on the same day as the "next" match
+ * This accounts for same-day matches - all matches on the same day as the earliest match
+ * should be treated together for the 7 PM CST cutoff
+ */
+export function getNextMatchDayMatches(allMatches: Match[]): Match[] {
+  const nextMatch = getNextMatch(allMatches);
+  if (!nextMatch) {
+    return [];
+  }
+  
+  // Get the day of the next match
+  const nextMatchDate = nextMatch.matchDate.toDate();
+  const nextMatchDayStart = getStartOfDay(nextMatchDate);
+  const nextMatchDayKey = nextMatchDayStart.toISOString();
+  
+  // Find all matches on the same day as the next match
+  const now = new Date();
+  return allMatches.filter(match => {
+    if (match.status !== 'upcoming') return false;
+    
+    const matchDate = match.matchDate.toDate();
+    if (matchDate <= now) return false; // Already started
+    
+    const matchDayStart = getStartOfDay(matchDate);
+    const matchDayKey = matchDayStart.toISOString();
+    
+    return matchDayKey === nextMatchDayKey;
+  });
+}
+
+/**
+ * Check if a specific match should be blocked by the 7 PM CST cutoff
+ * All matches on the same day as the "next" match are blocked at 7 PM CST
+ */
+export function shouldBlockMatchAt7PMCST(match: Match, allMatches: Match[]): boolean {
+  // Only apply 7 PM CST cutoff if it's past 7 PM CST
+  if (!isPast7PMCST()) {
+    return false;
+  }
+  
+  // Get all matches on the same day as the "next" match
+  const nextMatchDayMatches = getNextMatchDayMatches(allMatches);
+  
+  // Block if this match is on the same day as the "next" match
+  return nextMatchDayMatches.some(m => m.id === match.id);
 }
 
 /**

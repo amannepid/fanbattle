@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
 import { getActiveTournament, getUserEntry, getUserPredictions, getMatches, getTeams } from '@/lib/firestore';
-import { isPast7PMCST } from '@/lib/prediction-rules';
+import { shouldBlockMatchAt7PMCST } from '@/lib/prediction-rules';
 import { getBasePoints } from '@/lib/scoring';
 import { Loader2, Trophy, Target, CheckCircle, XCircle, Clock, TrendingUp, ChevronDown, ChevronUp, Copy, CheckCircle2 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
@@ -238,17 +238,17 @@ export default function DashboardPage() {
 
               const now = new Date();
               
-              // TEMPORARY: Check 7 PM CST cutoff first
-              const past7PMCST = isPast7PMCST();
+              // TEMPORARY: Check 7 PM CST cutoff for the "next" match only
+              const shouldBlock = shouldBlockMatchAt7PMCST(match, Array.from(matches.values()));
               
               const firstMatchStartTime = firstMatchOfDay.matchDate.toDate();
               
               // Edit button: visible until 6 hours before first match start time
               // Also block if first match is already completed or started
-              // TEMPORARY: Also block if past 7 PM CST
+              // TEMPORARY: Also block if this is the next match and past 7 PM CST
               const editCutoffTime = new Date(firstMatchStartTime);
               editCutoffTime.setHours(editCutoffTime.getHours() - 6);
-              const canEdit = !past7PMCST && 
+              const canEdit = !shouldBlock && 
                              now < editCutoffTime && 
                              firstMatchOfDay.status !== 'completed' && 
                              now < firstMatchStartTime;

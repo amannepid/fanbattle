@@ -4,7 +4,7 @@ import { format, formatDistanceToNow } from 'date-fns';
 import { Calendar, Clock, Trophy, Lock } from 'lucide-react';
 import Link from 'next/link';
 import type { Match, Prediction } from '@/types';
-import { isPast7PMCST } from '@/lib/prediction-rules';
+import { shouldBlockMatchAt7PMCST } from '@/lib/prediction-rules';
 
 interface MatchCardProps {
   match: Match;
@@ -56,16 +56,18 @@ export default function MatchCard({
     return sameDayMatches[0];
   }
   
-  // TEMPORARY: Check 7 PM CST cutoff first
-  // If past 7 PM CST, block all predictions immediately
-  const past7PMCST = isPast7PMCST();
+  // TEMPORARY: Check 7 PM CST cutoff for the "next" match only
+  // Only block the next match (earliest upcoming) after 7 PM CST
+  const shouldBlock = allMatches && allMatches.length > 0 
+    ? shouldBlockMatchAt7PMCST(match, allMatches)
+    : false;
   
   // Calculate deadline and isPastDeadline using the same logic as other pages
   let deadline: Date;
   let isPastDeadline: boolean;
   
-  if (past7PMCST) {
-    // TEMPORARY: Block all predictions after 7 PM CST
+  if (shouldBlock) {
+    // TEMPORARY: Block the next match after 7 PM CST
     isPastDeadline = true;
     // Set deadline to today's 7 PM CST for display (approximate)
     deadline = new Date(now);

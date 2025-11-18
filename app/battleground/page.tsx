@@ -8,7 +8,7 @@ import { Loader2, Users, Trophy } from 'lucide-react';
 import { format } from 'date-fns';
 import { Timestamp } from 'firebase/firestore';
 import type { Tournament, UserEntry, Prediction, Match } from '@/types';
-import { isPast7PMCST } from '@/lib/prediction-rules';
+import { shouldBlockMatchAt7PMCST, getNextMatchDayMatches } from '@/lib/prediction-rules';
 
 // TEMPORARY: Set to true to use mock data for testing
 // NOTE: Keep this as false for production. Set to true locally for testing only.
@@ -80,10 +80,20 @@ export default function BattleGroundPage() {
     if (match.status === 'upcoming') {
       const now = new Date();
       
-      // TEMPORARY: Predictions are only visible after 7 PM CST
-      // This ensures users can't see others' predictions until after the daily cutoff
-      if (!isPast7PMCST()) {
-        return false; // Hide predictions before 7 PM CST
+      // TEMPORARY: Predictions for matches on the same day as the "next" match are only visible after 7 PM CST
+      // This ensures users can't see others' predictions for same-day matches until after the daily cutoff
+      // Other upcoming matches follow normal visibility rules
+      const nextMatchDayMatches = getNextMatchDayMatches(allMatches);
+      const isOnNextMatchDay = nextMatchDayMatches.some(m => m.id === match.id);
+      
+      if (isOnNextMatchDay) {
+        // This match is on the same day as the next match - only show predictions if it's past 7 PM CST (editing is blocked)
+        const isBlocked = shouldBlockMatchAt7PMCST(match, allMatches);
+        if (!isBlocked) {
+          // Same-day match but before 7 PM CST - hide predictions (editing still allowed)
+          return false;
+        }
+        // If blocked (past 7 PM CST), continue to normal visibility checks below
       }
       
       // SPECIAL CASE: Match 1 uses 18-hour window from now (production exception)

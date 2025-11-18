@@ -11,7 +11,7 @@ import { format, formatDistanceToNow } from 'date-fns';
 import { Timestamp } from 'firebase/firestore';
 import type { Match, Player, UserEntry, ScoreCategory } from '@/types';
 import PlayerSearchSelect from '@/components/PlayerSearchSelect';
-import { isPast7PMCST } from '@/lib/prediction-rules';
+import { shouldBlockMatchAt7PMCST } from '@/lib/prediction-rules';
 
 const SCORE_CATEGORIES: { value: ScoreCategory; label: string }[] = [
   { value: 'A', label: 'Under 130 (0-129)' },
@@ -159,8 +159,8 @@ export default function PredictPage() {
 
     const now = new Date();
     
-    // TEMPORARY: Check 7 PM CST cutoff first
-    if (isPast7PMCST()) {
+    // TEMPORARY: Check 7 PM CST cutoff for the "next" match only
+    if (allMatches && allMatches.length > 0 && shouldBlockMatchAt7PMCST(match, allMatches)) {
       setError('Prediction deadline has passed. Predictions close at 7 PM CST daily.');
       return;
     }
@@ -261,15 +261,17 @@ export default function PredictPage() {
   }
 
   // Calculate deadline
-  // TEMPORARY: Check 7 PM CST cutoff first
+  // TEMPORARY: Check 7 PM CST cutoff for the "next" match only
   const now = new Date();
-  const past7PMCST = isPast7PMCST();
+  const shouldBlock = allMatches && allMatches.length > 0 
+    ? shouldBlockMatchAt7PMCST(match, allMatches)
+    : false;
   
   let editCutoffTime: Date;
   let deadlineText: string;
   
-  if (past7PMCST) {
-    // TEMPORARY: Block all predictions after 7 PM CST
+  if (shouldBlock) {
+    // TEMPORARY: Block the next match after 7 PM CST
     editCutoffTime = new Date(0); // Set to epoch to ensure isPastDeadline is true
     deadlineText = '7 PM CST (daily cutoff)';
   } else if (match.matchNumber === 1) {
