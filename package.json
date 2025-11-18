@@ -15,7 +15,9 @@
     "cleanup-users": "tsx scripts/cleanup-users.ts",
     "import-players": "tsx scripts/import-players-csv.ts",
     "insert-match1-predictions": "tsx scripts/insert-match1-predictions.ts",
+    "insert-prediction": "tsx scripts/insert-prediction.ts",
     "bulk-insert-match1-predictions": "tsx scripts/bulk-insert-match1-predictions.ts",
+    "bulk-insert-prediction": "tsx scripts/bulk-insert-prediction.ts",
     "restore-prediction": "tsx scripts/restore-prediction.ts"
   },
   "dependencies": {

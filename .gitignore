@@ -38,3 +38,13 @@ next-env.d.ts
 # backup files
 scripts/backups/
 
+# user data files (CSV files with player/prediction data)
+scripts/players-by-team.csv
+scripts/*-data.csv
+scripts/*-test.csv
+
+# markdown files (except README)
+*.md
+!README.md
+!readme.md
+
