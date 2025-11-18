@@ -132,9 +132,10 @@ export default function LeaderboardPage() {
             ? (match?.matchType === 'league' ? 3 : match?.matchType === 'playoff' ? 5 : 7)
             : 0;
           const points = basePoints + 
-                        (p.isCorrectScoreCategory ? 1 : 0) + 
-                        (p.seasonTeamAdjustment || 0);
-          const bonus = (p.isCorrectPom ? 1 : 0) + (p.isCorrectWickets ? 1 : 0);
+                        (p.isCorrectScoreCategory ? 1 : 0);
+          const bonus = (p.isCorrectPom ? 1 : 0) + 
+                       (p.isCorrectWickets ? 1 : 0) + 
+                       (p.seasonTeamAdjustment || 0);
           
           return {
             matchId: p.matchId,

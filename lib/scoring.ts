@@ -210,8 +210,8 @@ export function getPointsBreakdown(
   prediction: Prediction,
   match: Match
 ): {
-  points: number;      // Base + score bonus + season adjustment (excludes POM and wickets)
-  bonus: number;       // POM bonus + wickets bonus
+  points: number;      // Base + score bonus (excludes POM, wickets, and season adjustment)
+  bonus: number;       // POM bonus + wickets bonus + season team adjustment
   penaltyFee: number;
 } {
   // Calculate base points (only if winner is correct)
@@ -220,16 +220,14 @@ export function getPointsBreakdown(
   // Score category bonus
   const scoreBonus = prediction.isCorrectScoreCategory ? 1 : 0;
   
-  // Season team adjustment
-  const seasonAdjustment = prediction.seasonTeamAdjustment || 0;
+  // Points = base + score bonus (season adjustment goes to bonus)
+  const points = basePoints + scoreBonus;
   
-  // Points = base + score bonus + season adjustment
-  const points = basePoints + scoreBonus + seasonAdjustment;
-  
-  // Bonus = POM + wickets
+  // Bonus = POM + wickets + season team adjustment
   const pomBonus = prediction.isCorrectPom ? 1 : 0;
   const wicketsBonus = prediction.isCorrectWickets ? 1 : 0;
-  const bonus = pomBonus + wicketsBonus;
+  const seasonAdjustment = prediction.seasonTeamAdjustment || 0;
+  const bonus = pomBonus + wicketsBonus + seasonAdjustment;
   
   // Penalty fee (use stored value or calculate from match type)
   const penaltyFee = prediction.penaltyFee !== undefined 
