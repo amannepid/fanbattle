@@ -1,7 +1,7 @@
 'use client';
 
 import { format, formatDistanceToNow } from 'date-fns';
-import { Calendar, Clock, Trophy } from 'lucide-react';
+import { Calendar, Clock, Trophy, Lock } from 'lucide-react';
 import Link from 'next/link';
 import type { Match, Prediction } from '@/types';
 
@@ -222,8 +222,16 @@ export default function MatchCard({
       )}
 
       {showPredictButton && isPastDeadline && match.status === 'upcoming' && (
-        <div className="text-center text-sm text-gray-500 dark:text-gray-400 py-3">
-          Predictions closed
+        <div className="flex flex-col items-center justify-center py-4 px-4 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-navy-800 dark:to-navy-900 rounded-lg border-2 border-gray-200 dark:border-navy-600">
+          <div className="flex items-center space-x-2 mb-1">
+            <Lock className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+            <span className="text-sm font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wide">
+              Predictions Closed
+            </span>
+          </div>
+          <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+            Deadline has passed
+          </p>
         </div>
       )}
     </div>
