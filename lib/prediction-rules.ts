@@ -10,6 +10,32 @@ function getStartOfDay(date: Date): Date {
 }
 
 /**
+ * TEMPORARY: Check if current time is past 7 PM CST
+ * Users can make/update predictions until 7 PM CST daily
+ * After 7 PM CST, all predictions are blocked regardless of match start time
+ * 
+ * TODO: Remove this temporary logic when no longer needed
+ */
+export function isPast7PMCST(): boolean {
+  const now = new Date();
+  
+  // Get current time in Central Time (CST/CDT)
+  // Use Intl.DateTimeFormat to get the time in America/Chicago timezone
+  const centralTime = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Chicago',
+    hour: 'numeric',
+    minute: 'numeric',
+    hour12: false,
+  }).formatToParts(now);
+  
+  const hour = parseInt(centralTime.find(part => part.type === 'hour')?.value || '0', 10);
+  const minute = parseInt(centralTime.find(part => part.type === 'minute')?.value || '0', 10);
+  
+  // Check if it's 7 PM (19:00) or later in Central Time
+  return hour >= 19;
+}
+
+/**
  * Determines which matches a user can currently predict.
  * 
  * Rules:

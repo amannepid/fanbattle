@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
 import { getActiveTournament, getUserEntry, getUserPredictions, getMatches, getTeams } from '@/lib/firestore';
+import { isPast7PMCST } from '@/lib/prediction-rules';
 import { getBasePoints } from '@/lib/scoring';
 import { Loader2, Trophy, Target, CheckCircle, XCircle, Clock, TrendingUp, ChevronDown, ChevronUp, Copy, CheckCircle2 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
@@ -236,13 +237,19 @@ export default function DashboardPage() {
               if (!firstMatchOfDay) return null;
 
               const now = new Date();
+              
+              // TEMPORARY: Check 7 PM CST cutoff first
+              const past7PMCST = isPast7PMCST();
+              
               const firstMatchStartTime = firstMatchOfDay.matchDate.toDate();
               
               // Edit button: visible until 6 hours before first match start time
               // Also block if first match is already completed or started
+              // TEMPORARY: Also block if past 7 PM CST
               const editCutoffTime = new Date(firstMatchStartTime);
               editCutoffTime.setHours(editCutoffTime.getHours() - 6);
-              const canEdit = now < editCutoffTime && 
+              const canEdit = !past7PMCST && 
+                             now < editCutoffTime && 
                              firstMatchOfDay.status !== 'completed' && 
                              now < firstMatchStartTime;
               

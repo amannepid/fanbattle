@@ -11,6 +11,7 @@ import { format, formatDistanceToNow } from 'date-fns';
 import { Timestamp } from 'firebase/firestore';
 import type { Match, Player, UserEntry, ScoreCategory } from '@/types';
 import PlayerSearchSelect from '@/components/PlayerSearchSelect';
+import { isPast7PMCST } from '@/lib/prediction-rules';
 
 const SCORE_CATEGORIES: { value: ScoreCategory; label: string }[] = [
   { value: 'A', label: 'Under 130 (0-129)' },
@@ -156,10 +157,16 @@ export default function PredictPage() {
     e.preventDefault();
     if (!predictedWinnerId || !match || !user || !userEntry) return;
 
-    // Check deadline: 6 hours before first match of the day
-    // SPECIAL CASE: Match 1 uses 18-hour window from now (production exception)
     const now = new Date();
     
+    // TEMPORARY: Check 7 PM CST cutoff first
+    if (isPast7PMCST()) {
+      setError('Prediction deadline has passed. Predictions close at 7 PM CST daily.');
+      return;
+    }
+
+    // Check deadline: 6 hours before first match of the day
+    // SPECIAL CASE: Match 1 uses 18-hour window from now (production exception)
     let editCutoffTime: Date;
     if (match.matchNumber === 1) {
       // Match 1: deadline is 18 hours from now (not from match start)
@@ -254,12 +261,18 @@ export default function PredictPage() {
   }
 
   // Calculate deadline
-  // SPECIAL CASE: Match 1 uses 18-hour window from now (production exception)
+  // TEMPORARY: Check 7 PM CST cutoff first
   const now = new Date();
+  const past7PMCST = isPast7PMCST();
+  
   let editCutoffTime: Date;
   let deadlineText: string;
   
-  if (match.matchNumber === 1) {
+  if (past7PMCST) {
+    // TEMPORARY: Block all predictions after 7 PM CST
+    editCutoffTime = new Date(0); // Set to epoch to ensure isPastDeadline is true
+    deadlineText = '7 PM CST (daily cutoff)';
+  } else if (match.matchNumber === 1) {
     // Match 1: deadline is 18 hours from now (not from match start)
     editCutoffTime = new Date(now);
     editCutoffTime.setHours(editCutoffTime.getHours() + 18);
