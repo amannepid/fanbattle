@@ -8,6 +8,7 @@ import { Loader2, Users, Trophy } from 'lucide-react';
 import { format } from 'date-fns';
 import { Timestamp } from 'firebase/firestore';
 import type { Tournament, UserEntry, Prediction, Match } from '@/types';
+import { isPast7PMCST } from '@/lib/prediction-rules';
 
 // TEMPORARY: Set to true to use mock data for testing
 // NOTE: Keep this as false for production. Set to true locally for testing only.
@@ -78,6 +79,12 @@ export default function BattleGroundPage() {
     // If match is upcoming, check if past edit cutoff
     if (match.status === 'upcoming') {
       const now = new Date();
+      
+      // TEMPORARY: Predictions are only visible after 7 PM CST
+      // This ensures users can't see others' predictions until after the daily cutoff
+      if (!isPast7PMCST()) {
+        return false; // Hide predictions before 7 PM CST
+      }
       
       // SPECIAL CASE: Match 1 uses 18-hour window from now (production exception)
       if (match.matchNumber === 1) {
