@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
-import { Home, BarChart3, User, LogOut, Shield, Trophy, Users } from 'lucide-react';
+import { Sparkles, LayoutDashboard, Swords, Trophy, ShieldCheck, LogOut } from 'lucide-react';
 
 export default function Navbar() {
   const { user, signOut, isAdmin } = useAuth();
@@ -66,19 +66,19 @@ export default function Navbar() {
                 {/* Main Nav Links */}
                 <div className="hidden md:flex items-center gap-1">
                   <Link href="/" className={getNavLinkClasses('/')}>
-                    <Home className="h-4 w-4" />
+                    <Sparkles className="h-4 w-4" />
                     <span>Home</span>
                   </Link>
                   <Link href="/dashboard" className={getNavLinkClasses('/dashboard')}>
-                    <User className="h-4 w-4" />
+                    <LayoutDashboard className="h-4 w-4" />
                     <span>Dashboard</span>
                   </Link>
                   <Link href="/battleground" className={getNavLinkClasses('/battleground')}>
-                    <Users className="h-4 w-4" />
+                    <Swords className="h-4 w-4" />
                     <span>Battle Ground</span>
                   </Link>
                   <Link href="/leaderboard" className={getNavLinkClasses('/leaderboard')}>
-                    <BarChart3 className="h-4 w-4" />
+                    <Trophy className="h-4 w-4" />
                     <span>Leaderboard</span>
                   </Link>
                 </div>
@@ -86,16 +86,16 @@ export default function Navbar() {
                 {/* Mobile Nav - Icons Only */}
                 <div className="flex md:hidden items-center gap-1">
                   <Link href="/" className={getNavLinkClasses('/')}>
-                    <Home className="h-5 w-5" />
+                    <Sparkles className="h-5 w-5" />
                   </Link>
                   <Link href="/dashboard" className={getNavLinkClasses('/dashboard')}>
-                    <User className="h-5 w-5" />
+                    <LayoutDashboard className="h-5 w-5" />
                   </Link>
                   <Link href="/battleground" className={getNavLinkClasses('/battleground')}>
-                    <Users className="h-5 w-5" />
+                    <Swords className="h-5 w-5" />
                   </Link>
                   <Link href="/leaderboard" className={getNavLinkClasses('/leaderboard')}>
-                    <BarChart3 className="h-5 w-5" />
+                    <Trophy className="h-5 w-5" />
                   </Link>
                 </div>
 
@@ -108,7 +108,7 @@ export default function Navbar() {
                     href="/admin"
                     className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-gold-500 to-gold-400 text-navy-500 rounded-lg hover:from-gold-400 hover:to-gold-500 transition-all duration-200 font-bold shadow-lg hover:shadow-gold-500/50 hover:scale-105 transform"
                   >
-                    <Shield className="h-4 w-4" />
+                    <ShieldCheck className="h-4 w-4" />
                     <span className="hidden sm:inline">Admin</span>
                   </Link>
                 )}
