@@ -27,43 +27,29 @@ export default function Home() {
     try {
       const activeTournament = await getActiveTournament();
       if (!activeTournament) {
-        console.log('No active tournament found');
         setLoading(false);
         return;
       }
 
       setTournament(activeTournament);
+      
+      // Fetch matches first (needed for both logged in and logged out users)
       const matchesData = await getMatches(activeTournament.id);
       setMatches(matchesData);
-      
-      // DEBUG: Check first match
-      if (matchesData.length > 0) {
-        const firstMatch = matchesData[0];
-        const now = new Date();
-        console.log('🐛 DEBUG Match 1:', {
-          matchNumber: firstMatch.matchNumber,
-          teams: `${firstMatch.teamAName} vs ${firstMatch.teamBName}`,
-          matchDate: firstMatch.matchDate.toDate().toISOString(),
-          deadline: firstMatch.deadline.toDate().toISOString(),
-          now: now.toISOString(),
-          isPastDeadline: firstMatch.deadline.toDate() < now,
-          status: firstMatch.status
-        });
-      }
 
       if (user) {
-        const entry = await getUserEntry(user.uid);
-        setUserEntry(entry);
+        // Fetch user-specific data in parallel
+        const [entry, predictions] = await Promise.all([
+          getUserEntry(user.uid),
+          getUserPredictions(user.uid)
+        ]);
         
-        // Get user's predictions
-        const predictions = await getUserPredictions(user.uid);
+        setUserEntry(entry);
         setUserPredictions(predictions);
-        console.log('🐛 DEBUG Predictions:', predictions.length);
         
         // Calculate which matches can be predicted
         const predictable = getPredictableMatches(matchesData, predictions);
         setPredictableMatchIds(predictable);
-        console.log('🐛 DEBUG Predictable:', Array.from(predictable));
       } else {
         // Clear user-specific data when logged out
         setUserEntry(null);

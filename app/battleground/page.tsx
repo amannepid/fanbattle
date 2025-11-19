@@ -1065,20 +1065,18 @@ export default function BattleGroundPage() {
       }
       setTournament(activeTournament);
 
-      // Get all user entries
-      const userEntries = await getLeaderboard(activeTournament.id);
+      // Fetch data in parallel (cache will prevent duplicate reads)
+      // Note: getAllPredictions internally calls getMatches, but cache will serve it
+      const [userEntries, matchesData, teamsData, allPredictions] = await Promise.all([
+        getLeaderboard(activeTournament.id),
+        getMatches(activeTournament.id),
+        getTeams(activeTournament.id),
+        getAllPredictions(activeTournament.id)
+      ]);
+
       const userEntriesMap = new Map(userEntries.map(ue => [ue.userId, ue]));
-
-      // Get all predictions
-      const allPredictions = await getAllPredictions(activeTournament.id);
-
-      // Get all matches
-      const matchesData = await getMatches(activeTournament.id);
       const matchMap = new Map(matchesData.map((m) => [m.id, m]));
       setMatches(matchMap);
-
-      // Get teams for short codes
-      const teamsData = await getTeams(activeTournament.id);
       const teamMap = new Map(teamsData.map((t) => [t.id, { name: t.name, shortCode: t.shortCode }]));
       setTeams(teamMap);
 

@@ -38,6 +38,7 @@ export default function DashboardPage() {
     try {
       if (!user) return;
 
+      // Fetch user entry first to check if registered
       const entry = await getUserEntry(user.uid);
       if (!entry) {
         router.push('/register');
@@ -45,6 +46,7 @@ export default function DashboardPage() {
       }
       setUserEntry(entry);
 
+      // Fetch tournament first to get tournamentId
       const activeTournament = await getActiveTournament();
       if (!activeTournament) {
         setLoading(false);
@@ -52,15 +54,16 @@ export default function DashboardPage() {
       }
       setTournament(activeTournament);
 
-      const predictionsData = await getUserPredictions(user.uid);
-      setPredictions(predictionsData);
+      // Fetch remaining data in parallel (cache will prevent duplicate reads)
+      const [predictionsData, matchesData, teamsData] = await Promise.all([
+        getUserPredictions(user.uid),
+        getMatches(activeTournament.id),
+        getTeams(activeTournament.id)
+      ]);
 
-      const matchesData = await getMatches(activeTournament.id);
+      setPredictions(predictionsData);
       const matchMap = new Map(matchesData.map((m) => [m.id, m]));
       setMatches(matchMap);
-
-      // Load teams to get short codes
-      const teamsData = await getTeams(activeTournament.id);
       const teamMap = new Map(teamsData.map((t) => [t.id, { name: t.name, shortCode: t.shortCode }]));
       setTeams(teamMap);
     } catch (error) {
@@ -883,8 +886,8 @@ export default function DashboardPage() {
                                       {actualScoreCategory} <span className="text-xs font-normal">({actualScore} runs)</span>
                                       {actualWickets !== undefined && ` / ${actualWickets} Wickets`}
                                     </div>
-                                  </div>
-                                )}
+                      </div>
+                    )}
                               </div>
                             </div>
                           </div>

@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { getActiveTournament, getLeaderboard, getMatches, getAllPredictions } from '@/lib/firestore';
 import { getPointsBreakdown } from '@/lib/scoring';
-import { Loader2, Trophy, Medal, Crown, TrendingUp, CheckCircle, Clock, Lock, Award, XCircle, DollarSign, AlertCircle } from 'lucide-react';
+import { Loader2, Trophy, Medal, Crown, TrendingUp, CheckCircle, Clock, Lock, Award, XCircle, DollarSign, AlertCircle, RefreshCw } from 'lucide-react';
 import type { Tournament, UserEntry, Match, Prediction } from '@/types';
 
 interface MatchResult {
@@ -36,17 +36,21 @@ export default function LeaderboardPage() {
   const [moneyInBank, setMoneyInBank] = useState(0);
   const [totalPenalties, setTotalPenalties] = useState(0);
   const [totalHoneyPot, setTotalHoneyPot] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     loadData();
     
-    // Refresh every 30 seconds
-    const interval = setInterval(loadData, 30000);
+    // Refresh every 5 minutes (reduced from 30 seconds to save reads)
+    const interval = setInterval(loadData, 300000);
     return () => clearInterval(interval);
   }, []);
 
-  async function loadData() {
+  async function loadData(showRefreshing = false) {
     try {
+      if (showRefreshing) {
+        setRefreshing(true);
+      }
       const activeTournament = await getActiveTournament();
       if (!activeTournament) {
         setLoading(false);
@@ -206,6 +210,7 @@ export default function LeaderboardPage() {
       console.error('Error loading leaderboard:', error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }
 
@@ -336,9 +341,20 @@ export default function LeaderboardPage() {
                   <p className="text-sm text-gray-300">{tournament.name} • {matches.length} Matches</p>
                 </div>
               </div>
-              <div className="text-right text-white">
-                <div className="text-sm text-gray-300">Total Players</div>
-                <div className="text-2xl font-bold">{playerRows.length}</div>
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => loadData(true)}
+                  disabled={refreshing}
+                  className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Refresh data"
+                >
+                  <RefreshCw className={`h-4 w-4 text-white ${refreshing ? 'animate-spin' : ''}`} />
+                  <span className="text-sm text-white font-medium">Refresh</span>
+                </button>
+                <div className="text-right text-white">
+                  <div className="text-sm text-gray-300">Total Players</div>
+                  <div className="text-2xl font-bold">{playerRows.length}</div>
+                </div>
               </div>
             </div>
           </div>
@@ -773,7 +789,7 @@ export default function LeaderboardPage() {
               </div>
               <div className="flex items-center gap-1">
                 <Clock className="h-3 w-3" />
-                <span>Updated {new Date().toLocaleTimeString()}</span>
+                <span>Auto-refresh: 5 min • Updated {new Date().toLocaleTimeString()}</span>
               </div>
             </div>
           </div>

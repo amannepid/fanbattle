@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { useRouter, useParams } from 'next/navigation';
-import { getMatch, getMatches, getUserEntry, getPrediction, createPrediction, updatePrediction } from '@/lib/firestore';
+import { getMatch, getMatches, getTeams, getUserEntry, getPrediction, createPrediction, updatePrediction } from '@/lib/firestore';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Loader2, Trophy, User, BarChart3, Target } from 'lucide-react';
@@ -113,9 +113,8 @@ export default function PredictPage() {
       const matchesData = await getMatches(matchData.tournamentId);
       setAllMatches(matchesData);
 
-      // Load teams for display
-      const teamsSnapshot = await getDocs(collection(db, 'teams'));
-      const teams = teamsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      // Load teams for this tournament only (filtered by tournamentId)
+      const teams = await getTeams(matchData.tournamentId);
       setAllTeams(teams);
 
       // Load ONLY players from the two competing teams

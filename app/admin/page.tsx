@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
 import { getActiveTournament, getMatches, getAllPlayers, getMatchPredictions, updatePrediction, getLeaderboard, getUserEntry, updateUserEntry, getMatch, getUserPredictions, getTeams, updateTournament } from '@/lib/firestore';
+import { cache, CACHE_KEYS } from '@/lib/cache';
 import { doc, updateDoc, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Loader2, Shield, Trophy, AlertCircle } from 'lucide-react';
@@ -124,6 +125,12 @@ export default function AdminPage() {
         status: 'completed',
       });
 
+      // Invalidate matches cache since match was updated
+      if (tournament) {
+        cache.delete(CACHE_KEYS.matches(tournament.id));
+        cache.delete(CACHE_KEYS.match(selectedMatch.id));
+      }
+
       // Check if this is an edit (match was already completed)
       const isEdit = selectedMatch.status === 'completed';
 
@@ -153,25 +160,43 @@ export default function AdminPage() {
     // Get all predictions for this match
     const predictions = await getMatchPredictions(matchId);
 
+    // Cache user entries to avoid redundant reads
+    const userEntryCache = new Map<string, UserEntry>();
+
+    // Helper function to get user entry with caching
+    const getCachedUserEntry = async (userId: string): Promise<UserEntry | null> => {
+      if (userEntryCache.has(userId)) {
+        return userEntryCache.get(userId)!;
+      }
+      const entry = await getUserEntry(userId);
+      if (entry) {
+        userEntryCache.set(userId, entry);
+      }
+      return entry;
+    };
+
     // If editing, first subtract old points from all users
     if (isEdit) {
       for (const prediction of predictions) {
-        const userEntry = await getUserEntry(prediction.userId);
+        const userEntry = await getCachedUserEntry(prediction.userId);
         if (!userEntry) continue;
 
         // Subtract old points
         const oldPoints = prediction.pointsEarned || 0;
         // Calculate old penalty (need to recalculate from old match data)
         // For now, we'll recalculate all penalties fresh below
+        const updatedTotalPoints = Math.max(0, (userEntry.totalPoints || 0) - oldPoints);
         await updateUserEntry(prediction.userId, {
-          totalPoints: Math.max(0, (userEntry.totalPoints || 0) - oldPoints),
+          totalPoints: updatedTotalPoints,
         });
+        // Update cache with new value
+        userEntryCache.set(prediction.userId, { ...userEntry, totalPoints: updatedTotalPoints });
       }
     }
 
     // Calculate score for each prediction
     for (const prediction of predictions) {
-      const userEntry = await getUserEntry(prediction.userId);
+      const userEntry = await getCachedUserEntry(prediction.userId);
       if (!userEntry) continue;
 
       // Scoring now checks BOTH predictions against actual result
@@ -179,8 +204,8 @@ export default function AdminPage() {
       const scoringResult = calculatePoints(prediction, match, userEntry.seasonTeamId);
       const penaltyFee = calculatePenaltyFee(prediction, match);
 
-      // Get current user entry again (in case it was updated in edit mode)
-      const currentUserEntry = await getUserEntry(prediction.userId);
+      // Get current user entry from cache (already updated if in edit mode)
+      const currentUserEntry = userEntryCache.get(prediction.userId);
       if (!currentUserEntry) continue;
 
       // Update prediction with scoring results
@@ -212,13 +237,17 @@ export default function AdminPage() {
       await updateUserEntry(prediction.userId, {
         totalPoints: newTotalPoints,
       });
+      
+      // Update cache with new value
+      userEntryCache.set(prediction.userId, { ...currentUserEntry, totalPoints: newTotalPoints });
     }
 
-    // Recalculate penalties for all users (since penalties depend on match results)
+    // Get leaderboard once and reuse it (was being fetched twice before)
     const allUsers = await getLeaderboard(match.tournamentId);
     const allMatches = await getMatches(match.tournamentId);
     const matchMap = new Map(allMatches.map((m) => [m.id, m]));
     
+    // Recalculate penalties for all users (since penalties depend on match results)
     for (const user of allUsers) {
       const allUserPredictions = await getUserPredictions(user.userId);
       let totalPenalties = 0;
@@ -235,13 +264,15 @@ export default function AdminPage() {
       });
     }
 
-    // Recalculate leaderboard ranks
-    const leaderboard = await getLeaderboard(match.tournamentId);
-    for (let i = 0; i < leaderboard.length; i++) {
-      await updateUserEntry(leaderboard[i].userId, {
+    // Recalculate leaderboard ranks (reuse allUsers instead of fetching again)
+    for (let i = 0; i < allUsers.length; i++) {
+      await updateUserEntry(allUsers[i].userId, {
         currentRank: i + 1,
       });
     }
+
+    // Invalidate leaderboard cache since ranks and points changed
+    cache.delete(CACHE_KEYS.leaderboard(match.tournamentId));
   }
 
   async function handleTournamentResults(e: React.FormEvent) {
@@ -288,6 +319,10 @@ export default function AdminPage() {
         highestWicketTakerName: wicketTakerPlayer?.name || '',
         status: 'completed',
       });
+
+      // Invalidate tournament cache
+      cache.delete(CACHE_KEYS.activeTournament);
+      cache.delete(CACHE_KEYS.tournament(tournament.id));
 
       // Apply tournament bonuses to all users
       const updatedTournament = {
