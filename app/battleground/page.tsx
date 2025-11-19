@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
 import { getActiveTournament, getLeaderboard, getAllPredictions, getMatches, getTeams } from '@/lib/firestore';
-import { Loader2, Users, Trophy } from 'lucide-react';
+import { Loader2, Users, Trophy, Clock, ArrowRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { Timestamp } from 'firebase/firestore';
 import type { Tournament, UserEntry, Prediction, Match } from '@/types';
@@ -1042,10 +1042,10 @@ export default function BattleGroundPage() {
           }
         }
 
-        // Sort by match number first, then by submission time (latest first)
+        // Sort by match number descending (latest matches first), then by submission time (latest first)
         visiblePredictions.sort((a, b) => {
           if (a.prediction.matchNumber !== b.prediction.matchNumber) {
-            return a.prediction.matchNumber - b.prediction.matchNumber;
+            return b.prediction.matchNumber - a.prediction.matchNumber; // Descending: latest matches first
           }
           const aTime = a.prediction.submittedAt?.toDate().getTime() || 0;
           const bTime = b.prediction.submittedAt?.toDate().getTime() || 0;
@@ -1098,10 +1098,10 @@ export default function BattleGroundPage() {
         }
       }
 
-      // Sort by match number first
+      // Sort by match number descending (latest matches first), then by submission time (latest first)
       visiblePredictions.sort((a, b) => {
         if (a.prediction.matchNumber !== b.prediction.matchNumber) {
-          return a.prediction.matchNumber - b.prediction.matchNumber;
+          return b.prediction.matchNumber - a.prediction.matchNumber; // Descending: latest matches first
         }
         // Within same match, sort by submission time (latest first)
         const aTime = a.prediction.submittedAt?.toDate().getTime() || 0;
@@ -1142,11 +1142,22 @@ export default function BattleGroundPage() {
     predictionsByMatch.get(item.match.id)!.push(item);
   }
 
-  // Get unique matches
+  // Get unique matches - sort by match number descending (latest matches first)
   const uniqueMatches = Array.from(predictionsByMatch.keys())
     .map(matchId => matches.get(matchId))
     .filter((m): m is Match => m !== undefined)
-    .sort((a, b) => a.matchNumber - b.matchNumber);
+    .sort((a, b) => b.matchNumber - a.matchNumber);
+
+  // Determine next match and upcoming matches for indicators
+  const now = new Date();
+  const upcomingVisibleMatches = uniqueMatches.filter(m => m.status === 'upcoming');
+  const nextMatch = upcomingVisibleMatches.length > 0 
+    ? upcomingVisibleMatches.reduce((latest, current) => {
+        const latestDate = latest.matchDate.toDate();
+        const currentDate = current.matchDate.toDate();
+        return currentDate < latestDate ? current : latest;
+      })
+    : null;
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -1266,11 +1277,28 @@ export default function BattleGroundPage() {
                           className="flex-shrink-0 w-80 border-r border-gray-200 dark:border-gray-700"
                         >
                           {/* Match Header - Compact */}
-                          <div className="bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 px-3 py-2 h-16 flex flex-col justify-center border-b border-slate-200 dark:border-slate-700">
+                          <div className={`bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 px-3 py-2 h-16 flex flex-col justify-center border-b border-slate-200 dark:border-slate-700 ${
+                            nextMatch?.id === match.id ? 'border-l-4 border-l-blue-500' : 
+                            match.status === 'upcoming' ? 'border-l-2 border-l-green-400' : ''
+                          }`}>
                             <div className="flex items-center justify-between mb-1">
-                              <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
-                                Match {match.matchNumber} {match.matchType !== 'league' && `(${match.matchType})`}
-                              </span>
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                                  Match {match.matchNumber} {match.matchType !== 'league' && `(${match.matchType})`}
+                                </span>
+                                {nextMatch?.id === match.id && (
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-500 text-white text-xs font-bold rounded-full">
+                                    <ArrowRight className="h-3 w-3" />
+                                    Next Match
+                                  </span>
+                                )}
+                                {match.status === 'upcoming' && nextMatch?.id !== match.id && (
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-500 text-white text-xs font-bold rounded-full">
+                                    <Clock className="h-3 w-3" />
+                                    Upcoming
+                                  </span>
+                                )}
+                              </div>
                               <div className="flex items-center gap-1.5 text-sm">
                                 <span className="font-medium truncate max-w-[100px] text-slate-700 dark:text-slate-200">{teams.get(match.teamAId)?.shortCode || match.teamAName}</span>
                                 <span className="text-slate-500 dark:text-slate-400">vs</span>
