@@ -11,7 +11,7 @@ import { format, formatDistanceToNow } from 'date-fns';
 import { Timestamp } from 'firebase/firestore';
 import type { Match, Player, UserEntry, ScoreCategory } from '@/types';
 import PlayerSearchSelect from '@/components/PlayerSearchSelect';
-import { shouldBlockMatchAt7PMCST } from '@/lib/prediction-rules';
+import { shouldBlockMatchAt8PMCST } from '@/lib/prediction-rules';
 
 const SCORE_CATEGORIES: { value: ScoreCategory; label: string }[] = [
   { value: 'A', label: 'Under 130 (0-129)' },
@@ -159,43 +159,31 @@ export default function PredictPage() {
 
     const now = new Date();
     
-    // TEMPORARY: Check 7 PM CST cutoff for the "next" match only
-    if (allMatches && allMatches.length > 0 && shouldBlockMatchAt7PMCST(match, allMatches)) {
-      setError('Prediction deadline has passed. Predictions close at 7 PM CST daily.');
+    // Check 8 PM CST cutoff for matches on the same Nepal day as the "next" match
+    if (allMatches && allMatches.length > 0 && shouldBlockMatchAt8PMCST(match, allMatches)) {
+      setError('Prediction deadline has passed. Predictions close at 8 PM CST daily.');
       return;
     }
 
     // Check deadline: 6 hours before first match of the day
-    // SPECIAL CASE: Match 1 uses 18-hour window from now (production exception)
-    let editCutoffTime: Date;
-    if (match.matchNumber === 1) {
-      // Match 1: deadline is 18 hours from now (not from match start)
-      editCutoffTime = new Date(now);
-      editCutoffTime.setHours(editCutoffTime.getHours() + 18);
-    } else {
-      // Other matches: 6 hours before first match of the day
-      const firstMatchOfDay = getFirstMatchOfDay(match);
-      if (!firstMatchOfDay) {
-        setError('Unable to determine match deadline');
-        return;
-      }
-      const firstMatchStartTime = firstMatchOfDay.matchDate.toDate();
-      
-      // If the first match of the day is already completed or started, editing should be blocked
-      if (firstMatchOfDay.status === 'completed' || now >= firstMatchStartTime) {
-        setError('Prediction deadline has passed. The first match of the day has already started or completed.');
-        return;
-      }
-      
-      editCutoffTime = new Date(firstMatchStartTime);
-      editCutoffTime.setHours(editCutoffTime.getHours() - 6);
+    const firstMatchOfDay = getFirstMatchOfDay(match);
+    if (!firstMatchOfDay) {
+      setError('Unable to determine match deadline');
+      return;
+    }
+    const firstMatchStartTime = firstMatchOfDay.matchDate.toDate();
+    
+    // If the first match of the day is already completed or started, editing should be blocked
+    if (firstMatchOfDay.status === 'completed' || now >= firstMatchStartTime) {
+      setError('Prediction deadline has passed. The first match of the day has already started or completed.');
+      return;
     }
     
+    const editCutoffTime = new Date(firstMatchStartTime);
+    editCutoffTime.setHours(editCutoffTime.getHours() - 6);
+    
     if (now >= editCutoffTime) {
-      const deadlineMsg = match.matchNumber === 1 
-        ? 'Prediction deadline has passed. Match 1 predictions close 18 hours from now (special exception).'
-        : 'Prediction deadline has passed. You can no longer edit predictions 6 hours before the first match of the day.';
-      setError(deadlineMsg);
+      setError('Prediction deadline has passed. You can no longer edit predictions 6 hours before the first match of the day.');
       return;
     }
 
@@ -261,26 +249,21 @@ export default function PredictPage() {
   }
 
   // Calculate deadline
-  // TEMPORARY: Check 7 PM CST cutoff for the "next" match only
+  // Check 8 PM CST cutoff for matches on the same Nepal day as the "next" match
   const now = new Date();
   const shouldBlock = allMatches && allMatches.length > 0 
-    ? shouldBlockMatchAt7PMCST(match, allMatches)
+    ? shouldBlockMatchAt8PMCST(match, allMatches)
     : false;
   
   let editCutoffTime: Date;
   let deadlineText: string;
   
   if (shouldBlock) {
-    // TEMPORARY: Block the next match after 7 PM CST
+    // Block matches on the same Nepal day after 8 PM CST cutoff
     editCutoffTime = new Date(0); // Set to epoch to ensure isPastDeadline is true
-    deadlineText = '7 PM CST (daily cutoff)';
-  } else if (match.matchNumber === 1) {
-    // Match 1: deadline is 18 hours from now (not from match start)
-    editCutoffTime = new Date(now);
-    editCutoffTime.setHours(editCutoffTime.getHours() + 18);
-    deadlineText = '18 hours from now (special exception)';
+    deadlineText = '8 PM CST (daily cutoff)';
   } else {
-    // Other matches: 6 hours before first match of the day
+    // All matches: 6 hours before first match of the day
     const firstMatchOfDay = getFirstMatchOfDay(match);
     if (firstMatchOfDay) {
       const firstMatchStartTime = firstMatchOfDay.matchDate.toDate();

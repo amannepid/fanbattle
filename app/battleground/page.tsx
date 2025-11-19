@@ -8,7 +8,7 @@ import { Loader2, Users, Trophy } from 'lucide-react';
 import { format } from 'date-fns';
 import { Timestamp } from 'firebase/firestore';
 import type { Tournament, UserEntry, Prediction, Match } from '@/types';
-import { shouldBlockMatchAt7PMCST, getNextMatchDayMatches } from '@/lib/prediction-rules';
+import { shouldBlockMatchAt8PMCST, getNextMatchDayMatches } from '@/lib/prediction-rules';
 
 // TEMPORARY: Set to true to use mock data for testing
 // NOTE: Keep this as false for production. Set to true locally for testing only.
@@ -80,31 +80,7 @@ export default function BattleGroundPage() {
     if (match.status === 'upcoming') {
       const now = new Date();
       
-      // TEMPORARY: Predictions for matches on the same day as the "next" match are only visible after 7 PM CST
-      // This ensures users can't see others' predictions for same-day matches until after the daily cutoff
-      // Other upcoming matches follow normal visibility rules
-      const nextMatchDayMatches = getNextMatchDayMatches(allMatches);
-      const isOnNextMatchDay = nextMatchDayMatches.some(m => m.id === match.id);
-      
-      if (isOnNextMatchDay) {
-        // This match is on the same day as the next match - only show predictions if it's past 7 PM CST (editing is blocked)
-        const isBlocked = shouldBlockMatchAt7PMCST(match, allMatches);
-        if (!isBlocked) {
-          // Same-day match but before 7 PM CST - hide predictions (editing still allowed)
-          return false;
-        }
-        // If blocked (past 7 PM CST), continue to normal visibility checks below
-      }
-      
-      // SPECIAL CASE: Match 1 uses 18-hour window from now (production exception)
-      if (match.matchNumber === 1) {
-        const match1Date = match.matchDate.toDate();
-        const hoursUntilMatch1 = (match1Date.getTime() - now.getTime()) / (1000 * 60 * 60);
-        // Match 1 is visible if it's in the future and within 18 hours from now
-        return hoursUntilMatch1 > 0 && hoursUntilMatch1 <= 18;
-      }
-      
-      // Other matches: 6 hours before first match of day
+      // All matches: 6 hours before first match of day
       const firstMatchOfDay = getFirstMatchOfDay(match, allMatches);
       if (!firstMatchOfDay) return false;
 
@@ -118,7 +94,24 @@ export default function BattleGroundPage() {
       const editCutoffTime = new Date(firstMatchStartTime);
       editCutoffTime.setHours(editCutoffTime.getHours() - 6);
 
-      return now >= editCutoffTime;
+      // Check if past edit cutoff (6 hours before first match of day)
+      const isPastEditCutoff = now >= editCutoffTime;
+      
+      // For matches on the same Nepal day as the "next" match, also check 8 PM CST cutoff
+      // Predictions are visible if EITHER:
+      // 1. Past the 6-hour edit cutoff, OR
+      // 2. Past 8 PM CST cutoff (for same Nepal day matches)
+      const nextMatchDayMatches = getNextMatchDayMatches(allMatches);
+      const isOnNextMatchDay = nextMatchDayMatches.some(m => m.id === match.id);
+      
+      if (isOnNextMatchDay) {
+        // For same Nepal day matches, also check if past 8 PM CST cutoff
+        const isPast8PM = shouldBlockMatchAt8PMCST(match, allMatches);
+        return isPastEditCutoff || isPast8PM;
+      }
+      
+      // For matches on other days, use normal edit cutoff
+      return isPastEditCutoff;
     }
 
     return false;

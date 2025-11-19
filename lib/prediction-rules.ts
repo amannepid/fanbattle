@@ -10,13 +10,11 @@ function getStartOfDay(date: Date): Date {
 }
 
 /**
- * TEMPORARY: Check if current time is past 7 PM CST
- * Users can make/update predictions until 7 PM CST daily
- * After 7 PM CST, predictions for the "next" match are blocked
- * 
- * TODO: Remove this temporary logic when no longer needed
+ * Check if current time is past 8 PM CST
+ * Users can make/update predictions until 8 PM CST daily
+ * After 8 PM CST, predictions for matches on the same Nepal day are blocked
  */
-export function isPast7PMCST(): boolean {
+export function isPast8PMCST(): boolean {
   const now = new Date();
   
   // Get current time in Central Time (CST/CDT)
@@ -31,13 +29,76 @@ export function isPast7PMCST(): boolean {
   const hour = parseInt(centralTime.find(part => part.type === 'hour')?.value || '0', 10);
   const minute = parseInt(centralTime.find(part => part.type === 'minute')?.value || '0', 10);
   
-  // Check if it's 7 PM (19:00) or later in Central Time
-  return hour >= 19;
+  // Check if it's 8 PM (20:00) or later in Central Time
+  return hour >= 20;
+}
+
+/**
+ * Get the Nepal day (start of day in Nepal timezone) for a given date
+ * Nepal is UTC+5:45
+ */
+function getNepalDay(date: Date): Date {
+  // Convert to Nepal timezone and get start of day
+  const nepalTime = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Kathmandu',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date);
+  
+  const year = parseInt(nepalTime.find(part => part.type === 'year')?.value || '2025', 10);
+  const month = parseInt(nepalTime.find(part => part.type === 'month')?.value || '1', 10) - 1;
+  const day = parseInt(nepalTime.find(part => part.type === 'day')?.value || '1', 10);
+  
+  // Create date at start of day in Nepal timezone (UTC+5:45)
+  // We'll create it in UTC and adjust
+  const nepalDayStart = new Date(Date.UTC(year, month, day, 0, 0, 0));
+  // Nepal is UTC+5:45, so subtract 5:45 to get the UTC equivalent
+  nepalDayStart.setUTCHours(nepalDayStart.getUTCHours() - 5);
+  nepalDayStart.setUTCMinutes(nepalDayStart.getUTCMinutes() - 45);
+  
+  return nepalDayStart;
+}
+
+/**
+ * Get the cutoff time (8 PM CST on previous CST day) for matches on a given Nepal day
+ * Since Nepal is ahead (UTC+5:45), midnight Nepal = 6:15 PM CST previous day
+ * So cutoff (8 PM CST) is always on the previous CST day
+ */
+function getCutoffTimeForNepalDay(nepalDay: Date): Date {
+  // Get the CST date when this Nepal day starts
+  // Nepal day starts at midnight Nepal time = 6:15 PM CST the previous day
+  // But when formatted, it shows as the CST day (e.g., Nov 18 midnight Nepal = Nov 17 12:15 PM CST)
+  const cstDateStr = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Chicago',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(nepalDay);
+  
+  const [month, day, year] = cstDateStr.split('/').map(Number);
+  
+  // The cutoff is always 8 PM CST on the CST day when the Nepal day starts
+  // Example: Nov 18 Nepal day starts at Nov 17 12:15 PM CST
+  //          Cutoff is Nov 17 8:00 PM CST (same CST day)
+  let cutoffYear = year;
+  let cutoffMonth = month - 1; // JavaScript months are 0-indexed  
+  let cutoffDay = day;
+  
+  // Create Date object for 8 PM CST on the cutoff day
+  // CST is UTC-6, so 8 PM CST = 2 AM UTC next day
+  // For Nov 17 8:00 PM CST: Nov 17 20:00 CST = Nov 18 02:00 UTC
+  // So we create a UTC date for the next day at 02:00 UTC
+  const cutoffDate = new Date(Date.UTC(cutoffYear, cutoffMonth, cutoffDay));
+  cutoffDate.setUTCDate(cutoffDate.getUTCDate() + 1);
+  cutoffDate.setUTCHours(2, 0, 0, 0);
+  
+  return cutoffDate;
 }
 
 /**
  * Get the "next" match (earliest upcoming match that hasn't started)
- * This is used to determine which match should be blocked at 7 PM CST
+ * This is used to determine which match should be blocked at 8 PM CST
  */
 export function getNextMatch(allMatches: Match[]): Match | null {
   const now = new Date();
@@ -54,9 +115,9 @@ export function getNextMatch(allMatches: Match[]): Match | null {
 }
 
 /**
- * Get all matches on the same day as the "next" match
- * This accounts for same-day matches - all matches on the same day as the earliest match
- * should be treated together for the 7 PM CST cutoff
+ * Get all matches on the same Nepal day as the "next" match
+ * This accounts for same-day matches - all matches on the same Nepal day as the earliest match
+ * should be treated together for the 8 PM CST cutoff
  */
 export function getNextMatchDayMatches(allMatches: Match[]): Match[] {
   const nextMatch = getNextMatch(allMatches);
@@ -64,12 +125,12 @@ export function getNextMatchDayMatches(allMatches: Match[]): Match[] {
     return [];
   }
   
-  // Get the day of the next match
+  // Get the Nepal day of the next match
   const nextMatchDate = nextMatch.matchDate.toDate();
-  const nextMatchDayStart = getStartOfDay(nextMatchDate);
-  const nextMatchDayKey = nextMatchDayStart.toISOString();
+  const nextMatchNepalDay = getNepalDay(nextMatchDate);
+  const nextMatchNepalDayKey = nextMatchNepalDay.toISOString();
   
-  // Find all matches on the same day as the next match
+  // Find all matches on the same Nepal day as the next match
   const now = new Date();
   return allMatches.filter(match => {
     if (match.status !== 'upcoming') return false;
@@ -77,28 +138,43 @@ export function getNextMatchDayMatches(allMatches: Match[]): Match[] {
     const matchDate = match.matchDate.toDate();
     if (matchDate <= now) return false; // Already started
     
-    const matchDayStart = getStartOfDay(matchDate);
-    const matchDayKey = matchDayStart.toISOString();
+    const matchNepalDay = getNepalDay(matchDate);
+    const matchNepalDayKey = matchNepalDay.toISOString();
     
-    return matchDayKey === nextMatchDayKey;
+    return matchNepalDayKey === nextMatchNepalDayKey;
   });
 }
 
 /**
- * Check if a specific match should be blocked by the 7 PM CST cutoff
- * All matches on the same day as the "next" match are blocked at 7 PM CST
+ * Check if a specific match should be blocked by the 8 PM CST cutoff
+ * All matches on the same Nepal day as the "next" match are blocked at 8 PM CST
  */
-export function shouldBlockMatchAt7PMCST(match: Match, allMatches: Match[]): boolean {
-  // Only apply 7 PM CST cutoff if it's past 7 PM CST
-  if (!isPast7PMCST()) {
+export function shouldBlockMatchAt8PMCST(match: Match, allMatches: Match[]): boolean {
+  const nextMatch = getNextMatch(allMatches);
+  if (!nextMatch) {
     return false;
   }
   
-  // Get all matches on the same day as the "next" match
-  const nextMatchDayMatches = getNextMatchDayMatches(allMatches);
+  // Get the Nepal day of the next match
+  const nextMatchDate = nextMatch.matchDate.toDate();
+  const nextMatchNepalDay = getNepalDay(nextMatchDate);
   
-  // Block if this match is on the same day as the "next" match
-  return nextMatchDayMatches.some(m => m.id === match.id);
+  // Get the Nepal day of this match
+  const matchDate = match.matchDate.toDate();
+  const matchNepalDay = getNepalDay(matchDate);
+  
+  // Check if this match is on the same Nepal day as the next match
+  const isSameNepalDay = nextMatchNepalDay.toISOString() === matchNepalDay.toISOString();
+  if (!isSameNepalDay) {
+    return false;
+  }
+  
+  // Get the cutoff time for this Nepal day (8 PM CST on previous CST day)
+  const cutoffTime = getCutoffTimeForNepalDay(nextMatchNepalDay);
+  const now = new Date();
+  
+  // Block if current time is past the cutoff
+  return now >= cutoffTime;
 }
 
 /**
@@ -139,7 +215,7 @@ export function getPredictableMatches(
   }
 
   const predictableMatchIds = new Set<string>();
-  
+
   // Group matches by day
   const matchesByDay = new Map<string, Match[]>();
   for (const match of upcomingMatches) {
@@ -157,23 +233,6 @@ export function getPredictableMatches(
   
   console.log(`  📅 Found ${sortedDays.length} unique days with matches`);
   
-  // SPECIAL CASE: Match 1 is always available for next 18 hours from now (production exception)
-  // This is a one-time exception because we went live just 6 hours before the match
-  const match1 = allMatches.find(m => m.matchNumber === 1 && m.status === 'upcoming');
-  if (match1) {
-    const match1Date = match1.matchDate.toDate();
-    const hoursUntilMatch1 = (match1Date.getTime() - now.getTime()) / (1000 * 60 * 60);
-    // Match 1 is available if it's in the future and within 18 hours from now
-    if (hoursUntilMatch1 > 0) {
-      // Calculate hours from now (not from match start)
-      const hoursFromNow = hoursUntilMatch1;
-      if (hoursFromNow <= 18) {
-        predictableMatchIds.add(match1.id);
-        console.log(`  🎯 Match 1 special case: Available for next ${hoursFromNow.toFixed(1)} hours (18-hour exception window)`);
-      }
-    }
-  }
-  
   // Process each day
   for (let dayIndex = 0; dayIndex < sortedDays.length; dayIndex++) {
     const dayKey = sortedDays[dayIndex];
@@ -186,22 +245,17 @@ export function getPredictableMatches(
     let isDayUnlocked = false;
     
     // Rule 1: Check if first match of this day is less than 24 hours away
-    // SPECIAL CASE: First match (Match 1) is available for 18 hours instead of 24
     const firstMatchOfDay = dayMatches[0];
     const firstMatchDate = firstMatchOfDay.matchDate.toDate();
     const hoursUntilMatch = (firstMatchDate.getTime() - now.getTime()) / (1000 * 60 * 60);
     
-    // Special handling for Match 1: allow predictions for 18 hours
-    const isFirstMatch = firstMatchOfDay.matchNumber === 1;
-    const hoursThreshold = isFirstMatch ? 18 : 24;
-    
-    if (hoursUntilMatch < hoursThreshold && hoursUntilMatch > 0) {
+    if (hoursUntilMatch < 24 && hoursUntilMatch > 0) {
       isDayUnlocked = true;
-      console.log(`    ✅ Day unlocked: First match is ${hoursUntilMatch.toFixed(1)} hours away (< ${hoursThreshold} hours${isFirstMatch ? ' - Match 1 special case' : ''})`);
+      console.log(`    ✅ Day unlocked: First match is ${hoursUntilMatch.toFixed(1)} hours away (< 24 hours)`);
     } else {
       // Rule 2: Check if all matches from previous days are completed
       let allPreviousDaysCompleted = true;
-      
+    
       // Check all matches from previous days
       for (let prevDayIndex = 0; prevDayIndex < dayIndex; prevDayIndex++) {
         const prevDayKey = sortedDays[prevDayIndex];
@@ -231,9 +285,9 @@ export function getPredictableMatches(
           if (matchDayStart < dayDate && match.status !== 'completed') {
             allPreviousDaysCompleted = false;
             console.log(`    🔒 Day locked: Match ${match.matchNumber} from ${matchDayStart.toISOString()} is not completed`);
-            break;
-          }
-        }
+        break;
+      }
+    }
       }
       
       if (allPreviousDaysCompleted) {
@@ -279,22 +333,10 @@ export function getUnpredictableReason(
 ): string | null {
   const now = new Date();
   
-  // SPECIAL CASE: Match 1 uses 18-hour window from now (production exception)
-  if (match.matchNumber === 1) {
-    const match1Date = match.matchDate.toDate();
-    const hoursUntilMatch1 = (match1Date.getTime() - now.getTime()) / (1000 * 60 * 60);
-    
-    // Match 1 is available if it's in the future and within 18 hours from now
-    if (hoursUntilMatch1 <= 0 || hoursUntilMatch1 > 18) {
-      return 'Prediction deadline has passed';
-    }
-    // If within 18 hours, allow it (don't return error)
-  } else {
-    // For other matches, use the stored deadline
-    const deadline = match.deadline.toDate();
-    if (deadline <= now) {
-      return 'Prediction deadline has passed';
-    }
+  // For all matches, use the stored deadline
+  const deadline = match.deadline.toDate();
+  if (deadline <= now) {
+    return 'Prediction deadline has passed';
   }
   
   // Check if match is completed

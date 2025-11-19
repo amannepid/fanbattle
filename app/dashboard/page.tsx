@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
 import { getActiveTournament, getUserEntry, getUserPredictions, getMatches, getTeams } from '@/lib/firestore';
-import { shouldBlockMatchAt7PMCST } from '@/lib/prediction-rules';
+import { shouldBlockMatchAt8PMCST } from '@/lib/prediction-rules';
 import { getBasePoints } from '@/lib/scoring';
 import { Loader2, Trophy, Target, CheckCircle, XCircle, Clock, TrendingUp, ChevronDown, ChevronUp, Copy, CheckCircle2 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
@@ -238,14 +238,14 @@ export default function DashboardPage() {
 
               const now = new Date();
               
-              // TEMPORARY: Check 7 PM CST cutoff for the "next" match only
-              const shouldBlock = shouldBlockMatchAt7PMCST(match, Array.from(matches.values()));
+              // Check 8 PM CST cutoff for matches on the same Nepal day as the "next" match
+              const shouldBlock = shouldBlockMatchAt8PMCST(match, Array.from(matches.values()));
               
               const firstMatchStartTime = firstMatchOfDay.matchDate.toDate();
               
               // Edit button: visible until 6 hours before first match start time
               // Also block if first match is already completed or started
-              // TEMPORARY: Also block if this is the next match and past 7 PM CST
+              // Also block if this match is on the same Nepal day and past 8 PM CST cutoff
               const editCutoffTime = new Date(firstMatchStartTime);
               editCutoffTime.setHours(editCutoffTime.getHours() - 6);
               const canEdit = !shouldBlock && 
@@ -665,7 +665,7 @@ export default function DashboardPage() {
                       </div>
                     </div>
                     <div className="flex items-center space-x-3">
-                      <div className="text-right">
+                    <div className="text-right">
                         <div className={`text-xl font-bold ${
                           (prediction.pointsEarned || 0) > 0 
                             ? 'text-green-600' 
@@ -676,14 +676,14 @@ export default function DashboardPage() {
                           {prediction.pointsEarned !== undefined 
                             ? (prediction.pointsEarned > 0 ? '+' : '') + prediction.pointsEarned 
                             : '-'}
-                        </div>
-                        <div className="text-xs text-gray-600 dark:text-gray-400">points</div>
+                      </div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400">points</div>
                         {prediction.penaltyFee !== undefined && prediction.penaltyFee > 0 && (
                           <div className="text-xs font-semibold text-red-600 dark:text-red-400 mt-1">
                             -${prediction.penaltyFee} penalty
-                          </div>
+                    </div>
                         )}
-                      </div>
+                  </div>
                       {isExpanded ? (
                         <ChevronUp className="h-5 w-5 text-gray-400 flex-shrink-0" />
                       ) : (
@@ -731,7 +731,7 @@ export default function DashboardPage() {
                                   +{getBasePoints(match.matchType)}
                                 </span>
                               </div>
-                            ) : (
+                        ) : (
                               <XCircle className="h-5 w-5 text-red-600" />
                             )}
                           </div>
@@ -803,8 +803,8 @@ export default function DashboardPage() {
                                     <CheckCircle className="h-4 w-4 text-green-600" />
                                     <span className="text-sm font-bold text-green-700 dark:text-green-400">
                                       {scorePoints > 0 && wicketsPoints > 0 ? '1 + 1' : '1'}
-                                    </span>
-                                  </div>
+                        </span>
+                      </div>
                                 );
                               })()}
                             </div>
@@ -896,9 +896,9 @@ export default function DashboardPage() {
                             <div className="text-xs text-yellow-800 dark:text-yellow-200">
                               ⚠️ Reduced Overs Match - Score/Wickets predictions not counted
                             </div>
-                          </div>
-                        )}
-
+                      </div>
+                    )}
+                    
                         {/* Season Team Adjustment */}
                         {prediction.seasonTeamAdjustment !== undefined && prediction.seasonTeamAdjustment !== 0 && (
                           <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-400 dark:border-blue-600 rounded-lg p-3">
@@ -916,12 +916,12 @@ export default function DashboardPage() {
                                 )}
                                 <span>
                                   {prediction.seasonTeamAdjustment > 0 ? '+' : ''}{prediction.seasonTeamAdjustment}
-                                </span>
+                        </span>
                               </div>
                             </div>
-                          </div>
-                        )}
-
+                      </div>
+                    )}
+                    
                         {/* Penalty Fee */}
                         {prediction.penaltyFee !== undefined && prediction.penaltyFee > 0 && (
                           <div className="bg-red-50 dark:bg-red-900/20 border border-red-400 dark:border-red-600 rounded-lg p-3">

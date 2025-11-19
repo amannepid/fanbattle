@@ -4,7 +4,7 @@ import { format, formatDistanceToNow } from 'date-fns';
 import { Calendar, Clock, Trophy, Lock } from 'lucide-react';
 import Link from 'next/link';
 import type { Match, Prediction } from '@/types';
-import { shouldBlockMatchAt7PMCST } from '@/lib/prediction-rules';
+import { shouldBlockMatchAt8PMCST } from '@/lib/prediction-rules';
 
 interface MatchCardProps {
   match: Match;
@@ -56,10 +56,9 @@ export default function MatchCard({
     return sameDayMatches[0];
   }
   
-  // TEMPORARY: Check 7 PM CST cutoff for the "next" match only
-  // Only block the next match (earliest upcoming) after 7 PM CST
+  // Check 8 PM CST cutoff for matches on the same Nepal day as the "next" match
   const shouldBlock = allMatches && allMatches.length > 0 
-    ? shouldBlockMatchAt7PMCST(match, allMatches)
+    ? shouldBlockMatchAt8PMCST(match, allMatches)
     : false;
   
   // Calculate deadline and isPastDeadline using the same logic as other pages
@@ -67,40 +66,30 @@ export default function MatchCard({
   let isPastDeadline: boolean;
   
   if (shouldBlock) {
-    // TEMPORARY: Block the next match after 7 PM CST
+    // Block matches on the same Nepal day after 8 PM CST cutoff
     isPastDeadline = true;
-    // Set deadline to today's 7 PM CST for display (approximate)
+    // Set deadline to 8 PM CST for display
     deadline = new Date(now);
-    deadline.setHours(19, 0, 0, 0); // Will show as "Predictions closed" anyway
+    deadline.setHours(20, 0, 0, 0); // 8 PM CST
   } else {
-    // SPECIAL CASE: Match 1 uses 18-hour window from now (production exception)
-    if (match.matchNumber === 1) {
-      // For Match 1, deadline is 18 hours from now (not from match start)
-      deadline = new Date(now);
-      deadline.setHours(deadline.getHours() + 18);
-      const hoursUntilMatch = (matchDate.getTime() - now.getTime()) / (1000 * 60 * 60);
-      // Match 1 is available if it's in the future and within 18 hours from now
-      isPastDeadline = hoursUntilMatch <= 0 || hoursUntilMatch > 18;
+    // All matches: 6 hours before first match of the day
+    const firstMatchOfDay = getFirstMatchOfDay(match);
+    if (!firstMatchOfDay) {
+      // Fallback to stored deadline if we can't determine first match
+      deadline = match.deadline.toDate();
+      isPastDeadline = deadline < now;
     } else {
-      // Other matches: 6 hours before first match of the day
-      const firstMatchOfDay = getFirstMatchOfDay(match);
-      if (!firstMatchOfDay) {
-        // Fallback to stored deadline if we can't determine first match
-        deadline = match.deadline.toDate();
-        isPastDeadline = deadline < now;
+      const firstMatchStartTime = firstMatchOfDay.matchDate.toDate();
+      
+      // If the first match of the day is already completed or started, editing should be blocked
+      if (firstMatchOfDay.status === 'completed' || now >= firstMatchStartTime) {
+        isPastDeadline = true;
+        deadline = firstMatchStartTime; // Use first match start time for display
       } else {
-        const firstMatchStartTime = firstMatchOfDay.matchDate.toDate();
-        
-        // If the first match of the day is already completed or started, editing should be blocked
-        if (firstMatchOfDay.status === 'completed' || now >= firstMatchStartTime) {
-          isPastDeadline = true;
-          deadline = firstMatchStartTime; // Use first match start time for display
-        } else {
-          // Edit cutoff is 6 hours before first match start time
-          deadline = new Date(firstMatchStartTime);
-          deadline.setHours(deadline.getHours() - 6);
-          isPastDeadline = now >= deadline;
-        }
+        // Edit cutoff is 6 hours before first match start time
+        deadline = new Date(firstMatchStartTime);
+        deadline.setHours(deadline.getHours() - 6);
+        isPastDeadline = now >= deadline;
       }
     }
   }

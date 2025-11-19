@@ -18,7 +18,8 @@
     "insert-prediction": "tsx scripts/insert-prediction.ts",
     "bulk-insert-match1-predictions": "tsx scripts/bulk-insert-match1-predictions.ts",
     "bulk-insert-prediction": "tsx scripts/bulk-insert-prediction.ts",
-    "restore-prediction": "tsx scripts/restore-prediction.ts"
+    "restore-prediction": "tsx scripts/restore-prediction.ts",
+    "test-8pm-cutoff": "tsx scripts/test-8pm-cutoff.ts"
   },
   "dependencies": {
     "date-fns": "^4.1.0",
