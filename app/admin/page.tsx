@@ -320,7 +320,7 @@ export default function AdminPage() {
   if (authLoading || loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary-600 dark:text-primary-400" />
       </div>
     );
   }
@@ -508,7 +508,7 @@ export default function AdminPage() {
                 {/* Section 1: Match Outcome */}
                 <div className="space-y-4">
                   <div className="flex items-center space-x-2 pb-2 border-b border-gray-200 dark:border-gray-700">
-                    <Trophy className="h-5 w-5 text-primary-600" />
+                    <Trophy className="h-5 w-5 text-primary-600 dark:text-primary-400" />
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Match Outcome</h3>
                   </div>
 
@@ -531,7 +531,7 @@ export default function AdminPage() {
                           {selectedMatch.teamAName}
                         </div>
                         {winnerId === selectedMatch.teamAId && (
-                          <div className="text-xs text-primary-600 mt-1">✓ Selected</div>
+                          <div className="text-xs text-primary-600 dark:text-primary-400 mt-1">✓ Selected</div>
                         )}
                       </button>
                       <button
@@ -547,7 +547,7 @@ export default function AdminPage() {
                           {selectedMatch.teamBName}
                         </div>
                         {winnerId === selectedMatch.teamBId && (
-                          <div className="text-xs text-primary-600 mt-1">✓ Selected</div>
+                          <div className="text-xs text-primary-600 dark:text-primary-400 mt-1">✓ Selected</div>
                         )}
                       </button>
                     </div>
@@ -581,7 +581,7 @@ export default function AdminPage() {
                 {/* Section 2: First Innings Details */}
                 <div className="space-y-4">
                   <div className="flex items-center space-x-2 pb-2 border-b border-gray-200 dark:border-gray-700">
-                    <Trophy className="h-5 w-5 text-primary-600" />
+                    <Trophy className="h-5 w-5 text-primary-600 dark:text-primary-400" />
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white">First Innings</h3>
                   </div>
 
@@ -604,7 +604,7 @@ export default function AdminPage() {
                           {selectedMatch.teamAName}
                         </div>
                         {firstInningsBattingTeamId === selectedMatch.teamAId && (
-                          <div className="text-xs text-primary-600 mt-1">✓ Selected</div>
+                          <div className="text-xs text-primary-600 dark:text-primary-400 mt-1">✓ Selected</div>
                         )}
                       </button>
                       <button
@@ -620,7 +620,7 @@ export default function AdminPage() {
                           {selectedMatch.teamBName}
                         </div>
                         {firstInningsBattingTeamId === selectedMatch.teamBId && (
-                          <div className="text-xs text-primary-600 mt-1">✓ Selected</div>
+                          <div className="text-xs text-primary-600 dark:text-primary-400 mt-1">✓ Selected</div>
                         )}
                       </button>
                     </div>
@@ -774,7 +774,7 @@ export default function AdminPage() {
             <select
               value={playerOfTournamentId}
               onChange={(e) => setPlayerOfTournamentId(e.target.value)}
-              className="w-full px-4 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-primary-600 focus:outline-none bg-white dark:bg-gray-700"
+              className="w-full px-4 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-primary-600 focus:outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               required
             >
               <option value="">Select player</option>
@@ -794,7 +794,7 @@ export default function AdminPage() {
             <select
               value={highestRunScorerId}
               onChange={(e) => setHighestRunScorerId(e.target.value)}
-              className="w-full px-4 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-primary-600 focus:outline-none bg-white dark:bg-gray-700"
+              className="w-full px-4 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-primary-600 focus:outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               required
             >
               <option value="">Select player</option>
@@ -814,7 +814,7 @@ export default function AdminPage() {
             <select
               value={highestWicketTakerId}
               onChange={(e) => setHighestWicketTakerId(e.target.value)}
-              className="w-full px-4 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-primary-600 focus:outline-none bg-white dark:bg-gray-700"
+              className="w-full px-4 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-primary-600 focus:outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               required
             >
               <option value="">Select player</option>
