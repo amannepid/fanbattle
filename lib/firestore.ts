@@ -14,6 +14,7 @@ import {
 import { db } from './firebase';
 import type { Tournament, Team, Player, Match, UserEntry, Prediction } from '@/types';
 import { cache, CACHE_KEYS } from './cache';
+import { TEST_USER_IDS } from './test-mode';
 
 // Check if test mode is enabled (works on both client and server)
 const isTestModeEnabled = () => {
@@ -194,11 +195,25 @@ export async function getUserEntry(userId: string): Promise<UserEntry | null> {
 }
 
 export async function createUserEntry(userEntry: Omit<UserEntry, 'id'>): Promise<void> {
+  // Prevent test users from being saved to Firestore
+  const testUserIds = Object.values(TEST_USER_IDS);
+  if (testUserIds.includes(userEntry.userId)) {
+    console.warn('⚠️  Attempted to save test user to Firestore. Skipping...', userEntry.userId);
+    return;
+  }
+  
   const docRef = doc(db, COLLECTIONS.userEntries, userEntry.userId);
   await setDoc(docRef, userEntry);
 }
 
 export async function updateUserEntry(userId: string, data: Partial<UserEntry>): Promise<void> {
+  // Prevent test users from being updated in Firestore
+  const testUserIds = Object.values(TEST_USER_IDS);
+  if (testUserIds.includes(userId)) {
+    console.warn('⚠️  Attempted to update test user in Firestore. Skipping...', userId);
+    return;
+  }
+  
   const docRef = doc(db, COLLECTIONS.userEntries, userId);
   await updateDoc(docRef, data);
   
@@ -325,6 +340,13 @@ export async function getAllPredictions(tournamentId: string): Promise<Predictio
 }
 
 export async function createPrediction(prediction: Omit<Prediction, 'id'>): Promise<void> {
+  // Prevent test users from saving predictions to Firestore
+  const testUserIds = Object.values(TEST_USER_IDS);
+  if (testUserIds.includes(prediction.userId)) {
+    console.warn('⚠️  Attempted to save test user prediction to Firestore. Skipping...', prediction.userId);
+    return;
+  }
+  
   const predictionId = `${prediction.userId}_${prediction.matchId}`;
   const docRef = doc(db, COLLECTIONS.predictions, predictionId);
   await setDoc(docRef, { ...prediction, id: predictionId });
@@ -335,6 +357,14 @@ export async function createPrediction(prediction: Omit<Prediction, 'id'>): Prom
 }
 
 export async function updatePrediction(predictionId: string, data: Partial<Prediction>): Promise<void> {
+  // Prevent test users from updating predictions in Firestore
+  const testUserIds = Object.values(TEST_USER_IDS);
+  const userId = predictionId.split('_')[0];
+  if (testUserIds.includes(userId)) {
+    console.warn('⚠️  Attempted to update test user prediction in Firestore. Skipping...', userId);
+    return;
+  }
+  
   const docRef = doc(db, COLLECTIONS.predictions, predictionId);
   await updateDoc(docRef, data);
   
