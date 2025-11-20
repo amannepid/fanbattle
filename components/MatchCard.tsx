@@ -190,7 +190,7 @@ export default function MatchCard({
 
       {!isPastDeadline && match.status === 'upcoming' && (
         <div className="text-center text-xs sm:text-sm text-gold-500 font-bold mb-2 sm:mb-3">
-          {formatDistanceToNow(deadline, { addSuffix: true })}
+          {formatDistanceToNow(matchDate, { addSuffix: true })}
         </div>
       )}
 
