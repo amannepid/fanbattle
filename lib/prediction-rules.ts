@@ -1,15 +1,6 @@
 import { Match, Prediction } from '@/types';
 
 /**
- * Helper function to get the start of day for a date
- */
-function getStartOfDay(date: Date): Date {
-  const start = new Date(date);
-  start.setHours(0, 0, 0, 0);
-  return start;
-}
-
-/**
  * Check if current time is past 8 PM CST
  * Users can make/update predictions until 8 PM CST daily
  * After 8 PM CST, predictions for matches on the same Nepal day are blocked
@@ -36,9 +27,10 @@ export function isPast8PMCST(): boolean {
 /**
  * Get the Nepal day (start of day in Nepal timezone) for a given date
  * Nepal is UTC+5:45
+ * Returns a Date object representing midnight (00:00:00) in Nepal Time for the given date
  */
-function getNepalDay(date: Date): Date {
-  // Convert to Nepal timezone and get start of day
+export function getNepalDay(date: Date): Date {
+  // Convert to Nepal timezone and get the year, month, day
   const nepalTime = new Intl.DateTimeFormat('en-US', {
     timeZone: 'Asia/Kathmandu',
     year: 'numeric',
@@ -51,9 +43,11 @@ function getNepalDay(date: Date): Date {
   const day = parseInt(nepalTime.find(part => part.type === 'day')?.value || '1', 10);
   
   // Create date at start of day in Nepal timezone (UTC+5:45)
-  // We'll create it in UTC and adjust
+  // Nepal midnight (00:00:00 NPT) = 18:15:00 UTC previous day
+  // So for Nov 21, 2025 00:00:00 NPT, we need Nov 20, 2025 18:15:00 UTC
+  // We create Nov 21, 2025 00:00:00 UTC, then subtract 5:45 hours
   const nepalDayStart = new Date(Date.UTC(year, month, day, 0, 0, 0));
-  // Nepal is UTC+5:45, so subtract 5:45 to get the UTC equivalent
+  // Subtract 5 hours and 45 minutes to get the UTC time that represents Nepal midnight
   nepalDayStart.setUTCHours(nepalDayStart.getUTCHours() - 5);
   nepalDayStart.setUTCMinutes(nepalDayStart.getUTCMinutes() - 45);
   
@@ -216,11 +210,11 @@ export function getPredictableMatches(
 
   const predictableMatchIds = new Set<string>();
 
-  // Group matches by day
+  // Group matches by Nepal day (not local day)
   const matchesByDay = new Map<string, Match[]>();
   for (const match of upcomingMatches) {
     const matchDate = match.matchDate.toDate();
-    const dayKey = getStartOfDay(matchDate).toISOString();
+    const dayKey = getNepalDay(matchDate).toISOString();
     
     if (!matchesByDay.has(dayKey)) {
       matchesByDay.set(dayKey, []);
@@ -279,9 +273,9 @@ export function getPredictableMatches(
       if (allPreviousDaysCompleted) {
         for (const match of allMatches) {
           const matchDate = match.matchDate.toDate();
-          const matchDayStart = getStartOfDay(matchDate);
+          const matchDayStart = getNepalDay(matchDate);
           
-          // If this match is from a previous day and not completed
+          // If this match is from a previous Nepal day and not completed
           if (matchDayStart < dayDate && match.status !== 'completed') {
             allPreviousDaysCompleted = false;
             console.log(`    🔒 Day locked: Match ${match.matchNumber} from ${matchDayStart.toISOString()} is not completed`);

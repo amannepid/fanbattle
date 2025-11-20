@@ -11,7 +11,7 @@ import { format, formatDistanceToNow } from 'date-fns';
 import { Timestamp } from 'firebase/firestore';
 import type { Match, Player, UserEntry, ScoreCategory } from '@/types';
 import PlayerSearchSelect from '@/components/PlayerSearchSelect';
-import { shouldBlockMatchAt8PMCST } from '@/lib/prediction-rules';
+import { shouldBlockMatchAt8PMCST, getNepalDay } from '@/lib/prediction-rules';
 
 const SCORE_CATEGORIES: { value: ScoreCategory; label: string }[] = [
   { value: 'A', label: 'Under 130 (0-129)' },
@@ -60,23 +60,16 @@ export default function PredictPage() {
     }
   }, [user, authLoading, matchId, router]);
 
-  // Helper function to get start of day
-  const getStartOfDay = (date: Date): Date => {
-    const start = new Date(date);
-    start.setHours(0, 0, 0, 0);
-    return start;
-  };
-
-  // Helper function to get first match of the day for a given match
+  // Helper function to get first match of the day for a given match (using Nepal Time)
   const getFirstMatchOfDay = (match: Match): Match | null => {
     const matchDate = match.matchDate.toDate();
-    const dayKey = getStartOfDay(matchDate).toISOString();
+    const dayKey = getNepalDay(matchDate).toISOString();
     
-    // Get all matches and find the first one on the same day
+    // Get all matches and find the first one on the same Nepal day
     // Include both upcoming and completed matches to get the actual first match of the day
     const sameDayMatches = allMatches.filter((m) => {
       const mDate = m.matchDate.toDate();
-      const mDayKey = getStartOfDay(mDate).toISOString();
+      const mDayKey = getNepalDay(mDate).toISOString();
       return mDayKey === dayKey;
     });
     

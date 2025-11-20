@@ -8,7 +8,7 @@ import { Loader2, Users, Trophy, Clock, ArrowRight, ChevronDown, ChevronUp, Sear
 import { format } from 'date-fns';
 import { Timestamp } from 'firebase/firestore';
 import type { Tournament, UserEntry, Prediction, Match } from '@/types';
-import { shouldBlockMatchAt8PMCST, getNextMatchDayMatches } from '@/lib/prediction-rules';
+import { shouldBlockMatchAt8PMCST, getNextMatchDayMatches, getNepalDay } from '@/lib/prediction-rules';
 
 // TEMPORARY: Set to true to use mock data for testing
 // NOTE: Keep this as false for production. Set to true locally for testing only.
@@ -79,22 +79,15 @@ export default function BattleGroundPage() {
     }
   }, [loading, authLoading, tournament, predictionsWithUsers, matches]);
 
-  // Helper function to get start of day
-  function getStartOfDay(date: Date): Date {
-    const start = new Date(date);
-    start.setHours(0, 0, 0, 0);
-    return start;
-  }
-
-  // Helper function to get first match of the day for a given match
+  // Helper function to get first match of the day for a given match (using Nepal Time)
   function getFirstMatchOfDay(match: Match, allMatches: Match[]): Match | null {
     const matchDate = match.matchDate.toDate();
-    const dayKey = getStartOfDay(matchDate).toISOString();
+    const dayKey = getNepalDay(matchDate).toISOString();
     
     // Include both upcoming and completed matches to get the actual first match of the day
     const sameDayMatches = allMatches.filter((m) => {
       const mDate = m.matchDate.toDate();
-      const mDayKey = getStartOfDay(mDate).toISOString();
+      const mDayKey = getNepalDay(mDate).toISOString();
       return mDayKey === dayKey;
     });
     

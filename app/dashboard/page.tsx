@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
 import { getActiveTournament, getUserEntry, getUserPredictions, getMatches, getTeams } from '@/lib/firestore';
-import { shouldBlockMatchAt8PMCST } from '@/lib/prediction-rules';
+import { shouldBlockMatchAt8PMCST, getNepalDay } from '@/lib/prediction-rules';
 import { getBasePoints } from '@/lib/scoring';
 import { Loader2, Trophy, Target, CheckCircle, XCircle, Clock, TrendingUp, ChevronDown, ChevronUp, Copy, CheckCircle2 } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
@@ -104,24 +104,17 @@ export default function DashboardPage() {
     return match && match.status === 'completed';
   }).sort((a, b) => b.matchNumber - a.matchNumber);
 
-  // Helper function to get start of day
-  function getStartOfDay(date: Date): Date {
-    const start = new Date(date);
-    start.setHours(0, 0, 0, 0);
-    return start;
-  }
-
-  // Helper function to get first match of the day for a given match
+  // Helper function to get first match of the day for a given match (using Nepal Time)
   function getFirstMatchOfDay(match: Match): Match | null {
     const matchDate = match.matchDate.toDate();
-    const dayKey = getStartOfDay(matchDate).toISOString();
+    const dayKey = getNepalDay(matchDate).toISOString();
     
-    // Get all matches and find the first one on the same day
+    // Get all matches and find the first one on the same Nepal day
     // Include both upcoming and completed matches to get the actual first match of the day
     const allMatches = Array.from(matches.values());
     const sameDayMatches = allMatches.filter((m) => {
       const mDate = m.matchDate.toDate();
-      const mDayKey = getStartOfDay(mDate).toISOString();
+      const mDayKey = getNepalDay(mDate).toISOString();
       return mDayKey === dayKey;
     });
     

@@ -4,7 +4,7 @@ import { format, formatDistanceToNow } from 'date-fns';
 import { Calendar, Clock, Trophy, Lock } from 'lucide-react';
 import Link from 'next/link';
 import type { Match, Prediction } from '@/types';
-import { shouldBlockMatchAt8PMCST } from '@/lib/prediction-rules';
+import { shouldBlockMatchAt8PMCST, getNepalDay } from '@/lib/prediction-rules';
 
 interface MatchCardProps {
   match: Match;
@@ -25,24 +25,17 @@ export default function MatchCard({
   const matchDate = match.matchDate.toDate();
   const now = new Date();
   
-  // Helper function to get start of day
-  function getStartOfDay(date: Date): Date {
-    const start = new Date(date);
-    start.setHours(0, 0, 0, 0);
-    return start;
-  }
-
-  // Helper function to get first match of the day for a given match
+  // Helper function to get first match of the day for a given match (using Nepal Time)
   function getFirstMatchOfDay(match: Match): Match | null {
     if (!allMatches || allMatches.length === 0) return null;
     
     const matchDate = match.matchDate.toDate();
-    const dayKey = getStartOfDay(matchDate).toISOString();
+    const dayKey = getNepalDay(matchDate).toISOString();
     
-    // Include both upcoming and completed matches to get the actual first match of the day
+    // Include both upcoming and completed matches to get the actual first match of the Nepal day
     const sameDayMatches = allMatches.filter((m) => {
       const mDate = m.matchDate.toDate();
-      const mDayKey = getStartOfDay(mDate).toISOString();
+      const mDayKey = getNepalDay(mDate).toISOString();
       return mDayKey === dayKey;
     });
     
