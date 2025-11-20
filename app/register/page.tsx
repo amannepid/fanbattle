@@ -224,6 +224,7 @@ export default function RegisterPage() {
                     <div className="absolute top-2 right-2 sm:top-3 sm:right-3 z-10 bg-gold-500 rounded-full p-1 sm:p-1.5 shadow-lg">
                       <Check className="h-4 w-4 sm:h-5 sm:w-5 text-navy-500" />
                     </div>
+                  )}
                   
                   {/* Team Logo/Badge Section */}
                   <div 
