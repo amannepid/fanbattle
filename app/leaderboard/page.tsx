@@ -255,18 +255,18 @@ export default function LeaderboardPage() {
   }
 
   return (
-    <div className="flex gap-6 h-[calc(100vh-12rem)]">
+    <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 min-h-[calc(100vh-12rem)]">
       {/* Left Sidebar - Compact Rankings */}
-      <div className="w-80 flex-shrink-0">
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 sticky top-24 overflow-hidden">
-          <div className="bg-gradient-to-r from-gold-500 to-gold-600 px-4 py-3">
-            <div className="flex items-center gap-2">
-              <Trophy className="h-5 w-5 text-white" />
-              <h2 className="text-lg font-bold text-white">Rankings</h2>
+      <div className="w-full lg:w-80 flex-shrink-0">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 lg:sticky lg:top-24 overflow-hidden">
+          <div className="bg-gradient-to-r from-gold-500 to-gold-600 px-3 sm:px-4 py-2.5 sm:py-3">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <Trophy className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+              <h2 className="text-base sm:text-lg font-bold text-white">Rankings</h2>
             </div>
           </div>
           
-          <div className="max-h-[calc(100vh-16rem)] overflow-y-auto">
+          <div className="max-h-[400px] lg:max-h-[calc(100vh-16rem)] overflow-y-auto">
             {leaderboard.map((entry, index) => {
               const isCurrentUser = user && entry.userId === user.uid;
               const isTopThree = index < 3;
@@ -275,18 +275,18 @@ export default function LeaderboardPage() {
                 <div
                   key={entry.id}
                   className={`
-                    px-4 py-3 border-b border-gray-200 dark:border-gray-700 last:border-b-0
+                    px-3 sm:px-4 py-2.5 sm:py-3 border-b border-gray-200 dark:border-gray-700 last:border-b-0
                     ${isCurrentUser 
                       ? 'bg-gradient-to-r from-gold-50 to-gold-100 dark:from-gold-900/20 dark:to-gold-800/20 border-l-4 border-l-gold-500' 
-                      : isTopThree ? 'bg-slate-50 dark:bg-slate-800/50' : ''
+                      : isTopThree ? 'bg-navy-50 dark:bg-navy-800/50' : ''
                     }
                   `}
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 sm:gap-3">
                     {/* Rank */}
-                    <div className="flex-shrink-0 w-8 text-center">
+                    <div className="flex-shrink-0 w-7 sm:w-8 text-center">
                       {getRankIcon(entry.currentRank || index + 1) || (
-                        <span className="text-sm font-bold text-gray-500 dark:text-gray-400">
+                        <span className="text-xs sm:text-sm font-bold text-gray-500 dark:text-gray-400">
                           #{entry.currentRank || index + 1}
                         </span>
                       )}
@@ -294,23 +294,23 @@ export default function LeaderboardPage() {
                     
                     {/* Name */}
                     <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-navy-500 dark:text-white truncate">
+                      <div className="text-sm sm:text-base font-semibold text-navy-500 dark:text-white truncate">
                         {entry.userName}
                         {isCurrentUser && (
-                          <span className="ml-2 text-xs text-gold-600 dark:text-gold-400">(You)</span>
+                          <span className="ml-1.5 sm:ml-2 text-[10px] sm:text-xs text-gold-600 dark:text-gold-400">(You)</span>
                         )}
                       </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                      <div className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 truncate">
                         {entry.seasonTeamName}
                       </div>
                     </div>
                     
                     {/* Points */}
                     <div className="flex-shrink-0 text-right">
-                      <div className={`text-lg font-bold ${isTopThree ? 'text-gold-600 dark:text-gold-400' : 'text-navy-500 dark:text-white'}`}>
+                      <div className={`text-base sm:text-lg font-bold ${isTopThree ? 'text-gold-600 dark:text-gold-400' : 'text-navy-500 dark:text-white'}`}>
                         {entry.totalPoints}
                       </div>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">pts</div>
+                      <div className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">pts</div>
                     </div>
                   </div>
                 </div>
@@ -319,9 +319,9 @@ export default function LeaderboardPage() {
           </div>
           
           {/* Footer */}
-          <div className="px-4 py-2 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-              <div className="h-1.5 w-1.5 bg-green-500 rounded-full animate-pulse"></div>
+          <div className="px-3 sm:px-4 py-2 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-center gap-1 text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
+              <div className="h-1.5 w-1.5 bg-gold-500 rounded-full animate-pulse"></div>
               <span>Live</span>
             </div>
           </div>
@@ -329,90 +329,235 @@ export default function LeaderboardPage() {
       </div>
 
       {/* Right Side - Tournament Matrix */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden min-h-0">
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 h-full flex flex-col">
           {/* Header */}
-          <div className="bg-gradient-to-r from-navy-500 to-navy-600 px-6 py-4 flex-shrink-0">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <TrendingUp className="h-6 w-6 text-gold-500" />
+          <div className="bg-gradient-to-r from-navy-500 to-navy-600 px-4 sm:px-6 py-3 sm:py-4 flex-shrink-0">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6 text-gold-500" />
                 <div>
-                  <h1 className="text-2xl font-bold text-white">Tournament Matrix</h1>
-                  <p className="text-sm text-gray-300">{tournament.name} • {matches.length} Matches</p>
+                  <h1 className="text-xl sm:text-2xl font-bold text-white">Tournament Matrix</h1>
+                  <p className="text-xs sm:text-sm text-gray-300">{tournament.name} • {matches.length} Matches</p>
                 </div>
               </div>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto justify-between sm:justify-start">
                 <button
                   onClick={() => loadData(true)}
                   disabled={refreshing}
-                  className="flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-white/20 hover:bg-white/30 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
                   title="Refresh data"
                 >
                   <RefreshCw className={`h-4 w-4 text-white ${refreshing ? 'animate-spin' : ''}`} />
-                  <span className="text-sm text-white font-medium">Refresh</span>
+                  <span className="text-xs sm:text-sm text-white font-medium">Refresh</span>
                 </button>
                 <div className="text-right text-white">
-                  <div className="text-sm text-gray-300">Total Players</div>
-                  <div className="text-2xl font-bold">{playerRows.length}</div>
+                  <div className="text-xs sm:text-sm text-gray-300">Total Players</div>
+                  <div className="text-xl sm:text-2xl font-bold">{playerRows.length}</div>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Financial Summary Section */}
-          <div className="px-6 py-4 bg-gradient-to-r from-gold-50 to-gold-100 dark:from-gold-900/20 dark:to-gold-800/20 border-b border-gold-200 dark:border-gold-700/50 flex-shrink-0">
-            <div className="grid grid-cols-3 gap-4">
+          <div className="px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-gold-50 to-gold-100 dark:from-gold-900/20 dark:to-gold-800/20 border-b border-gold-200 dark:border-gold-700/50 flex-shrink-0">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
               {/* Money in the Bank */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gold-300 dark:border-gold-700/50 shadow-sm">
-                <div className="flex items-center gap-2 mb-2">
-                  <DollarSign className="h-5 w-5 text-green-600 dark:text-green-400" />
-                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Money in the Bank</h3>
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-3 sm:p-4 border border-gold-300 dark:border-gold-700/50 shadow-sm">
+                <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
+                  <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 dark:text-green-400" />
+                  <h3 className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">Money in the Bank</h3>
                 </div>
-                <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                <div className="text-xl sm:text-2xl font-bold text-green-600 dark:text-green-400">
                   ${moneyInBank.toLocaleString()}
                 </div>
-                <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                <div className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 mt-0.5 sm:mt-1">
                   {leaderboard.length} players × ${50} entry fee
                 </div>
               </div>
 
               {/* Penalties */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-red-300 dark:border-red-700/50 shadow-sm">
-                <div className="flex items-center gap-2 mb-2">
-                  <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
-                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Penalties</h3>
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-3 sm:p-4 border border-red-300 dark:border-red-700/50 shadow-sm">
+                <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
+                  <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-600 dark:text-red-400" />
+                  <h3 className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">Penalties</h3>
                 </div>
-                <div className="text-2xl font-bold text-red-600 dark:text-red-400">
+                <div className="text-xl sm:text-2xl font-bold text-red-600 dark:text-red-400">
                   ${totalPenalties.toLocaleString()}
                 </div>
-                <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                <div className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 mt-0.5 sm:mt-1">
                   From completed match predictions
                 </div>
               </div>
 
               {/* Total Honey Pot */}
-              <div className="bg-gradient-to-br from-gold-400 to-gold-500 dark:from-gold-600 dark:to-gold-700 rounded-lg p-4 border border-gold-500 dark:border-gold-600 shadow-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  <Trophy className="h-5 w-5 text-white" />
-                  <h3 className="text-sm font-semibold text-white">Total Honey Pot</h3>
+              <div className="bg-gradient-to-br from-gold-400 to-gold-500 dark:from-gold-600 dark:to-gold-700 rounded-lg p-3 sm:p-4 border border-gold-500 dark:border-gold-600 shadow-lg">
+                <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
+                  <Trophy className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
+                  <h3 className="text-xs sm:text-sm font-semibold text-white">Total Honey Pot</h3>
                 </div>
-                <div className="text-2xl font-bold text-white">
+                <div className="text-xl sm:text-2xl font-bold text-white">
                   ${totalHoneyPot.toLocaleString()}
                 </div>
-                <div className="text-xs text-gold-100 dark:text-gold-200 mt-1">
+                <div className="text-[10px] sm:text-xs text-gold-100 dark:text-gold-200 mt-0.5 sm:mt-1">
                   Money in Bank + Penalties
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Scrollable Table Container */}
-          <div className="flex-1 overflow-auto">
+          {/* Mobile Card View */}
+          <div className="lg:hidden flex-1 overflow-auto p-3 sm:p-4 space-y-3">
+            {playerRows.map((row) => {
+              const isCurrentUser = user && row.userId === user.uid;
+              const userEntry = leaderboard.find(u => u.userId === row.userId);
+              
+              // Calculate totals
+              let totalPoints = 0;
+              let totalPenalties = 0;
+              row.matches.forEach((result) => {
+                if (result.status === 'completed') {
+                  totalPoints += result.points + result.bonus;
+                  totalPenalties += result.penaltyFee || 0;
+                }
+              });
+              
+              if (tournament?.status === 'completed' && userEntry?.tournamentBonuses) {
+                totalPoints += 
+                  (userEntry.tournamentBonuses.seasonTeamWinsTitle || 0) +
+                  (userEntry.tournamentBonuses.playerOfTournament || 0) +
+                  (userEntry.tournamentBonuses.highestRunScorer || 0) +
+                  (userEntry.tournamentBonuses.highestWicketTaker || 0);
+              }
+              
+              const completedMatches = Array.from(row.matches.values()).filter(r => r.status === 'completed');
+              
+              return (
+                <div
+                  key={row.userId}
+                  className={`bg-white dark:bg-gray-800 rounded-lg shadow-md border-2 p-3 sm:p-4 ${
+                    isCurrentUser 
+                      ? 'border-gold-500 bg-gradient-to-br from-gold-50 to-amber-50 dark:from-gold-900/20 dark:to-amber-900/20' 
+                      : 'border-gray-200 dark:border-gray-700'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <div className="text-base sm:text-lg font-bold text-gray-500 dark:text-gray-400">
+                        #{row.rank}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-bold text-navy-600 dark:text-white truncate text-sm sm:text-base">
+                          {row.userName}
+                          {isCurrentUser && (
+                            <span className="ml-1.5 text-xs text-gold-600 dark:text-gold-400">(You)</span>
+                          )}
+                        </div>
+                        <div className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 truncate">
+                          {userEntry?.seasonTeamName || '-'}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      <div className="text-lg sm:text-xl font-bold text-navy-600 dark:text-white">
+                        {row.totalPoints}
+                      </div>
+                      <div className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">pts</div>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-2 mb-3 text-xs">
+                    <div className="bg-navy-50 dark:bg-navy-800 rounded p-2">
+                      <div className="text-gray-500 dark:text-gray-400">Entry Fee</div>
+                      <div className="font-bold text-crimson-600 dark:text-crimson-400">${row.entryFee}</div>
+                    </div>
+                    <div className="bg-navy-50 dark:bg-navy-800 rounded p-2">
+                      <div className="text-gray-500 dark:text-gray-400">Completed</div>
+                      <div className="font-bold text-navy-600 dark:text-white">{completedMatches.length}/{matches.length}</div>
+                    </div>
+                  </div>
+                  
+                  <div className="border-t pt-2">
+                    <div className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 mb-1.5">Match Results (scroll horizontally for more)</div>
+                    <div className="overflow-x-auto -mx-3 sm:-mx-4 px-3 sm:px-4">
+                      <div className="flex gap-2 min-w-max">
+                        {matches.map((match) => {
+                          const result = row.matches.get(match.id);
+                          const isCompleted = result?.status === 'completed';
+                          
+                          return (
+                            <div
+                              key={match.id}
+                              className={`flex-shrink-0 w-20 sm:w-24 rounded border-2 p-1.5 sm:p-2 ${
+                                isCompleted 
+                                  ? 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800' 
+                                  : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900'
+                              }`}
+                            >
+                              <div className="text-[9px] sm:text-[10px] font-bold text-gray-600 dark:text-gray-400 mb-1">
+                                M{match.matchNumber}
+                              </div>
+                              {isCompleted ? (
+                                result.hasPrediction ? (
+                                  <div className="space-y-0.5">
+                                    <div className={`text-xs sm:text-sm font-bold text-center ${
+                                      result.points > 0 ? 'text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400'
+                                    }`}>
+                                      {result.points > 0 ? '+' : ''}{result.points}
+                                    </div>
+                                    {result.penaltyFee > 0 && (
+                                      <div className="text-[9px] sm:text-[10px] text-red-600 dark:text-red-400 text-center">
+                                        -${result.penaltyFee}
+                                      </div>
+                                    )}
+                                    {result.bonus > 0 && (
+                                      <div className="text-[9px] sm:text-[10px] text-green-600 dark:text-green-400 text-center">
+                                        +{result.bonus}
+                                      </div>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <div className="text-center">
+                                    <XCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-500 mx-auto" />
+                                    <div className="text-[9px] text-red-600 dark:text-red-400 mt-0.5">MISS</div>
+                                  </div>
+                                )
+                              ) : (
+                                <div className="text-center">
+                                  <Lock className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 mx-auto" />
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="border-t mt-2 pt-2 flex justify-between text-xs sm:text-sm">
+                    <div>
+                      <div className="text-gray-500 dark:text-gray-400">Total Points</div>
+                      <div className="font-bold text-navy-600 dark:text-white">{totalPoints}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-gray-500 dark:text-gray-400">Total Penalties</div>
+                      <div className={`font-bold ${totalPenalties > 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-600 dark:text-gray-400'}`}>
+                        ${totalPenalties}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Desktop Table View */}
+          <div className="hidden lg:block flex-1 overflow-auto">
             <table className="w-full border-collapse">
-              <thead className="sticky top-0 z-10 bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 shadow-sm">
+              <thead className="sticky top-0 z-10 bg-gradient-to-br from-navy-50 via-navy-100 to-navy-200 dark:from-navy-900 dark:via-navy-800 dark:to-navy-900 shadow-sm">
                 <tr>
                   {/* Players Column */}
-                  <th className="sticky left-0 z-20 bg-gradient-to-br from-slate-100 via-slate-200 to-slate-300 dark:from-slate-800 dark:via-slate-900 dark:to-slate-950 px-5 py-4 text-left border-r-2 border-slate-300 dark:border-slate-700 min-w-[200px] shadow-sm">
+                  <th className="sticky left-0 z-20 bg-gradient-to-br from-navy-100 via-navy-200 to-navy-300 dark:from-navy-800 dark:via-navy-900 dark:to-navy-950 px-5 py-4 text-left border-r-2 border-navy-300 dark:border-navy-700 min-w-[200px] shadow-sm">
                     <div className="flex items-center gap-2">
                       <div className="h-2 w-2 rounded-full bg-crimson-500"></div>
                       <div className="font-bold text-crimson-600 dark:text-crimson-400 uppercase text-sm tracking-wide">Players</div>
@@ -420,8 +565,8 @@ export default function LeaderboardPage() {
                   </th>
                   
                   {/* Entry Fee Column */}
-                  <th className="px-4 py-4 text-center border-r border-slate-200 dark:border-slate-700 min-w-[120px] bg-slate-50/50 dark:bg-slate-800/50">
-                    <div className="font-semibold text-slate-700 dark:text-slate-300 uppercase text-xs tracking-wider">Entry Fee</div>
+                  <th className="px-4 py-4 text-center border-r border-navy-200 dark:border-navy-700 min-w-[120px] bg-navy-50/50 dark:bg-navy-800/50">
+                    <div className="font-semibold text-navy-700 dark:text-navy-300 uppercase text-xs tracking-wider">Entry Fee</div>
                   </th>
                   
                   {/* Match Columns */}
@@ -434,62 +579,62 @@ export default function LeaderboardPage() {
                     return (
                       <React.Fragment key={match.id}>
                         <th
-                          className="border-x border-slate-200 dark:border-slate-700 min-w-[300px] bg-white dark:bg-slate-800/30"
+                          className="border-x border-navy-200 dark:border-navy-700 min-w-[280px] sm:min-w-[300px] bg-white dark:bg-navy-800/30"
                         >
-                          <div className="px-4 py-3 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-b border-slate-200 dark:border-slate-700">
-                            <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm ${
+                          <div className="px-3 sm:px-4 py-2.5 sm:py-3 bg-gradient-to-br from-navy-50 to-cool-50 dark:from-navy-900/20 dark:to-cool-900/20 border-b border-navy-200 dark:border-navy-700">
+                            <div className={`inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-bold shadow-sm ${
                               match.status === 'completed' 
-                                ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white' 
-                                : 'bg-gradient-to-r from-slate-400 to-slate-500 text-white'
+                                ? 'bg-gradient-to-r from-cool-500 to-cool-600 text-white' 
+                                : 'bg-gradient-to-r from-navy-400 to-navy-500 text-white'
                             }`}>
                               <div className={`h-1.5 w-1.5 rounded-full ${match.status === 'completed' ? 'bg-white' : 'bg-white/70'}`}></div>
                               GAME {match.matchNumber}
                             </div>
-                            <div className="mt-2 text-xs text-slate-600 dark:text-slate-400 font-medium">
-                              {match.teamAName} <span className="text-slate-400">vs</span> {match.teamBName}
+                            <div className="mt-1.5 sm:mt-2 text-[10px] sm:text-xs text-navy-600 dark:text-navy-400 font-medium truncate">
+                              {match.teamAName} <span className="text-navy-400">vs</span> {match.teamBName}
                             </div>
                           </div>
-                          <div className="flex border-t-2 border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/50">
-                            <div className="flex-1 px-3 py-2.5 text-center border-r border-slate-200 dark:border-slate-700">
-                              <div className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Points</div>
+                          <div className="flex border-t-2 border-navy-300 dark:border-navy-600 bg-navy-50 dark:bg-navy-800/50">
+                            <div className="flex-1 px-2 sm:px-3 py-2 sm:py-2.5 text-center border-r border-navy-200 dark:border-navy-700">
+                              <div className="text-[10px] sm:text-xs font-bold text-navy-700 dark:text-navy-300 uppercase tracking-wider">Points</div>
                             </div>
-                            <div className="flex-1 px-3 py-2.5 text-center border-r border-slate-200 dark:border-slate-700">
-                              <div className="text-xs font-bold text-red-600 dark:text-red-400 uppercase tracking-wider">Penalty</div>
+                            <div className="flex-1 px-2 sm:px-3 py-2 sm:py-2.5 text-center border-r border-navy-200 dark:border-navy-700">
+                              <div className="text-[10px] sm:text-xs font-bold text-red-600 dark:text-red-400 uppercase tracking-wider">Penalty</div>
                             </div>
-                            <div className="flex-1 px-3 py-2.5 text-center">
-                              <div className="text-xs font-bold text-green-600 dark:text-green-400 uppercase tracking-wider">Bonus</div>
+                            <div className="flex-1 px-2 sm:px-3 py-2 sm:py-2.5 text-center">
+                              <div className="text-[10px] sm:text-xs font-bold text-green-600 dark:text-green-400 uppercase tracking-wider">Bonus</div>
                             </div>
                           </div>
                         </th>
                         
                         {/* Tournament Bonuses Column (after Final) - Always show but disabled if not completed */}
                         {showTournamentBonuses && (
-                          <th className="border-x border-slate-200 dark:border-slate-700 min-w-[300px] bg-white dark:bg-slate-800/30">
-                            <div className="px-4 py-3 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-b border-slate-200 dark:border-slate-700">
+                          <th className="border-x border-navy-200 dark:border-navy-700 min-w-[300px] bg-white dark:bg-navy-800/30">
+                            <div className="px-4 py-3 bg-gradient-to-br from-gold-50 to-amber-50 dark:from-gold-900/20 dark:to-amber-900/20 border-b border-navy-200 dark:border-navy-700">
                               <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm ${
                                 isTournamentCompleted 
-                                  ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white' 
-                                  : 'bg-gradient-to-r from-slate-400 to-slate-500 text-white'
+                                  ? 'bg-gradient-to-r from-gold-500 to-gold-600 text-navy-500' 
+                                  : 'bg-gradient-to-r from-navy-400 to-navy-500 text-white'
                               }`}>
                                 <Trophy className="h-3 w-3" />
                                 Tournament Bonuses
                               </div>
-                              <div className="mt-2 text-xs text-slate-600 dark:text-slate-400 font-medium">
+                              <div className="mt-2 text-xs text-navy-600 dark:text-navy-400 font-medium">
                                 End of Tournament
                               </div>
                             </div>
-                            <div className="flex border-t-2 border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/50">
-                              <div className="flex-1 px-3 py-2.5 text-center border-r border-slate-200 dark:border-slate-700">
-                                <div className="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider">Title</div>
+                            <div className="flex border-t-2 border-navy-300 dark:border-navy-600 bg-navy-50 dark:bg-navy-800/50">
+                              <div className="flex-1 px-3 py-2.5 text-center border-r border-navy-200 dark:border-navy-700">
+                                <div className="text-xs font-bold text-gold-600 dark:text-gold-400 uppercase tracking-wider">Title</div>
                               </div>
-                              <div className="flex-1 px-3 py-2.5 text-center border-r border-slate-200 dark:border-slate-700">
-                                <div className="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider">POT</div>
+                              <div className="flex-1 px-3 py-2.5 text-center border-r border-navy-200 dark:border-navy-700">
+                                <div className="text-xs font-bold text-gold-600 dark:text-gold-400 uppercase tracking-wider">POT</div>
                               </div>
-                              <div className="flex-1 px-3 py-2.5 text-center border-r border-slate-200 dark:border-slate-700">
-                                <div className="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider">Runs</div>
+                              <div className="flex-1 px-3 py-2.5 text-center border-r border-navy-200 dark:border-navy-700">
+                                <div className="text-xs font-bold text-gold-600 dark:text-gold-400 uppercase tracking-wider">Runs</div>
                               </div>
                               <div className="flex-1 px-3 py-2.5 text-center">
-                                <div className="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider">Wkts</div>
+                                <div className="text-xs font-bold text-gold-600 dark:text-gold-400 uppercase tracking-wider">Wkts</div>
                               </div>
                             </div>
                           </th>
@@ -499,19 +644,19 @@ export default function LeaderboardPage() {
                   })}
                   
                   {/* Total Column */}
-                  <th className="sticky right-0 z-20 border-l-2 border-slate-300 dark:border-slate-700 min-w-[220px] bg-gradient-to-br from-slate-100 via-slate-200 to-slate-300 dark:from-slate-800 dark:via-slate-900 dark:to-slate-950">
-                    <div className="px-4 py-3 bg-gradient-to-br from-navy-50 to-indigo-50 dark:from-navy-900/30 dark:to-indigo-900/30 border-b border-slate-200 dark:border-slate-700">
-                      <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm bg-gradient-to-r from-navy-500 to-indigo-500 text-white`}>
+                  <th className="sticky right-0 z-20 border-l-2 border-navy-300 dark:border-navy-700 min-w-[220px] bg-gradient-to-br from-navy-100 via-navy-200 to-navy-300 dark:from-navy-800 dark:via-navy-900 dark:to-navy-950">
+                    <div className="px-4 py-3 bg-gradient-to-br from-navy-50 to-gold-50 dark:from-navy-900/30 dark:to-gold-900/30 border-b border-navy-200 dark:border-navy-700">
+                      <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm bg-gradient-to-r from-navy-500 to-gold-500 text-white`}>
                         <TrendingUp className="h-3 w-3" />
                         TOTAL
                       </div>
-                      <div className="mt-2 text-xs text-slate-600 dark:text-slate-400 font-medium">
+                      <div className="mt-2 text-xs text-navy-600 dark:text-navy-400 font-medium">
                         Summary
                       </div>
                     </div>
-                    <div className="flex border-t-2 border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/50">
-                      <div className="flex-1 px-3 py-2.5 text-center border-r border-slate-200 dark:border-slate-700">
-                        <div className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Points</div>
+                    <div className="flex border-t-2 border-navy-300 dark:border-navy-600 bg-navy-50 dark:bg-navy-800/50">
+                      <div className="flex-1 px-3 py-2.5 text-center border-r border-navy-200 dark:border-navy-700">
+                        <div className="text-xs font-bold text-navy-700 dark:text-navy-300 uppercase tracking-wider">Points</div>
                       </div>
                       <div className="flex-1 px-3 py-2.5 text-center">
                         <div className="text-xs font-bold text-red-600 dark:text-red-400 uppercase tracking-wider">Penalty</div>
@@ -528,28 +673,33 @@ export default function LeaderboardPage() {
                   return (
                     <tr
                       key={row.userId}
-                      className={`border-b border-slate-200 dark:border-slate-700 transition-colors ${
+                      className={`border-b border-navy-200 dark:border-navy-700 transition-colors ${
                         isCurrentUser 
                           ? 'bg-gradient-to-r from-gold-50 via-amber-50 to-gold-50 dark:from-gold-900/20 dark:via-amber-900/20 dark:to-gold-900/20 border-l-4 border-l-gold-500' 
-                          : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                          : 'hover:bg-navy-50 dark:hover:bg-navy-800/50'
                       }`}
                     >
                       {/* Player Name */}
-                      <td className={`sticky left-0 z-10 px-5 py-4 border-r-2 border-slate-300 dark:border-slate-700 font-semibold shadow-sm ${
+                      <td className={`sticky left-0 z-10 px-4 sm:px-5 py-3 sm:py-4 border-r-2 border-navy-300 dark:border-navy-700 font-semibold shadow-sm ${
                         isCurrentUser 
                           ? 'bg-gradient-to-r from-gold-100 to-amber-100 dark:from-gold-900/50 dark:to-amber-900/50 text-navy-700 dark:text-white' 
-                          : 'bg-slate-50 dark:bg-slate-800 text-navy-600 dark:text-slate-200'
+                          : 'bg-navy-50 dark:bg-navy-800 text-navy-600 dark:text-navy-200'
                       }`}>
-                        <div className="flex items-center gap-2">
-                          <div className={`h-2 w-2 rounded-full ${isCurrentUser ? 'bg-gold-500' : 'bg-slate-400'}`}></div>
-                          <span className="truncate">{row.userName}</span>
+                        <div className="flex items-center gap-1.5 sm:gap-2">
+                          <div className={`h-1.5 w-1.5 sm:h-2 sm:w-2 rounded-full ${isCurrentUser ? 'bg-gold-500' : 'bg-navy-400'}`}></div>
+                          <span className="truncate text-sm sm:text-base">
+                            {row.userName}
+                            {isCurrentUser && (
+                              <span className="ml-1.5 text-xs text-gold-600 dark:text-gold-400">(You)</span>
+                            )}
+                          </span>
                         </div>
                       </td>
                       
                       {/* Entry Fee */}
-                      <td className="px-4 py-4 text-center border-r border-slate-200 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-800/30">
-                        <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-md bg-crimson-50 dark:bg-crimson-900/20 text-crimson-600 dark:text-crimson-400 font-bold text-sm">
-                          <DollarSign className="h-3.5 w-3.5" />
+                      <td className="px-3 sm:px-4 py-3 sm:py-4 text-center border-r border-navy-200 dark:border-navy-700 bg-navy-50/30 dark:bg-navy-800/30">
+                        <span className="inline-flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 rounded-md bg-crimson-50 dark:bg-crimson-900/20 text-crimson-600 dark:text-crimson-400 font-bold text-xs sm:text-sm">
+                          <DollarSign className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                           {row.entryFee}
                         </span>
                       </td>
@@ -568,48 +718,48 @@ export default function LeaderboardPage() {
                         return (
                           <React.Fragment key={match.id}>
                             <td
-                              className={`border-x border-slate-200 dark:border-slate-700 ${
+                              className={`border-x border-navy-200 dark:border-navy-700 ${
                                 !isCompleted 
-                                  ? 'bg-slate-100/50 dark:bg-slate-800/30' 
-                                  : 'bg-white dark:bg-slate-800'
+                                  ? 'bg-navy-100/50 dark:bg-navy-800/30' 
+                                  : 'bg-white dark:bg-navy-800'
                               }`}
                             >
-                              <div className="flex divide-x divide-slate-200 dark:divide-slate-700">
+                              <div className="flex divide-x divide-navy-200 dark:divide-navy-700">
                                 {/* POINTS Column */}
-                                <div className="flex-1 px-3 py-4 text-center">
+                                <div className="flex-1 px-2 sm:px-3 py-3 sm:py-4 text-center">
                                   {isCompleted ? (
                                     <div className="flex items-center justify-center">
                                       {result.hasPrediction ? (
-                                        <span className={`inline-flex items-center justify-center min-w-[3rem] px-2 py-1.5 rounded-lg text-base font-bold ${
+                                        <span className={`inline-flex items-center justify-center min-w-[2.5rem] sm:min-w-[3rem] px-1.5 sm:px-2 py-1 sm:py-1.5 rounded-lg text-sm sm:text-base font-bold ${
                                           result.points > 0 
                                             ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' 
                                             : result.points < 0
                                             ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
-                                            : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
+                                            : 'bg-navy-100 dark:bg-navy-700 text-navy-600 dark:text-navy-400'
                                         }`}>
                                           {result.points > 0 ? '+' : ''}{result.points}
                                         </span>
                                       ) : (
-                                        <div className="flex flex-col items-center gap-1">
-                                          <XCircle className="h-5 w-5 text-red-500" />
-                                          <span className="text-xs text-red-600 dark:text-red-400 font-semibold">MISS</span>
+                                        <div className="flex flex-col items-center gap-0.5 sm:gap-1">
+                                          <XCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-500" />
+                                          <span className="text-[10px] sm:text-xs text-red-600 dark:text-red-400 font-semibold">MISS</span>
                                         </div>
                                       )}
                                     </div>
                                   ) : (
-                                    <Lock className="h-5 w-5 text-slate-400 mx-auto" />
+                                    <Lock className="h-4 w-4 sm:h-5 sm:w-5 text-slate-400 mx-auto" />
                                   )}
                                 </div>
                                 
                                 {/* PENALTY Column */}
-                                <div className="flex-1 px-3 py-4 text-center">
+                                <div className="flex-1 px-2 sm:px-3 py-3 sm:py-4 text-center">
                                   {isCompleted ? (
                                     result.penaltyFee > 0 ? (
-                                      <span className="inline-flex items-center justify-center min-w-[3rem] px-2 py-1.5 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-base font-bold">
+                                      <span className="inline-flex items-center justify-center min-w-[2.5rem] sm:min-w-[3rem] px-1.5 sm:px-2 py-1 sm:py-1.5 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-sm sm:text-base font-bold">
                                         -${result.penaltyFee}
                                       </span>
                                     ) : (
-                                      <span className="text-slate-400 text-sm">$0</span>
+                                      <span className="text-slate-400 text-xs sm:text-sm">$0</span>
                                     )
                                   ) : (
                                     <span className="text-slate-400">-</span>
@@ -617,14 +767,14 @@ export default function LeaderboardPage() {
                                 </div>
                                 
                                 {/* BONUS Column */}
-                                <div className="flex-1 px-3 py-4 text-center">
+                                <div className="flex-1 px-2 sm:px-3 py-3 sm:py-4 text-center">
                                   {isCompleted ? (
                                     result.bonus > 0 ? (
-                                      <span className="inline-flex items-center justify-center min-w-[3rem] px-2 py-1.5 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-base font-bold">
+                                      <span className="inline-flex items-center justify-center min-w-[2.5rem] sm:min-w-[3rem] px-1.5 sm:px-2 py-1 sm:py-1.5 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-sm sm:text-base font-bold">
                                         +{result.bonus}
                                       </span>
                                     ) : (
-                                      <span className="text-slate-400 text-sm">0</span>
+                                      <span className="text-slate-400 text-xs sm:text-sm">0</span>
                                     )
                                   ) : (
                                     <span className="text-slate-400">-</span>
@@ -640,7 +790,7 @@ export default function LeaderboardPage() {
                                   ? 'bg-slate-100/50 dark:bg-slate-800/30' 
                                   : 'bg-white dark:bg-slate-800'
                               }`}>
-                                <div className="flex divide-x divide-slate-200 dark:divide-slate-700">
+                                <div className="flex divide-x divide-navy-200 dark:divide-navy-700">
                                   {/* TITLE Column (Season Team Wins) */}
                                   <div className="flex-1 px-3 py-4 text-center">
                                     {isTournamentCompleted && tournamentBonuses?.seasonTeamWinsTitle ? (
@@ -692,15 +842,15 @@ export default function LeaderboardPage() {
                       })}
                       
                       {/* Total Points and Penalties */}
-                      <td className={`sticky right-0 z-10 border-l-2 border-slate-300 dark:border-slate-700 shadow-sm ${
+                      <td className={`sticky right-0 z-10 border-l-2 border-navy-300 dark:border-navy-700 shadow-sm ${
                         isCurrentUser 
                           ? 'bg-gradient-to-r from-gold-100 to-amber-100 dark:from-gold-900/50 dark:to-amber-900/50' 
-                          : 'bg-slate-50 dark:bg-slate-800'
+                          : 'bg-navy-50 dark:bg-navy-800'
                       }`}>
-                        <div className="flex divide-x divide-slate-200 dark:divide-slate-700">
+                        <div className="flex divide-x divide-navy-200 dark:divide-navy-700">
                           {/* Points Column */}
-                          <div className="flex-1 px-4 py-4 text-center">
-                            <div className="inline-flex items-center justify-center min-w-[4rem] px-3 py-2 rounded-xl bg-gradient-to-br from-navy-100 to-indigo-100 dark:from-navy-900/40 dark:to-indigo-900/40 text-navy-700 dark:text-white text-2xl font-extrabold shadow-sm">
+                          <div className="flex-1 px-3 sm:px-4 py-3 sm:py-4 text-center">
+                            <div className="inline-flex items-center justify-center min-w-[3rem] sm:min-w-[4rem] px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl bg-gradient-to-br from-navy-100 to-gold-100 dark:from-navy-900/40 dark:to-gold-900/40 text-navy-700 dark:text-white text-lg sm:text-2xl font-extrabold shadow-sm">
                               {(() => {
                                 // Calculate total points from completed matches (POINTS + BONUS)
                                 let totalPoints = 0;
@@ -727,8 +877,8 @@ export default function LeaderboardPage() {
                           </div>
                           
                           {/* Penalties Column */}
-                          <div className="flex-1 px-4 py-4 text-center">
-                            <div className={`inline-flex items-center justify-center min-w-[4rem] px-3 py-2 rounded-xl text-2xl font-extrabold shadow-sm ${
+                          <div className="flex-1 px-3 sm:px-4 py-3 sm:py-4 text-center">
+                            <div className={`inline-flex items-center justify-center min-w-[3rem] sm:min-w-[4rem] px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl text-lg sm:text-2xl font-extrabold shadow-sm ${
                               (() => {
                                 let totalPenalties = 0;
                                 row.matches.forEach((result) => {
@@ -739,7 +889,7 @@ export default function LeaderboardPage() {
                                 return totalPenalties;
                               })() > 0
                                 ? 'bg-gradient-to-br from-red-100 to-rose-100 dark:from-red-900/40 dark:to-rose-900/40 text-red-700 dark:text-red-400'
-                                : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
+                                : 'bg-navy-100 dark:bg-navy-700 text-navy-500 dark:text-navy-400'
                             }`}>
                               {(() => {
                                 // Calculate total penalties from completed matches
@@ -763,9 +913,9 @@ export default function LeaderboardPage() {
           </div>
 
           {/* Footer Legend */}
-          <div className="px-6 py-3 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
-            <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
-              <div className="flex items-center gap-4">
+          <div className="px-4 sm:px-6 py-2.5 sm:py-3 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 flex-shrink-0">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0 text-[10px] sm:text-xs text-gray-600 dark:text-gray-400">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-4">
                 <div className="flex items-center gap-1">
                   <CheckCircle className="h-3 w-3 text-green-500" />
                   <span>Points Earned</span>
@@ -787,9 +937,10 @@ export default function LeaderboardPage() {
                   <span>Season Team Penalty</span>
                 </div>
               </div>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1 whitespace-nowrap">
                 <Clock className="h-3 w-3" />
-                <span>Auto-refresh: 5 min • Updated {new Date().toLocaleTimeString()}</span>
+                <span className="hidden sm:inline">Auto-refresh: 5 min • </span>
+                <span>Updated {new Date().toLocaleTimeString()}</span>
               </div>
             </div>
           </div>

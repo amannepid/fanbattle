@@ -95,16 +95,16 @@ export default function MatchCard({
   }
 
   return (
-    <div className="bg-white dark:bg-navy-600 rounded-card shadow-card hover:shadow-card-hover transition-all p-6 border border-slate-100 dark:border-navy-400">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center space-x-2 text-sm text-navy-500 dark:text-slate-100">
-          <Trophy className="h-4 w-4 text-gold-500" />
-          <span className="font-bold capitalize">{match.matchType}</span>
-          <span>•</span>
-          <span>Match {match.matchNumber}</span>
+    <div className="bg-white dark:bg-navy-600 rounded-card shadow-card hover:shadow-card-hover transition-all p-4 sm:p-6 border border-slate-100 dark:border-navy-400">
+      <div className="flex items-center justify-between mb-3 sm:mb-4">
+        <div className="flex items-center space-x-1.5 sm:space-x-2 text-xs sm:text-sm text-navy-500 dark:text-slate-100 min-w-0 truncate">
+          <Trophy className="h-3 w-3 sm:h-4 sm:w-4 text-gold-500 flex-shrink-0" />
+          <span className="font-bold capitalize whitespace-nowrap">{match.matchType}</span>
+          <span className="whitespace-nowrap">•</span>
+          <span className="whitespace-nowrap">Match {match.matchNumber}</span>
         </div>
         <span
-          className={`px-3 py-1 rounded-button text-xs font-bold ${
+          className={`px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-button text-[10px] sm:text-xs font-bold whitespace-nowrap ${
             match.status === 'completed'
               ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
               : match.status === 'live'
@@ -116,87 +116,87 @@ export default function MatchCard({
         </span>
       </div>
 
-      <div className="grid grid-cols-[1fr_auto_1fr] gap-4 items-start mb-4">
+      <div className="grid grid-cols-[1fr_auto_1fr] gap-2 sm:gap-3 md:gap-4 items-start mb-3 sm:mb-4">
         {/* Team A */}
         <div className="flex flex-col items-center">
-          <div className="flex justify-center mb-3">
+          <div className="flex justify-center mb-2 sm:mb-3">
             {match.teamALogoUrl ? (
               <img 
                 src={match.teamALogoUrl} 
                 alt={match.teamAName}
-                className="h-20 w-20 object-cover rounded-full border-2 border-gray-200 dark:border-gray-700 shadow-md"
+                className="h-14 w-14 sm:h-16 sm:w-16 md:h-20 md:w-20 object-cover rounded-full border-2 border-gray-200 dark:border-gray-700 shadow-md"
               />
             ) : (
-              <div className="h-20 w-20 rounded-full border-2 border-gray-300 dark:border-gray-600 shadow-md bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center">
-                <span className="text-2xl font-bold text-gray-400 dark:text-gray-500">?</span>
+              <div className="h-14 w-14 sm:h-16 sm:w-16 md:h-20 md:w-20 rounded-full border-2 border-gray-300 dark:border-gray-600 shadow-md bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center">
+                <span className="text-xl sm:text-2xl font-bold text-gray-400 dark:text-gray-500">?</span>
               </div>
             )}
           </div>
-          <div className="text-center h-20 flex flex-col justify-center px-2">
-            <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-1 line-clamp-2 leading-tight">
+          <div className="text-center h-16 sm:h-20 flex flex-col justify-center px-1 sm:px-2 min-w-0">
+            <h3 className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white mb-0.5 sm:mb-1 line-clamp-2 leading-tight truncate">
               {match.teamAName}
             </h3>
-            <p className="text-xs text-gray-600 dark:text-gray-400 uppercase">{match.teamAId}</p>
+            <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 uppercase truncate">{match.teamAId}</p>
           </div>
         </div>
 
         {/* VS Divider */}
-        <div className="flex flex-col items-center justify-start pt-10 px-3">
-          <div className="text-xl font-bold text-gray-400 dark:text-gray-500">VS</div>
+        <div className="flex flex-col items-center justify-start pt-7 sm:pt-8 md:pt-10 px-1 sm:px-2 md:px-3">
+          <div className="text-lg sm:text-xl font-bold text-gray-400 dark:text-gray-500">VS</div>
         </div>
 
         {/* Team B */}
         <div className="flex flex-col items-center">
-          <div className="flex justify-center mb-3">
+          <div className="flex justify-center mb-2 sm:mb-3">
             {match.teamBLogoUrl ? (
               <img 
                 src={match.teamBLogoUrl} 
                 alt={match.teamBName}
-                className="h-20 w-20 object-cover rounded-full border-2 border-gray-200 dark:border-gray-700 shadow-md"
+                className="h-14 w-14 sm:h-16 sm:w-16 md:h-20 md:w-20 object-cover rounded-full border-2 border-gray-200 dark:border-gray-700 shadow-md"
               />
             ) : (
-              <div className="h-20 w-20 rounded-full border-2 border-gray-300 dark:border-gray-600 shadow-md bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center">
-                <span className="text-2xl font-bold text-gray-400 dark:text-gray-500">?</span>
+              <div className="h-14 w-14 sm:h-16 sm:w-16 md:h-20 md:w-20 rounded-full border-2 border-gray-300 dark:border-gray-600 shadow-md bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center">
+                <span className="text-xl sm:text-2xl font-bold text-gray-400 dark:text-gray-500">?</span>
               </div>
             )}
           </div>
-          <div className="text-center h-20 flex flex-col justify-center px-2">
-            <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-1 line-clamp-2 leading-tight">
+          <div className="text-center h-16 sm:h-20 flex flex-col justify-center px-1 sm:px-2 min-w-0">
+            <h3 className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white mb-0.5 sm:mb-1 line-clamp-2 leading-tight truncate">
               {match.teamBName}
             </h3>
-            <p className="text-xs text-gray-600 dark:text-gray-400 uppercase">{match.teamBId}</p>
+            <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 uppercase truncate">{match.teamBId}</p>
           </div>
         </div>
       </div>
 
       {match.status === 'completed' && match.winnerName && (
-        <div className="mb-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-          <p className="text-sm text-center">
+        <div className="mb-3 sm:mb-4 p-2 sm:p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+          <p className="text-xs sm:text-sm text-center">
             <span className="font-medium text-green-800 dark:text-green-200">
               Winner: {match.winnerName}
             </span>
           </p>
           {match.momName && (
-            <p className="text-xs text-center text-gray-600 dark:text-gray-400 mt-1">
+            <p className="text-[10px] sm:text-xs text-center text-gray-600 dark:text-gray-400 mt-0.5 sm:mt-1">
               Man of the Match: {match.momName}
             </p>
           )}
         </div>
       )}
 
-      <div className="flex items-center justify-center space-x-4 text-sm text-gray-600 dark:text-gray-400 mb-4">
-        <div className="flex items-center space-x-1">
-          <Calendar className="h-4 w-4" />
+      <div className="flex flex-wrap items-center justify-center gap-x-2 sm:gap-x-4 text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-3 sm:mb-4">
+        <div className="flex items-center space-x-1 whitespace-nowrap">
+          <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           <span>{format(matchDate, 'MMM dd, yyyy')}</span>
         </div>
-        <div className="flex items-center space-x-1">
-          <Clock className="h-4 w-4" />
+        <div className="flex items-center space-x-1 whitespace-nowrap">
+          <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           <span>{format(matchDate, 'h:mm a')}</span>
         </div>
       </div>
 
       {!isPastDeadline && match.status === 'upcoming' && (
-        <div className="text-center text-sm text-gold-500 font-bold mb-3">
+        <div className="text-center text-xs sm:text-sm text-gold-500 font-bold mb-2 sm:mb-3">
           {formatDistanceToNow(deadline, { addSuffix: true })}
         </div>
       )}
@@ -206,19 +206,19 @@ export default function MatchCard({
           {hasPredicted ? (
             <Link
               href={`/predict/${match.id}`}
-              className="block w-full text-center px-4 py-3 bg-cool-500 text-white rounded-button hover:bg-cool-400 transition font-bold shadow-md hover:shadow-lg"
+              className="block w-full text-center px-3 py-2.5 sm:px-4 sm:py-3 bg-cool-500 text-white rounded-button hover:bg-cool-400 transition font-bold shadow-md hover:shadow-lg min-h-[44px] text-sm sm:text-base"
             >
               ✓ Update Prediction
             </Link>
           ) : canPredict ? (
             <Link
               href={`/predict/${match.id}`}
-              className="block w-full text-center px-4 py-3 bg-gold-500 text-navy-500 rounded-button hover:bg-gold-400 transition font-bold shadow-md hover:shadow-lg"
+              className="block w-full text-center px-3 py-2.5 sm:px-4 sm:py-3 bg-gold-500 text-navy-500 rounded-button hover:bg-gold-400 transition font-bold shadow-md hover:shadow-lg min-h-[44px] text-sm sm:text-base"
             >
               Make Prediction
             </Link>
           ) : (
-            <div className="w-full text-center px-4 py-3 bg-gray-100 dark:bg-navy-700 text-gray-500 dark:text-gray-400 rounded-button border-2 border-gray-300 dark:border-navy-500">
+            <div className="w-full text-center px-3 py-2.5 sm:px-4 sm:py-3 bg-gray-100 dark:bg-navy-700 text-gray-500 dark:text-gray-400 rounded-button border-2 border-gray-300 dark:border-navy-500 min-h-[44px]">
               <div className="text-sm font-bold">🔒 Locked</div>
             </div>
           )}
@@ -226,14 +226,14 @@ export default function MatchCard({
       )}
 
       {showPredictButton && isPastDeadline && match.status === 'upcoming' && (
-        <div className="flex flex-col items-center justify-center py-4 px-4 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-navy-800 dark:to-navy-900 rounded-lg border-2 border-gray-200 dark:border-navy-600">
-          <div className="flex items-center space-x-2 mb-1">
-            <Lock className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+        <div className="flex flex-col items-center justify-center py-3 px-3 sm:py-4 sm:px-4 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-navy-800 dark:to-navy-900 rounded-lg border-2 border-gray-200 dark:border-navy-600">
+          <div className="flex items-center space-x-1.5 sm:space-x-2 mb-0.5 sm:mb-1">
+            <Lock className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 dark:text-gray-500" />
             <span className="text-sm font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wide">
               Predictions Closed
             </span>
           </div>
-          <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+          <p className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-500 mt-0.5 sm:mt-1">
             Deadline has passed
           </p>
         </div>

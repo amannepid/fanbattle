@@ -162,22 +162,22 @@ export default function RegisterPage() {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8">
-        <div className="text-center mb-8">
-          <Trophy className="h-16 w-16 mx-auto text-primary-600 mb-4" />
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-4 sm:p-6 md:p-8">
+        <div className="text-center mb-6 sm:mb-8">
+          <Trophy className="h-12 w-12 sm:h-16 sm:w-16 mx-auto text-primary-600 mb-3 sm:mb-4" />
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1.5 sm:mb-2">
             Register for Tournament
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">{tournament.name}</p>
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">{tournament.name}</p>
         </div>
 
         <form onSubmit={handleSubmit}>
           {/* User Name Input */}
-          <div className="mb-8">
-            <h2 className="text-xl font-bold text-navy-500 dark:text-white mb-4">
+          <div className="mb-6 sm:mb-8">
+            <h2 className="text-lg sm:text-xl font-bold text-navy-500 dark:text-white mb-2 sm:mb-4">
               Your Display Name
             </h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-4 text-sm">
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-3 sm:mb-4">
               This name will be displayed on the leaderboard and throughout the tournament.
             </p>
             <input
@@ -185,69 +185,68 @@ export default function RegisterPage() {
               value={userName}
               onChange={(e) => setUserName(e.target.value)}
               placeholder="Enter your name"
-              className="w-full px-4 py-3 border-2 border-gray-300 dark:border-navy-400 rounded-button focus:border-gold-500 focus:outline-none dark:bg-navy-700 dark:text-white text-lg"
+              className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 dark:border-navy-400 rounded-button focus:border-gold-500 focus:outline-none dark:bg-navy-700 dark:text-white text-base sm:text-lg min-h-[44px]"
               maxLength={50}
               required
             />
             {user?.displayName && (
-              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+              <p className="mt-1.5 sm:mt-2 text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
                 ℹ️ Pre-filled from your Google account. You can change it if you like.
               </p>
             )}
           </div>
 
-          <div className="mb-8">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+          <div className="mb-6 sm:mb-8">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-2 sm:mb-4">
               Select Your Season Team
             </h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-6 text-sm">
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
               Choose one team as your "season team". You'll get bonus points when they win, but
               penalties when they lose. Choose wisely!
             </p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               {teams.map((team) => (
                 <button
                   key={team.id}
                   type="button"
                   onClick={() => setSelectedTeam(team.id)}
-                  className={`relative overflow-hidden rounded-card transition-all shadow-card hover:shadow-card-hover ${
+                  className={`relative overflow-hidden rounded-card transition-all shadow-card hover:shadow-card-hover min-h-[120px] sm:min-h-[140px] ${
                     selectedTeam === team.id
                       ? 'ring-4 ring-gold-500 scale-105'
                       : 'hover:scale-102'
                   }`}
                 >
                   {selectedTeam === team.id && (
-                    <div className="absolute top-3 right-3 z-10 bg-gold-500 rounded-full p-1.5 shadow-lg">
-                      <Check className="h-5 w-5 text-navy-500" />
+                    <div className="absolute top-2 right-2 sm:top-3 sm:right-3 z-10 bg-gold-500 rounded-full p-1 sm:p-1.5 shadow-lg">
+                      <Check className="h-4 w-4 sm:h-5 sm:w-5 text-navy-500" />
                     </div>
-                  )}
                   
                   {/* Team Logo/Badge Section */}
                   <div 
-                    className="p-8 flex items-center justify-center"
+                    className="p-6 sm:p-8 flex items-center justify-center"
                     style={{ 
                       background: `linear-gradient(135deg, ${team.primaryColor} 0%, ${team.secondaryColor} 100%)` 
                     }}
                   >
                     {team.logoUrl ? (
-                      <div className="bg-white rounded-full p-2 shadow-lg">
+                      <div className="bg-white rounded-full p-1.5 sm:p-2 shadow-lg">
                         <img 
                           src={team.logoUrl} 
                           alt={team.name}
-                          className="h-24 w-24 object-cover rounded-full"
+                          className="h-16 w-16 sm:h-24 sm:w-24 object-cover rounded-full"
                         />
                       </div>
                     ) : (
-                      <div className="bg-white/20 backdrop-blur-sm rounded-full p-4">
-                        <Shield className="h-12 w-12 text-white" />
+                      <div className="bg-white/20 backdrop-blur-sm rounded-full p-3 sm:p-4">
+                        <Shield className="h-8 w-8 sm:h-12 sm:w-12 text-white" />
                       </div>
                     )}
                   </div>
                   
                   {/* Team Name Section */}
-                  <div className="bg-white dark:bg-gray-800 p-4">
-                    <h3 className="text-base font-bold text-gray-900 dark:text-white text-center">
+                  <div className="bg-white dark:bg-gray-800 p-3 sm:p-4">
+                    <h3 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white text-center truncate">
                       {team.name}
                     </h3>
                   </div>
@@ -257,11 +256,11 @@ export default function RegisterPage() {
           </div>
 
           {/* Tournament Predictions */}
-          <div className="mb-8 space-y-6">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+          <div className="mb-6 sm:mb-8 space-y-4 sm:space-y-6">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-2 sm:mb-4">
               Tournament Predictions
             </h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-6 text-sm">
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
               Predict the tournament winners for bonus points. These predictions cannot be changed after registration.
             </p>
 
@@ -295,11 +294,11 @@ export default function RegisterPage() {
 
           {/* Copy Registration Content */}
           {selectedTeam && playerOfTournament && highestWicketTaker && highestRunScorer && (
-            <div className="mb-8">
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                    <Copy className="h-4 w-4" />
+            <div className="mb-6 sm:mb-8">
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 sm:p-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0 mb-2 sm:mb-3">
+                  <h3 className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white flex items-center gap-1.5 sm:gap-2">
+                    <Copy className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     Share Your Registration
                   </h3>
                   <button
@@ -322,22 +321,22 @@ Highest Run Scorer: ${highestRunScorer.name}`;
                         console.error('Failed to copy:', err);
                       }
                     }}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium"
+                    className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-xs sm:text-sm font-medium min-h-[44px]"
                   >
                     {copied ? (
                       <>
-                        <CheckCircle2 className="h-4 w-4" />
+                        <CheckCircle2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                         Copied!
                       </>
                     ) : (
                       <>
-                        <Copy className="h-4 w-4" />
+                        <Copy className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                         Copy
                       </>
                     )}
                   </button>
                 </div>
-                <p className="text-xs text-gray-600 dark:text-gray-400">
+                <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400">
                   Copy your registration details to share on social media
                 </p>
               </div>
@@ -345,14 +344,14 @@ Highest Run Scorer: ${highestRunScorer.name}`;
           )}
 
           {error && (
-            <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-400 dark:border-red-600 rounded-lg">
-              <p className="text-red-800 dark:text-red-200 text-sm">{error}</p>
+            <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-red-50 dark:bg-red-900/20 border border-red-400 dark:border-red-600 rounded-lg">
+              <p className="text-xs sm:text-sm text-red-800 dark:text-red-200">{error}</p>
             </div>
           )}
 
-          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-400 dark:border-blue-600 rounded-lg p-4 mb-6">
-            <h3 className="font-bold text-blue-900 dark:text-blue-200 mb-2">Important:</h3>
-            <ul className="text-sm text-blue-800 dark:text-blue-300 space-y-1">
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-400 dark:border-blue-600 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
+            <h3 className="text-sm sm:text-base font-bold text-blue-900 dark:text-blue-200 mb-1.5 sm:mb-2">Important:</h3>
+            <ul className="text-xs sm:text-sm text-blue-800 dark:text-blue-300 space-y-0.5 sm:space-y-1">
               <li>• Your display name will appear on the leaderboard for all participants to see</li>
               <li>• Your season team and tournament predictions <strong>cannot be changed</strong> after registration</li>
               <li>• You get <strong>+1 bonus point</strong> when your team wins (if you predicted correctly)</li>
@@ -365,11 +364,11 @@ Highest Run Scorer: ${highestRunScorer.name}`;
           <button
             type="submit"
             disabled={!userName.trim() || !selectedTeam || !playerOfTournament || !highestWicketTaker || !highestRunScorer || submitting}
-            className="w-full px-6 py-4 bg-gold-500 text-navy-500 rounded-button hover:bg-gold-400 transition disabled:opacity-50 disabled:cursor-not-allowed font-black text-lg shadow-lg hover:shadow-xl"
+            className="w-full px-5 sm:px-6 py-3 sm:py-4 bg-gold-500 text-navy-500 rounded-button hover:bg-gold-400 transition disabled:opacity-50 disabled:cursor-not-allowed font-black text-base sm:text-lg shadow-lg hover:shadow-xl min-h-[44px]"
           >
             {submitting ? (
-              <span className="flex items-center justify-center">
-                <Loader2 className="h-5 w-5 animate-spin mr-2" />
+              <span className="flex items-center justify-center text-sm sm:text-base">
+                <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin mr-2" />
                 Registering...
               </span>
             ) : (

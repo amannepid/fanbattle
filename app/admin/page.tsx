@@ -385,46 +385,46 @@ export default function AdminPage() {
 
   return (
     <div className="max-w-7xl mx-auto">
-      <div className="flex items-center space-x-3 mb-8">
-        <Shield className="h-8 w-8 text-orange-600" />
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Admin Panel</h1>
+      <div className="flex items-center space-x-2 sm:space-x-3 mb-6 sm:mb-8">
+        <Shield className="h-6 w-6 sm:h-8 sm:w-8 text-orange-600" />
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Admin Panel</h1>
       </div>
 
       {message && (
-        <div className={`mb-6 p-4 rounded-lg ${message.startsWith('✅') ? 'bg-green-50 dark:bg-green-900/20 border border-green-400' : 'bg-red-50 dark:bg-red-900/20 border border-red-400'}`}>
-          <p className={message.startsWith('✅') ? 'text-green-800 dark:text-green-200' : 'text-red-800 dark:text-red-200'}>
+        <div className={`mb-4 sm:mb-6 p-3 sm:p-4 rounded-lg ${message.startsWith('✅') ? 'bg-green-50 dark:bg-green-900/20 border border-green-400' : 'bg-red-50 dark:bg-red-900/20 border border-red-400'}`}>
+          <p className={`text-sm sm:text-base ${message.startsWith('✅') ? 'text-green-800 dark:text-green-200' : 'text-red-800 dark:text-red-200'}`}>
             {message}
           </p>
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
         {/* Match List */}
         <div>
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Upcoming Matches</h2>
-          <div className="space-y-3">
+          <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">Upcoming Matches</h2>
+          <div className="space-y-2 sm:space-y-3">
             {upcomingMatches.length === 0 ? (
-              <p className="text-gray-600 dark:text-gray-400 text-sm">No upcoming matches</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">No upcoming matches</p>
             ) : (
               upcomingMatches.map((match) => (
                 <button
                   key={match.id}
                   onClick={() => selectMatch(match)}
-                  className={`w-full text-left p-4 border-2 rounded-lg transition ${
+                  className={`w-full text-left p-3 sm:p-4 border-2 rounded-lg transition min-h-[44px] ${
                     selectedMatch?.id === match.id
                       ? 'border-primary-600 bg-primary-50 dark:bg-primary-900/20'
                       : 'border-gray-300 dark:border-gray-600 hover:border-primary-400'
                   }`}
                 >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+                    <span className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">
                       Match {match.matchNumber} • {match.matchType}
                     </span>
-                    <span className="text-xs text-gray-500">
+                    <span className="text-[10px] sm:text-xs text-gray-500">
                       {format(match.matchDate.toDate(), 'MMM dd')}
                     </span>
                   </div>
-                  <h3 className="font-bold text-gray-900 dark:text-white">
+                  <h3 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white truncate">
                     {match.teamAName} vs {match.teamBName}
                   </h3>
                 </button>
@@ -432,12 +432,12 @@ export default function AdminPage() {
             )}
           </div>
 
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mt-8 mb-4">
+          <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mt-6 sm:mt-8 mb-3 sm:mb-4">
             Completed ({completedMatches.length})
           </h2>
-          <div className="space-y-3 max-h-64 overflow-y-auto">
+          <div className="space-y-2 sm:space-y-3 max-h-64 overflow-y-auto">
             {completedMatches.length === 0 ? (
-              <p className="text-gray-600 dark:text-gray-400 text-sm">No completed matches</p>
+              <p className="text-sm text-gray-600 dark:text-gray-400">No completed matches</p>
             ) : (
               completedMatches.map((match) => {
                 const canEdit = canEditMatch(match);
@@ -450,7 +450,7 @@ export default function AdminPage() {
                       }
                     }}
                     disabled={!canEdit}
-                    className={`w-full text-left p-4 border-2 rounded-lg transition ${
+                    className={`w-full text-left p-3 sm:p-4 border-2 rounded-lg transition min-h-[44px] ${
                       !canEdit
                         ? 'border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-800/50 opacity-60 cursor-not-allowed'
                         : selectedMatch?.id === match.id
@@ -458,34 +458,34 @@ export default function AdminPage() {
                         : 'border-green-400 dark:border-green-600 bg-green-50 dark:bg-green-900/20 hover:border-primary-400'
                     }`}
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+                      <span className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">
                         Match {match.matchNumber} • {match.matchType}
                       </span>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-1.5 sm:space-x-2">
                         {!canEdit && (
-                          <span className="text-xs text-red-600 dark:text-red-400 font-medium">
+                          <span className="text-[10px] sm:text-xs text-red-600 dark:text-red-400 font-medium">
                             🔒 Locked
                           </span>
                         )}
-                        <span className="text-xs text-green-600 dark:text-green-400 font-medium">
+                        <span className="text-[10px] sm:text-xs text-green-600 dark:text-green-400 font-medium">
                           ✓ Completed
                         </span>
                       </div>
                     </div>
-                    <h3 className="font-bold text-gray-900 dark:text-white mb-1">
+                    <h3 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white mb-1 truncate">
                       {match.teamAName} vs {match.teamBName}
                     </h3>
-                    <div className="text-sm text-green-800 dark:text-green-200">
+                    <div className="text-xs sm:text-sm text-green-800 dark:text-green-200 truncate">
                       Winner: {match.winnerName}
                     </div>
                     {!canEdit && (
-                      <div className="text-xs text-red-600 dark:text-red-400 mt-2">
+                      <div className="text-[10px] sm:text-xs text-red-600 dark:text-red-400 mt-1.5 sm:mt-2">
                         Cannot edit: There are completed matches after this one
                       </div>
                     )}
                     {selectedMatch?.id === match.id && canEdit && (
-                      <div className="text-xs text-primary-600 dark:text-primary-400 mt-2 font-medium">
+                      <div className="text-[10px] sm:text-xs text-primary-600 dark:text-primary-400 mt-1.5 sm:mt-2 font-medium">
                         Click to edit result
                       </div>
                     )}
@@ -501,39 +501,39 @@ export default function AdminPage() {
           {selectedMatch ? (
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
               {/* Header */}
-              <div className={`px-6 py-4 ${selectedMatch.status === 'completed' ? 'bg-gradient-to-r from-orange-600 to-orange-700' : 'bg-gradient-to-r from-primary-600 to-primary-700'}`}>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <Trophy className="h-6 w-6 text-white" />
+              <div className={`px-4 sm:px-6 py-3 sm:py-4 ${selectedMatch.status === 'completed' ? 'bg-gradient-to-r from-orange-600 to-orange-700' : 'bg-gradient-to-r from-primary-600 to-primary-700'}`}>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
+                  <div className="flex items-center space-x-2 sm:space-x-3">
+                    <Trophy className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                     <div>
-                      <h2 className="text-xl font-bold text-white">
+                      <h2 className="text-lg sm:text-xl font-bold text-white">
                         {selectedMatch.status === 'completed' ? 'Edit' : 'Enter'} Match {selectedMatch.matchNumber} Result
                       </h2>
-                      <p className="text-sm text-primary-100">
+                      <p className="text-xs sm:text-sm text-primary-100">
                         {format(selectedMatch.matchDate.toDate(), 'MMMM dd, yyyy')}
                       </p>
                     </div>
                   </div>
                   {selectedMatch.status === 'completed' && (
-                    <div className="bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">
-                      <span className="text-xs font-medium text-white">Editing Completed Match</span>
+                    <div className="bg-white/20 backdrop-blur-sm px-2.5 sm:px-3 py-1 rounded-full">
+                      <span className="text-[10px] sm:text-xs font-medium text-white">Editing Completed Match</span>
                     </div>
                   )}
                 </div>
               </div>
 
-              <form onSubmit={handleSubmitResult} className="p-6 space-y-6">
+              <form onSubmit={handleSubmitResult} className="p-4 sm:p-6 space-y-4 sm:space-y-6">
                 {/* Match Teams Display */}
-                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 sm:p-4 border border-gray-200 dark:border-gray-600">
                   <div className="flex items-center justify-between">
-                    <div className="flex-1 text-center">
-                      <div className="text-lg font-bold text-gray-900 dark:text-white">
+                    <div className="flex-1 text-center min-w-0">
+                      <div className="text-base sm:text-lg font-bold text-gray-900 dark:text-white truncate">
                         {selectedMatch.teamAName}
                       </div>
                     </div>
-                    <div className="px-4 text-gray-400 font-bold text-xl">vs</div>
-                    <div className="flex-1 text-center">
-                      <div className="text-lg font-bold text-gray-900 dark:text-white">
+                    <div className="px-2 sm:px-4 text-gray-400 font-bold text-lg sm:text-xl">vs</div>
+                    <div className="flex-1 text-center min-w-0">
+                      <div className="text-base sm:text-lg font-bold text-gray-900 dark:text-white truncate">
                         {selectedMatch.teamBName}
                       </div>
                     </div>
@@ -541,48 +541,48 @@ export default function AdminPage() {
                 </div>
 
                 {/* Section 1: Match Outcome */}
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-2 pb-2 border-b border-gray-200 dark:border-gray-700">
-                    <Trophy className="h-5 w-5 text-primary-600 dark:text-primary-400" />
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Match Outcome</h3>
+                <div className="space-y-3 sm:space-y-4">
+                  <div className="flex items-center space-x-1.5 sm:space-x-2 pb-2 border-b border-gray-200 dark:border-gray-700">
+                    <Trophy className="h-4 w-4 sm:h-5 sm:w-5 text-primary-600 dark:text-primary-400" />
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">Match Outcome</h3>
                   </div>
 
                   {/* Winner Selection */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">
                       Winner <span className="text-red-500">*</span>
                     </label>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-2 sm:gap-3">
                       <button
                         type="button"
                         onClick={() => setWinnerId(selectedMatch.teamAId)}
-                        className={`p-4 border-2 rounded-lg transition-all duration-200 ${
+                        className={`p-3 sm:p-4 border-2 rounded-lg transition-all duration-200 min-h-[60px] sm:min-h-[72px] flex flex-col items-center justify-center ${
                           winnerId === selectedMatch.teamAId
                             ? 'border-primary-600 bg-primary-50 dark:bg-primary-900/30 shadow-md'
                             : 'border-gray-300 dark:border-gray-600 hover:border-primary-400 hover:bg-gray-50 dark:hover:bg-gray-700'
                         }`}
                       >
-                        <div className="font-semibold text-gray-900 dark:text-white">
+                        <div className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white truncate text-center w-full">
                           {selectedMatch.teamAName}
                         </div>
                         {winnerId === selectedMatch.teamAId && (
-                          <div className="text-xs text-primary-600 dark:text-primary-400 mt-1">✓ Selected</div>
+                          <div className="text-[10px] sm:text-xs text-primary-600 dark:text-primary-400 mt-1">✓ Selected</div>
                         )}
                       </button>
                       <button
                         type="button"
                         onClick={() => setWinnerId(selectedMatch.teamBId)}
-                        className={`p-4 border-2 rounded-lg transition-all duration-200 ${
+                        className={`p-3 sm:p-4 border-2 rounded-lg transition-all duration-200 min-h-[60px] sm:min-h-[72px] flex flex-col items-center justify-center ${
                           winnerId === selectedMatch.teamBId
                             ? 'border-primary-600 bg-primary-50 dark:bg-primary-900/30 shadow-md'
                             : 'border-gray-300 dark:border-gray-600 hover:border-primary-400 hover:bg-gray-50 dark:hover:bg-gray-700'
                         }`}
                       >
-                        <div className="font-semibold text-gray-900 dark:text-white">
+                        <div className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white truncate text-center w-full">
                           {selectedMatch.teamBName}
                         </div>
                         {winnerId === selectedMatch.teamBId && (
-                          <div className="text-xs text-primary-600 dark:text-primary-400 mt-1">✓ Selected</div>
+                          <div className="text-[10px] sm:text-xs text-primary-600 dark:text-primary-400 mt-1">✓ Selected</div>
                         )}
                       </button>
                     </div>
@@ -590,13 +590,13 @@ export default function AdminPage() {
 
                   {/* Player of the Match */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                       Player of the Match
                     </label>
                     <select
                       value={momId}
                       onChange={(e) => setMomId(e.target.value)}
-                      className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-primary-600 focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-800 focus:outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition"
+                      className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-primary-600 focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-800 focus:outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white transition text-sm sm:text-base min-h-[44px]"
                     >
                       <option value="">Select player...</option>
                       {players
@@ -614,57 +614,57 @@ export default function AdminPage() {
                 </div>
 
                 {/* Section 2: First Innings Details */}
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-2 pb-2 border-b border-gray-200 dark:border-gray-700">
-                    <Trophy className="h-5 w-5 text-primary-600 dark:text-primary-400" />
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">First Innings</h3>
+                <div className="space-y-3 sm:space-y-4">
+                  <div className="flex items-center space-x-1.5 sm:space-x-2 pb-2 border-b border-gray-200 dark:border-gray-700">
+                    <Trophy className="h-4 w-4 sm:h-5 sm:w-5 text-primary-600 dark:text-primary-400" />
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">First Innings</h3>
                   </div>
 
                   {/* First Innings Batting Team */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">
                       Team That Batted First
                     </label>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-2 sm:gap-3">
                       <button
                         type="button"
                         onClick={() => setFirstInningsBattingTeamId(selectedMatch.teamAId)}
-                        className={`p-4 border-2 rounded-lg transition-all duration-200 ${
+                        className={`p-3 sm:p-4 border-2 rounded-lg transition-all duration-200 min-h-[60px] sm:min-h-[72px] flex flex-col items-center justify-center ${
                           firstInningsBattingTeamId === selectedMatch.teamAId
                             ? 'border-primary-600 bg-primary-50 dark:bg-primary-900/30 shadow-md'
                             : 'border-gray-300 dark:border-gray-600 hover:border-primary-400 hover:bg-gray-50 dark:hover:bg-gray-700'
                         }`}
                       >
-                        <div className="font-semibold text-gray-900 dark:text-white">
+                        <div className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white truncate text-center w-full">
                           {selectedMatch.teamAName}
                         </div>
                         {firstInningsBattingTeamId === selectedMatch.teamAId && (
-                          <div className="text-xs text-primary-600 dark:text-primary-400 mt-1">✓ Selected</div>
+                          <div className="text-[10px] sm:text-xs text-primary-600 dark:text-primary-400 mt-1">✓ Selected</div>
                         )}
                       </button>
                       <button
                         type="button"
                         onClick={() => setFirstInningsBattingTeamId(selectedMatch.teamBId)}
-                        className={`p-4 border-2 rounded-lg transition-all duration-200 ${
+                        className={`p-3 sm:p-4 border-2 rounded-lg transition-all duration-200 min-h-[60px] sm:min-h-[72px] flex flex-col items-center justify-center ${
                           firstInningsBattingTeamId === selectedMatch.teamBId
                             ? 'border-primary-600 bg-primary-50 dark:bg-primary-900/30 shadow-md'
                             : 'border-gray-300 dark:border-gray-600 hover:border-primary-400 hover:bg-gray-50 dark:hover:bg-gray-700'
                         }`}
                       >
-                        <div className="font-semibold text-gray-900 dark:text-white">
+                        <div className="text-sm sm:text-base font-semibold text-gray-900 dark:text-white truncate text-center w-full">
                           {selectedMatch.teamBName}
                         </div>
                         {firstInningsBattingTeamId === selectedMatch.teamBId && (
-                          <div className="text-xs text-primary-600 dark:text-primary-400 mt-1">✓ Selected</div>
+                          <div className="text-[10px] sm:text-xs text-primary-600 dark:text-primary-400 mt-1">✓ Selected</div>
                         )}
                       </button>
                     </div>
                   </div>
 
                   {/* First Innings Score & Wickets */}
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                         First Innings Score
                       </label>
                       <input
@@ -672,18 +672,18 @@ export default function AdminPage() {
                         min="0"
                         value={firstInningsScore}
                         onChange={(e) => setFirstInningsScore(e.target.value)}
-                        className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-primary-600 focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-800 focus:outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-primary-600 focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-800 focus:outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm sm:text-base min-h-[44px]"
                         placeholder="e.g., 145"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
                         First Innings Wickets
                       </label>
                       <select
                         value={firstInningsWickets}
                         onChange={(e) => setFirstInningsWickets(e.target.value)}
-                        className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-primary-600 focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-800 focus:outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-primary-600 focus:ring-2 focus:ring-primary-200 dark:focus:ring-primary-800 focus:outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm sm:text-base min-h-[44px]"
                       >
                         <option value="">Select wickets</option>
                         {Array.from({ length: 11 }, (_, i) => (
@@ -696,19 +696,19 @@ export default function AdminPage() {
                   </div>
 
                   {/* Reduced Overs */}
-                  <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700 rounded-lg p-4">
-                    <label className="flex items-start space-x-3 cursor-pointer">
+                  <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700 rounded-lg p-3 sm:p-4">
+                    <label className="flex items-start space-x-2 sm:space-x-3 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={isReducedOvers}
                         onChange={(e) => setIsReducedOvers(e.target.checked)}
-                        className="mt-1 w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                        className="mt-1 w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500 min-h-[44px] min-w-[44px]"
                       />
                       <div>
-                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
                           Reduced Overs Match
                         </span>
-                        <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                        <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 mt-1">
                           Check this if the match was shortened. Score/Wickets predictions won't count for bonus points.
                         </p>
                       </div>
@@ -720,11 +720,11 @@ export default function AdminPage() {
                 <button
                   type="submit"
                   disabled={!winnerId || processing}
-                  className="w-full px-6 py-4 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                  className="w-full px-5 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-base sm:text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 min-h-[44px]"
                 >
                   {processing ? (
-                    <span className="flex items-center justify-center">
-                      <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                    <span className="flex items-center justify-center text-sm sm:text-base">
+                      <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin mr-2" />
                       Processing & Calculating Scores...
                     </span>
                   ) : (
@@ -734,9 +734,9 @@ export default function AdminPage() {
               </form>
             </div>
           ) : (
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 p-12 text-center">
-              <Trophy className="h-16 w-16 mx-auto text-gray-400 mb-4" />
-              <p className="text-gray-600 dark:text-gray-400 text-lg">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 p-8 sm:p-12 text-center">
+              <Trophy className="h-12 w-12 sm:h-16 sm:w-16 mx-auto text-gray-400 mb-3 sm:mb-4" />
+              <p className="text-sm sm:text-lg text-gray-600 dark:text-gray-400">
                 Select a match from the list to enter results
               </p>
             </div>
@@ -745,13 +745,13 @@ export default function AdminPage() {
       </div>
 
       {/* Tournament Results Section */}
-      <div className="mt-8 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-        <div className="px-6 py-4 bg-gradient-to-r from-purple-600 to-purple-700">
-          <div className="flex items-center space-x-3">
-            <Trophy className="h-6 w-6 text-white" />
-            <h2 className="text-xl font-bold text-white">Tournament End Results</h2>
+      <div className="mt-6 sm:mt-8 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div className="px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-purple-600 to-purple-700">
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            <Trophy className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+            <h2 className="text-lg sm:text-xl font-bold text-white">Tournament End Results</h2>
           </div>
-          <p className="text-sm text-purple-100 mt-1">Set tournament results after Final match is completed</p>
+          <p className="text-xs sm:text-sm text-purple-100 mt-1">Set tournament results after Final match is completed</p>
         </div>
         
         {/* Check if Final is completed */}
@@ -761,11 +761,11 @@ export default function AdminPage() {
           
           if (!isFinalCompleted) {
             return (
-              <div className="p-6">
-                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-400 dark:border-yellow-600 rounded-lg p-4">
-                  <div className="flex items-center space-x-2">
-                    <AlertCircle className="h-5 w-5 text-yellow-600" />
-                    <p className="text-sm text-yellow-800 dark:text-yellow-200">
+              <div className="p-4 sm:p-6">
+                <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-400 dark:border-yellow-600 rounded-lg p-3 sm:p-4">
+                  <div className="flex items-start space-x-2">
+                    <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                    <p className="text-xs sm:text-sm text-yellow-800 dark:text-yellow-200">
                       <strong>Note:</strong> Tournament results can only be set after the Final match is completed.
                       {finalMatch && (
                         <span className="block mt-1">
@@ -780,22 +780,22 @@ export default function AdminPage() {
           }
           
           return (
-            <form onSubmit={handleTournamentResults} className="p-6 space-y-6">
+            <form onSubmit={handleTournamentResults} className="p-4 sm:p-6 space-y-4 sm:space-y-6">
           {/* Tournament Winner (Read-only, from Final match) */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
               Tournament Winner *
             </label>
-            <div className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300 flex items-center justify-between">
-              <span className="font-medium">
+            <div className="w-full px-3 sm:px-4 py-2.5 sm:py-3 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 sm:gap-0">
+              <span className="text-sm sm:text-base font-medium">
                 {finalMatch.winnerName || 'Not set'}
               </span>
-              <span className="text-xs text-gray-500 dark:text-gray-400 italic">
+              <span className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 italic">
                 (From Final match - not editable)
               </span>
             </div>
             {!finalMatch.winnerId && (
-              <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+              <p className="text-[10px] sm:text-xs text-red-600 dark:text-red-400 mt-1">
                 Please complete the Final match first
               </p>
             )}
@@ -803,13 +803,13 @@ export default function AdminPage() {
 
           {/* Player of Tournament */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
               Player of Tournament *
             </label>
             <select
               value={playerOfTournamentId}
               onChange={(e) => setPlayerOfTournamentId(e.target.value)}
-              className="w-full px-4 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-primary-600 focus:outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              className="w-full px-3 sm:px-4 py-2.5 sm:py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-primary-600 focus:outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm sm:text-base min-h-[44px]"
               required
             >
               <option value="">Select player</option>
@@ -823,13 +823,13 @@ export default function AdminPage() {
 
           {/* Highest Run Scorer */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
               Highest Run Scorer *
             </label>
             <select
               value={highestRunScorerId}
               onChange={(e) => setHighestRunScorerId(e.target.value)}
-              className="w-full px-4 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-primary-600 focus:outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              className="w-full px-3 sm:px-4 py-2.5 sm:py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-primary-600 focus:outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm sm:text-base min-h-[44px]"
               required
             >
               <option value="">Select player</option>
@@ -843,13 +843,13 @@ export default function AdminPage() {
 
           {/* Highest Wicket Taker */}
           <div>
-            <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2">
               Highest Wicket Taker *
             </label>
             <select
               value={highestWicketTakerId}
               onChange={(e) => setHighestWicketTakerId(e.target.value)}
-              className="w-full px-4 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-primary-600 focus:outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              className="w-full px-3 sm:px-4 py-2.5 sm:py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-primary-600 focus:outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm sm:text-base min-h-[44px]"
               required
             >
               <option value="">Select player</option>
@@ -862,10 +862,10 @@ export default function AdminPage() {
           </div>
 
           {/* Info Box */}
-          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-400 dark:border-blue-600 rounded-lg p-4">
-            <p className="text-sm text-blue-800 dark:text-blue-200">
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-400 dark:border-blue-600 rounded-lg p-3 sm:p-4">
+            <p className="text-xs sm:text-sm text-blue-800 dark:text-blue-200">
               <strong>Note:</strong> Setting tournament results will automatically calculate and apply bonuses:
-              <ul className="list-disc list-inside mt-2 space-y-1">
+              <ul className="list-disc list-inside mt-1.5 sm:mt-2 space-y-0.5 sm:space-y-1">
                 <li>Season team wins title: +5 points</li>
                 <li>Player of Tournament: +5 points if correct</li>
                 <li>Highest Run Scorer: +5 points if correct</li>
@@ -878,11 +878,11 @@ export default function AdminPage() {
           <button
             type="submit"
             disabled={!finalMatch.winnerId || !playerOfTournamentId || !highestRunScorerId || !highestWicketTakerId || processing}
-            className="w-full px-6 py-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+            className="w-full px-5 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg hover:from-purple-700 hover:to-purple-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-semibold text-base sm:text-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 min-h-[44px]"
           >
             {processing ? (
-              <span className="flex items-center justify-center">
-                <Loader2 className="h-5 w-5 animate-spin mr-2" />
+              <span className="flex items-center justify-center text-sm sm:text-base">
+                <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin mr-2" />
                 Processing...
               </span>
             ) : (

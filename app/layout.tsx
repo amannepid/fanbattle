@@ -11,7 +11,12 @@ export const metadata: Metadata = {
   description: 'Predict Nepal Premier League matches and compete with friends',
   manifest: '/manifest.json',
   themeColor: '#0A233F',
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=1',
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+    viewportFit: 'cover', // Support for foldable devices and notches
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
@@ -34,7 +39,7 @@ export default function RootLayout({
         <AuthProvider>
           <div className="min-h-screen bg-slate-50 dark:bg-gray-900">
             <Navbar />
-            <main className="container mx-auto px-4 py-8">
+            <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
               {children}
             </main>
           </div>

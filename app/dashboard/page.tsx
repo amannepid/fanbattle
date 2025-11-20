@@ -137,86 +137,86 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">My Dashboard</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-6 sm:mb-8">My Dashboard</h1>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6">
           <div className="flex items-center justify-between mb-2">
-            <Trophy className="h-8 w-8 text-primary-600" />
+            <Trophy className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 text-primary-600 flex-shrink-0" />
           </div>
-          <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
+          <div className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1">
             {userEntry.totalPoints}
           </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400">Total Points</div>
+          <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Total Points</div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6">
           <div className="flex items-center justify-between mb-2">
-            <TrendingUp className="h-8 w-8 text-green-600" />
+            <TrendingUp className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 text-green-600 flex-shrink-0" />
           </div>
-          <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
+          <div className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1">
             #{userEntry.currentRank || '-'}
           </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400">Current Rank</div>
+          <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Current Rank</div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6">
           <div className="flex items-center justify-between mb-2">
-            <Target className="h-8 w-8 text-blue-600" />
+            <Target className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 text-blue-600 flex-shrink-0" />
           </div>
-          <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
+          <div className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1">
             {predictedMatches}/{totalMatches}
           </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400">Predictions</div>
+          <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Predictions</div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6">
           <div className="flex items-center justify-between mb-2">
-            <CheckCircle className="h-8 w-8 text-green-600" />
+            <CheckCircle className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 text-green-600 flex-shrink-0" />
           </div>
-          <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
+          <div className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1">
             {accuracy}%
           </div>
-          <div className="text-sm text-gray-600 dark:text-gray-400">Accuracy</div>
+          <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Accuracy</div>
         </div>
       </div>
 
       {/* Tournament Predictions */}
-      <div className="bg-primary-50 dark:bg-primary-900/20 border-2 border-primary-400 dark:border-primary-600 rounded-lg p-6 mb-8">
-        <h3 className="text-lg font-bold text-primary-900 dark:text-primary-200 mb-4">
+      <div className="bg-primary-50 dark:bg-primary-900/20 border-2 border-primary-400 dark:border-primary-600 rounded-lg p-4 sm:p-6 mb-6 sm:mb-8">
+        <h3 className="text-base sm:text-lg font-bold text-primary-900 dark:text-primary-200 mb-3 sm:mb-4">
           Your Tournament Predictions
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <p className="text-sm text-primary-800 dark:text-primary-300 mb-1">Season Team</p>
-            <p className="text-xl font-bold text-primary-600 dark:text-primary-400">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+          <div className="min-w-0">
+            <p className="text-xs sm:text-sm text-primary-800 dark:text-primary-300 mb-1">Season Team</p>
+            <p className="text-lg sm:text-xl font-bold text-primary-600 dark:text-primary-400 truncate">
               {userEntry.seasonTeamName}
             </p>
-            <p className="text-xs text-primary-700 dark:text-primary-400 mt-1">
+            <p className="text-[10px] sm:text-xs text-primary-700 dark:text-primary-400 mt-1">
               +1 when they win (if you predicted correctly) • -1 when they lose
             </p>
           </div>
           {userEntry.playerOfTournamentName && (
-            <div>
-              <p className="text-sm text-primary-800 dark:text-primary-300 mb-1">Player of The Tournament</p>
-              <p className="text-xl font-bold text-primary-600 dark:text-primary-400">
+            <div className="min-w-0">
+              <p className="text-xs sm:text-sm text-primary-800 dark:text-primary-300 mb-1">Player of The Tournament</p>
+              <p className="text-lg sm:text-xl font-bold text-primary-600 dark:text-primary-400 truncate">
                 {userEntry.playerOfTournamentName}
               </p>
             </div>
           )}
           {userEntry.highestRunScorerName && (
-            <div>
-              <p className="text-sm text-primary-800 dark:text-primary-300 mb-1">Highest Run Scorer</p>
-              <p className="text-xl font-bold text-primary-600 dark:text-primary-400">
+            <div className="min-w-0">
+              <p className="text-xs sm:text-sm text-primary-800 dark:text-primary-300 mb-1">Highest Run Scorer</p>
+              <p className="text-lg sm:text-xl font-bold text-primary-600 dark:text-primary-400 truncate">
                 {userEntry.highestRunScorerName}
               </p>
             </div>
           )}
           {userEntry.highestWicketTakerName && (
-            <div>
-              <p className="text-sm text-primary-800 dark:text-primary-300 mb-1">Highest Wicket Taker</p>
-              <p className="text-xl font-bold text-primary-600 dark:text-primary-400">
+            <div className="min-w-0">
+              <p className="text-xs sm:text-sm text-primary-800 dark:text-primary-300 mb-1">Highest Wicket Taker</p>
+              <p className="text-lg sm:text-xl font-bold text-primary-600 dark:text-primary-400 truncate">
                 {userEntry.highestWicketTakerName}
               </p>
             </div>
@@ -226,8 +226,8 @@ export default function DashboardPage() {
 
       {/* Upcoming Predictions */}
       {upcomingPredictions.length > 0 && (
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+        <div className="mb-6 sm:mb-8">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">
             Upcoming Matches
           </h2>
           <div className="space-y-3">
@@ -264,37 +264,37 @@ export default function DashboardPage() {
               const deadline = match.deadline.toDate();
 
               return (
-                <div key={prediction.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center space-x-2">
-                      <Clock className="h-5 w-5 text-blue-600" />
-                      <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                <div key={prediction.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 sm:p-6">
+                  <div className="flex items-center justify-between mb-2 sm:mb-3">
+                    <div className="flex items-center space-x-1.5 sm:space-x-2">
+                      <Clock className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600 flex-shrink-0" />
+                      <span className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 whitespace-nowrap">
                         Match {prediction.matchNumber}
                       </span>
                     </div>
                     {canEdit && (
                       <Link
                         href={`/predict/${match.id}`}
-                        className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+                        className="text-xs sm:text-sm text-primary-600 hover:text-primary-700 font-medium min-h-[44px] px-2 py-1 sm:px-3 sm:py-1.5 flex items-center justify-center rounded-lg"
                       >
                         Edit Prediction
                       </Link>
                     )}
                   </div>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex-1">
-                      <h4 className="font-bold text-gray-900 dark:text-white">{match.teamAName}</h4>
+                  <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-bold text-gray-900 dark:text-white text-sm sm:text-base truncate">{match.teamAName}</h4>
                     </div>
-                    <div className="px-4 text-gray-400">vs</div>
-                    <div className="flex-1 text-right">
-                      <h4 className="font-bold text-gray-900 dark:text-white">{match.teamBName}</h4>
+                    <div className="px-2 sm:px-4 text-xs sm:text-sm text-gray-400">vs</div>
+                    <div className="flex-1 text-right min-w-0">
+                      <h4 className="font-bold text-gray-900 dark:text-white text-sm sm:text-base truncate">{match.teamBName}</h4>
                     </div>
                   </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                  <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2 sm:mb-3">
                     {format(match.matchDate.toDate(), 'MMM dd, h:mm a')}
                   </div>
-                  <div className="border-t pt-3 mt-3">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                  <div className="border-t pt-2 sm:pt-3 mt-2 sm:mt-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2 text-xs sm:text-sm">
                       <div>
                         <span className="text-gray-600 dark:text-gray-400">Winner: </span>
                         <span className="font-medium text-gray-900 dark:text-white">
@@ -326,7 +326,7 @@ export default function DashboardPage() {
                         </div>
                       )}
                     </div>
-                    <div className="flex items-center justify-between mt-3">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mt-2 sm:mt-3 gap-2 sm:gap-0">
                       {canCopy && (
                         <button
                           type="button"
@@ -372,7 +372,7 @@ export default function DashboardPage() {
                             console.error('Failed to copy:', err);
                           }
                         }}
-                        className="flex items-center gap-2 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-sm font-medium"
+                        className="flex items-center gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-xs sm:text-sm font-medium min-h-[44px]"
                       >
                         {copiedPredictionId === prediction.id ? (
                           <>
@@ -388,11 +388,11 @@ export default function DashboardPage() {
                       </button>
                       )}
                       {canEdit ? (
-                        <span className="text-xs text-blue-600 dark:text-blue-400">
+                        <span className="text-[10px] sm:text-xs text-blue-600 dark:text-blue-400 whitespace-nowrap">
                           {formatDistanceToNow(deadline, { addSuffix: true })}
                         </span>
                       ) : (
-                        <span className="text-xs text-gray-500">Predictions closed</span>
+                        <span className="text-[10px] sm:text-xs text-gray-500 whitespace-nowrap">Predictions closed</span>
                       )}
                     </div>
                   </div>
@@ -553,12 +553,12 @@ export default function DashboardPage() {
 
       {/* Completed Predictions */}
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">
           Prediction History ({completedPredictions.length})
         </h2>
         {completedPredictions.length === 0 ? (
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-12 text-center">
-            <p className="text-gray-600 dark:text-gray-400">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 sm:p-12 text-center">
+            <p className="text-sm sm:text-lg text-gray-600 dark:text-gray-400">
               No completed predictions yet. Results will appear here after matches are played.
             </p>
           </div>
@@ -647,29 +647,29 @@ export default function DashboardPage() {
                   {/* Collapsible Header */}
                   <button
                     onClick={toggleExpand}
-                    className="w-full p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                    className="w-full p-3 sm:p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors min-h-[44px]"
                   >
-                    <div className="flex items-center space-x-3 flex-1">
+                    <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
                       {prediction.isCorrectWinner ? (
-                        <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
+                        <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 flex-shrink-0" />
                       ) : (
-                        <XCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
+                        <XCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-600 flex-shrink-0" />
                       )}
-                      <div className="text-left flex-1">
-                        <div className="text-sm font-medium text-gray-900 dark:text-white">
+                      <div className="text-left flex-1 min-w-0">
+                        <div className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white truncate">
                           Match {prediction.matchNumber} • {match.matchType}
                         </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        <div className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 mt-0.5 sm:mt-1 whitespace-nowrap">
                           {format(match.matchDate.toDate(), 'MMM dd, yyyy')}
                         </div>
-                        <div className="text-sm font-semibold text-gray-700 dark:text-gray-300 mt-1">
+                        <div className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 mt-0.5 sm:mt-1 truncate">
                           {match.teamAName} vs {match.teamBName}
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
                     <div className="text-right">
-                        <div className={`text-xl font-bold ${
+                        <div className={`text-lg sm:text-xl font-bold ${
                           (prediction.pointsEarned || 0) > 0 
                             ? 'text-green-600' 
                             : (prediction.pointsEarned || 0) < 0
@@ -680,74 +680,74 @@ export default function DashboardPage() {
                             ? (prediction.pointsEarned > 0 ? '+' : '') + prediction.pointsEarned 
                             : '-'}
                       </div>
-                      <div className="text-xs text-gray-600 dark:text-gray-400">points</div>
+                      <div className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400">points</div>
                         {prediction.penaltyFee !== undefined && prediction.penaltyFee > 0 && (
-                          <div className="text-xs font-semibold text-red-600 dark:text-red-400 mt-1">
+                          <div className="text-[10px] sm:text-xs font-semibold text-red-600 dark:text-red-400 mt-0.5 sm:mt-1 whitespace-nowrap">
                             -${prediction.penaltyFee} penalty
                     </div>
                         )}
                   </div>
                       {isExpanded ? (
-                        <ChevronUp className="h-5 w-5 text-gray-400 flex-shrink-0" />
+                        <ChevronUp className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 flex-shrink-0" />
                       ) : (
-                        <ChevronDown className="h-5 w-5 text-gray-400 flex-shrink-0" />
+                        <ChevronDown className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 flex-shrink-0" />
                       )}
                     </div>
                   </button>
 
                   {/* Expanded Content */}
                   {isExpanded && (
-                    <div className="px-4 pb-6 space-y-4">
+                    <div className="px-3 pb-4 sm:px-4 sm:pb-6 space-y-3 sm:space-y-4">
                       {/* Match Teams */}
-                      <div className="mb-4 pb-4 border-b border-gray-200 dark:border-gray-700">
+                      <div className="mb-3 pb-3 sm:mb-4 sm:pb-4 border-b border-gray-200 dark:border-gray-700">
                         <div className="flex items-center justify-between">
-                          <div className="flex-1 text-center">
-                            <div className="font-bold text-gray-900 dark:text-white text-lg">
+                          <div className="flex-1 text-center min-w-0">
+                            <div className="font-bold text-gray-900 dark:text-white text-base sm:text-lg truncate">
                               {match.teamAName}
                             </div>
                             {match.winnerId === match.teamAId && (
-                              <div className="text-xs text-green-600 font-medium mt-1">Winner</div>
+                              <div className="text-[10px] sm:text-xs text-green-600 font-medium mt-0.5 sm:mt-1">Winner</div>
                             )}
                           </div>
-                          <div className="px-4 text-gray-400 font-bold">vs</div>
-                          <div className="flex-1 text-center">
-                            <div className="font-bold text-gray-900 dark:text-white text-lg">
+                          <div className="px-2 sm:px-4 text-base sm:text-lg text-gray-400 font-bold">vs</div>
+                          <div className="flex-1 text-center min-w-0">
+                            <div className="font-bold text-gray-900 dark:text-white text-base sm:text-lg truncate">
                               {match.teamBName}
                             </div>
                             {match.winnerId === match.teamBId && (
-                              <div className="text-xs text-green-600 font-medium mt-1">Winner</div>
+                              <div className="text-[10px] sm:text-xs text-green-600 font-medium mt-0.5 sm:mt-1">Winner</div>
                             )}
                           </div>
                         </div>
                       </div>
 
                       {/* Predictions vs Results */}
-                      <div className="space-y-4">
+                      <div className="space-y-3 sm:space-y-4">
                         {/* Winner Prediction vs Result */}
-                        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Winner</span>
+                        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 sm:p-4">
+                          <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+                            <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">Winner</span>
                             {prediction.isCorrectWinner ? (
-                              <div className="flex items-center space-x-1 bg-green-100 dark:bg-green-900/30 px-3 py-1 rounded-full">
-                                <CheckCircle className="h-4 w-4 text-green-600" />
-                                <span className="text-sm font-bold text-green-700 dark:text-green-400">
+                              <div className="flex items-center space-x-1 bg-green-100 dark:bg-green-900/30 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full">
+                                <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-600" />
+                                <span className="text-xs sm:text-sm font-bold text-green-700 dark:text-green-400">
                                   +{getBasePoints(match.matchType)}
                                 </span>
                               </div>
                         ) : (
-                              <XCircle className="h-5 w-5 text-red-600" />
+                              <XCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-600" />
                             )}
                           </div>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Your Prediction</div>
-                              <div className={`font-medium ${prediction.isCorrectWinner ? 'text-green-600' : 'text-gray-700 dark:text-gray-300'}`}>
+                          <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                            <div className="min-w-0">
+                              <div className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 mb-0.5 sm:mb-1">Your Prediction</div>
+                              <div className={`font-medium text-xs sm:text-sm truncate ${prediction.isCorrectWinner ? 'text-green-600' : 'text-gray-700 dark:text-gray-300'}`}>
                                 {prediction.predictedWinnerName}
                               </div>
                             </div>
-                            <div>
-                              <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Actual Result</div>
-                              <div className="font-medium text-gray-900 dark:text-white">
+                            <div className="min-w-0">
+                              <div className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 mb-0.5 sm:mb-1">Actual Result</div>
+                              <div className="font-medium text-xs sm:text-sm text-gray-900 dark:text-white truncate">
                                 {match.winnerName || '-'}
                               </div>
                             </div>
@@ -756,28 +756,28 @@ export default function DashboardPage() {
 
                         {/* Player of the Match */}
                         {(prediction.predictedPomName || actualPom) && (
-                          <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Player of the Match</span>
+                          <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 sm:p-4">
+                            <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+                              <span className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">Player of the Match</span>
                               {prediction.isCorrectPom ? (
-                                <div className="flex items-center space-x-1 bg-green-100 dark:bg-green-900/30 px-3 py-1 rounded-full">
-                                  <CheckCircle className="h-4 w-4 text-green-600" />
-                                  <span className="text-sm font-bold text-green-700 dark:text-green-400">+1</span>
+                                <div className="flex items-center space-x-1 bg-green-100 dark:bg-green-900/30 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full">
+                                  <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-600" />
+                                  <span className="text-xs sm:text-sm font-bold text-green-700 dark:text-green-400">+1</span>
                                 </div>
                               ) : (
-                                <XCircle className="h-5 w-5 text-red-600" />
+                                <XCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-600" />
                               )}
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
-                              <div>
-                                <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Your Prediction</div>
-                                <div className={`font-medium ${prediction.isCorrectPom ? 'text-green-600' : 'text-gray-700 dark:text-gray-300'}`}>
+                            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                              <div className="min-w-0">
+                                <div className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 mb-0.5 sm:mb-1">Your Prediction</div>
+                                <div className={`font-medium text-xs sm:text-sm truncate ${prediction.isCorrectPom ? 'text-green-600' : 'text-gray-700 dark:text-gray-300'}`}>
                                   {prediction.predictedPomName || '-'}
                                 </div>
                               </div>
-                              <div>
-                                <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">Actual Result</div>
-                                <div className="font-medium text-gray-900 dark:text-white">
+                              <div className="min-w-0">
+                                <div className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 mb-0.5 sm:mb-1">Actual Result</div>
+                                <div className="font-medium text-xs sm:text-sm text-gray-900 dark:text-white truncate">
                                   {actualPom || '-'}
                                 </div>
                               </div>
@@ -787,9 +787,9 @@ export default function DashboardPage() {
 
                         {/* First Innings Predictions (only if not reduced overs) */}
                         {!match.isReducedOvers && (actualScore !== undefined || prediction.teamAScoreCategory || prediction.teamBScoreCategory) && (
-                          <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
-                            <div className="flex items-center justify-between mb-3">
-                              <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                          <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 sm:p-4">
+                            <div className="flex items-center justify-between mb-2 sm:mb-3">
+                              <span className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white">
                                 First Innings Predictions
                               </span>
                               {(() => {
@@ -798,13 +798,13 @@ export default function DashboardPage() {
                                 const total = scorePoints + wicketsPoints;
                                 
                                 if (total === 0) {
-                                  return <XCircle className="h-5 w-5 text-red-600" />;
+                                  return <XCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-600" />;
                                 }
                                 
                                 return (
-                                  <div className="flex items-center space-x-1 bg-green-100 dark:bg-green-900/30 px-3 py-1 rounded-full">
-                                    <CheckCircle className="h-4 w-4 text-green-600" />
-                                    <span className="text-sm font-bold text-green-700 dark:text-green-400">
+                                  <div className="flex items-center space-x-1 bg-green-100 dark:bg-green-900/30 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full">
+                                    <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-600" />
+                                    <span className="text-xs sm:text-sm font-bold text-green-700 dark:text-green-400">
                                       {scorePoints > 0 && wicketsPoints > 0 ? '1 + 1' : '1'}
                         </span>
                       </div>
@@ -812,11 +812,11 @@ export default function DashboardPage() {
                               })()}
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                               {/* Your Predictions */}
-                              <div>
-                                <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">Your Prediction</div>
-                                <div className="space-y-2">
+                              <div className="min-w-0">
+                                <div className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 mb-1 sm:mb-2">Your Prediction</div>
+                                <div className="space-y-1.5 sm:space-y-2">
                                   {/* Team A Prediction */}
                                   {(prediction.teamAScoreCategory !== undefined || prediction.teamAWickets !== undefined) && (() => {
                                     // Check if this prediction matches the actual result (only if this team batted first)
@@ -826,12 +826,12 @@ export default function DashboardPage() {
                                     const teamAMatches = teamAMatchesScore || teamAMatchesWickets;
                                     
                                     return (
-                                      <div className={`font-medium text-sm p-2 rounded ${teamAMatches ? 'bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700' : ''}`}>
+                                      <div className={`font-medium text-xs sm:text-sm p-2 rounded truncate ${teamAMatches ? 'bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700' : ''}`}>
                                         <span className="font-semibold">{match.teamAName}</span>
                                         {' / '}
                                         {prediction.teamAScoreCategory ? (
                                           <span className={teamAMatchesScore ? 'text-green-700 dark:text-green-400 font-semibold' : ''}>
-                                            {prediction.teamAScoreCategory} <span className="text-xs font-normal">({getScoreRange(prediction.teamAScoreCategory)})</span>
+                                            {prediction.teamAScoreCategory} <span className="text-[10px] sm:text-xs font-normal">({getScoreRange(prediction.teamAScoreCategory)})</span>
                                           </span>
                                         ) : '-'}
                                         {prediction.teamAScoreCategory && prediction.teamAWickets !== undefined ? ' / ' : ''}
@@ -853,12 +853,12 @@ export default function DashboardPage() {
                                     const teamBMatches = teamBMatchesScore || teamBMatchesWickets;
                                     
                                     return (
-                                      <div className={`font-medium text-sm p-2 rounded ${teamBMatches ? 'bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700' : ''}`}>
+                                      <div className={`font-medium text-xs sm:text-sm p-2 rounded truncate ${teamBMatches ? 'bg-green-100 dark:bg-green-900/30 border border-green-300 dark:border-green-700' : ''}`}>
                                         <span className="font-semibold">{match.teamBName}</span>
                                         {' / '}
                                         {prediction.teamBScoreCategory ? (
                                           <span className={teamBMatchesScore ? 'text-green-700 dark:text-green-400 font-semibold' : ''}>
-                                            {prediction.teamBScoreCategory} <span className="text-xs font-normal">({getScoreRange(prediction.teamBScoreCategory)})</span>
+                                            {prediction.teamBScoreCategory} <span className="text-[10px] sm:text-xs font-normal">({getScoreRange(prediction.teamBScoreCategory)})</span>
                                           </span>
                                         ) : '-'}
                                         {prediction.teamBScoreCategory && prediction.teamBWickets !== undefined ? ' / ' : ''}
@@ -874,16 +874,16 @@ export default function DashboardPage() {
                               </div>
 
                               {/* Match Result */}
-                              <div>
-                                <div className="text-xs text-gray-500 dark:text-gray-400 mb-2">Match Result</div>
+                              <div className="min-w-0">
+                                <div className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 mb-1 sm:mb-2">Match Result</div>
                                 {actualScore !== undefined && (
-                                  <div className="space-y-2">
-                                    <div className="font-medium text-sm text-gray-900 dark:text-white p-2 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700">
+                                  <div className="space-y-1.5 sm:space-y-2">
+                                    <div className="font-medium text-xs sm:text-sm text-gray-900 dark:text-white p-2 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-700 truncate">
                                       <span className="font-semibold">
                                         {firstInningsBattingTeam === match.teamAId ? match.teamAName : match.teamBName}
                                       </span>
                                       {' / '}
-                                      {actualScoreCategory} <span className="text-xs font-normal">({actualScore} runs)</span>
+                                      {actualScoreCategory} <span className="text-[10px] sm:text-xs font-normal">({actualScore} runs)</span>
                                       {actualWickets !== undefined && ` / ${actualWickets} Wickets`}
                                     </div>
                       </div>
@@ -895,8 +895,8 @@ export default function DashboardPage() {
 
                         {/* Reduced Overs Notice */}
                         {match.isReducedOvers && (
-                          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-400 dark:border-yellow-600 rounded-lg p-3">
-                            <div className="text-xs text-yellow-800 dark:text-yellow-200">
+                          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-400 dark:border-yellow-600 rounded-lg p-2.5 sm:p-3">
+                            <div className="text-[10px] sm:text-xs text-yellow-800 dark:text-yellow-200">
                               ⚠️ Reduced Overs Match - Score/Wickets predictions not counted
                             </div>
                       </div>
@@ -904,20 +904,20 @@ export default function DashboardPage() {
                     
                         {/* Season Team Adjustment */}
                         {prediction.seasonTeamAdjustment !== undefined && prediction.seasonTeamAdjustment !== 0 && (
-                          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-400 dark:border-blue-600 rounded-lg p-3">
-                            <div className="text-sm flex justify-between items-center">
+                          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-400 dark:border-blue-600 rounded-lg p-2.5 sm:p-3">
+                            <div className="text-xs sm:text-sm flex justify-between items-center">
                               <span className="text-gray-700 dark:text-gray-300">Season Team Adjustment:</span>
-                              <div className={`flex items-center space-x-1 px-3 py-1 rounded-full font-bold ${
+                              <div className={`flex items-center space-x-1 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full font-bold ${
                                 prediction.seasonTeamAdjustment > 0 
                                   ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400' 
                                   : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
                               }`}>
                                 {prediction.seasonTeamAdjustment > 0 ? (
-                                  <CheckCircle className="h-4 w-4 text-green-600" />
+                                  <CheckCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-green-600" />
                                 ) : (
-                                  <XCircle className="h-4 w-4 text-red-600" />
+                                  <XCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-red-600" />
                                 )}
-                                <span>
+                                <span className="text-xs sm:text-sm">
                                   {prediction.seasonTeamAdjustment > 0 ? '+' : ''}{prediction.seasonTeamAdjustment}
                         </span>
                               </div>
@@ -927,12 +927,12 @@ export default function DashboardPage() {
                     
                         {/* Penalty Fee */}
                         {prediction.penaltyFee !== undefined && prediction.penaltyFee > 0 && (
-                          <div className="bg-red-50 dark:bg-red-900/20 border border-red-400 dark:border-red-600 rounded-lg p-3">
-                            <div className="text-sm flex justify-between items-center">
+                          <div className="bg-red-50 dark:bg-red-900/20 border border-red-400 dark:border-red-600 rounded-lg p-2.5 sm:p-3">
+                            <div className="text-xs sm:text-sm flex justify-between items-center">
                               <span className="text-gray-700 dark:text-gray-300">Penalty Fee:</span>
-                              <div className="flex items-center space-x-1 px-3 py-1 rounded-full font-bold bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400">
-                                <XCircle className="h-4 w-4 text-red-600" />
-                                <span>${prediction.penaltyFee}</span>
+                              <div className="flex items-center space-x-1 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full font-bold bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400">
+                                <XCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-red-600" />
+                                <span className="text-xs sm:text-sm">${prediction.penaltyFee}</span>
                               </div>
                             </div>
                           </div>

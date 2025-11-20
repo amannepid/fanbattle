@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
 import { getActiveTournament, getLeaderboard, getAllPredictions, getMatches, getTeams } from '@/lib/firestore';
-import { Loader2, Users, Trophy, Clock, ArrowRight } from 'lucide-react';
+import { Loader2, Users, Trophy, Clock, ArrowRight, ChevronDown, ChevronUp, Search, Filter, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { Timestamp } from 'firebase/firestore';
 import type { Tournament, UserEntry, Prediction, Match } from '@/types';
@@ -28,6 +28,11 @@ export default function BattleGroundPage() {
   const [matches, setMatches] = useState<Map<string, Match>>(new Map());
   const [teams, setTeams] = useState<Map<string, { name: string; shortCode: string }>>(new Map());
   const [loading, setLoading] = useState(true);
+  // Mobile optimization: Collapsible matches and filters
+  const [expandedMatches, setExpandedMatches] = useState<Set<string>>(new Set());
+  const [statusFilter, setStatusFilter] = useState<'all' | 'upcoming' | 'completed'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const hasInitializedExpanded = useRef(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -39,6 +44,40 @@ export default function BattleGroundPage() {
       loadData();
     }
   }, [user, authLoading, router]);
+
+  // Auto-expand next match on mobile when data loads
+  // This effect runs after data is loaded and nextMatch is available
+  useEffect(() => {
+    if (!loading && !authLoading && tournament && predictionsWithUsers.length > 0) {
+      // Calculate next match here to avoid placing hook after early returns
+      const predictionsByMatch = new Map<string, PredictionWithUser[]>();
+      for (const item of predictionsWithUsers) {
+        if (!predictionsByMatch.has(item.match.id)) {
+          predictionsByMatch.set(item.match.id, []);
+        }
+        predictionsByMatch.get(item.match.id)!.push(item);
+      }
+
+      const allUniqueMatches = Array.from(predictionsByMatch.keys())
+        .map(matchId => matches.get(matchId))
+        .filter((m): m is Match => m !== undefined)
+        .sort((a, b) => b.matchNumber - a.matchNumber);
+
+      const upcomingVisibleMatches = allUniqueMatches.filter(m => m.status === 'upcoming');
+      const nextMatch = upcomingVisibleMatches.length > 0 
+        ? upcomingVisibleMatches.reduce((latest, current) => {
+            const latestDate = latest.matchDate.toDate();
+            const currentDate = current.matchDate.toDate();
+            return currentDate < latestDate ? current : latest;
+          })
+        : null;
+
+      if (nextMatch && !hasInitializedExpanded.current) {
+        setExpandedMatches(new Set([nextMatch.id]));
+        hasInitializedExpanded.current = true;
+      }
+    }
+  }, [loading, authLoading, tournament, predictionsWithUsers, matches]);
 
   // Helper function to get start of day
   function getStartOfDay(date: Date): Date {
@@ -1143,14 +1182,14 @@ export default function BattleGroundPage() {
   }
 
   // Get unique matches - sort by match number descending (latest matches first)
-  const uniqueMatches = Array.from(predictionsByMatch.keys())
+  const allUniqueMatches = Array.from(predictionsByMatch.keys())
     .map(matchId => matches.get(matchId))
     .filter((m): m is Match => m !== undefined)
     .sort((a, b) => b.matchNumber - a.matchNumber);
 
   // Determine next match and upcoming matches for indicators
   const now = new Date();
-  const upcomingVisibleMatches = uniqueMatches.filter(m => m.status === 'upcoming');
+  const upcomingVisibleMatches = allUniqueMatches.filter(m => m.status === 'upcoming');
   const nextMatch = upcomingVisibleMatches.length > 0 
     ? upcomingVisibleMatches.reduce((latest, current) => {
         const latestDate = latest.matchDate.toDate();
@@ -1159,16 +1198,65 @@ export default function BattleGroundPage() {
       })
     : null;
 
+  // Filter matches based on status and search
+  const filteredMatches = allUniqueMatches.filter(match => {
+    // Status filter
+    if (statusFilter === 'upcoming' && match.status !== 'upcoming') return false;
+    if (statusFilter === 'completed' && match.status !== 'completed') return false;
+    
+    // Search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      const matchNum = match.matchNumber.toString();
+      const teamA = teams.get(match.teamAId)?.name.toLowerCase() || match.teamAName.toLowerCase();
+      const teamB = teams.get(match.teamBId)?.name.toLowerCase() || match.teamBName.toLowerCase();
+      const teamAShort = teams.get(match.teamAId)?.shortCode.toLowerCase() || '';
+      const teamBShort = teams.get(match.teamBId)?.shortCode.toLowerCase() || '';
+      
+      if (!matchNum.includes(query) && 
+          !teamA.includes(query) && 
+          !teamB.includes(query) &&
+          !teamAShort.includes(query) &&
+          !teamBShort.includes(query)) {
+        return false;
+      }
+    }
+    
+    return true;
+  });
+
+  // Toggle match expansion
+  const toggleMatch = (matchId: string) => {
+    setExpandedMatches(prev => {
+      const next = new Set(prev);
+      if (next.has(matchId)) {
+        next.delete(matchId);
+      } else {
+        next.add(matchId);
+      }
+      return next;
+    });
+  };
+
+  // Expand/Collapse all
+  const expandAll = () => {
+    setExpandedMatches(new Set(filteredMatches.map(m => m.id)));
+  };
+
+  const collapseAll = () => {
+    setExpandedMatches(new Set());
+  };
+
   return (
     <div className="max-w-7xl mx-auto">
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="p-3 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg">
-            <Users className="h-8 w-8 text-white" />
+      <div className="mb-6 sm:mb-8">
+        <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+          <div className="p-2 sm:p-3 bg-gradient-to-br from-navy-600 to-navy-500 rounded-lg">
+            <Users className="h-6 w-6 sm:h-8 sm:w-8 text-gold-500" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Battle Ground</h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Battle Ground</h1>
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1">
               See how other players are predicting (after edit deadline)
             </p>
           </div>
@@ -1178,24 +1266,246 @@ export default function BattleGroundPage() {
 
       {/* Predictions - Leaderboard Style */}
       {predictionsWithUsers.length === 0 ? (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-12 text-center">
-          <Trophy className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-600 dark:text-gray-400 text-lg">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 sm:p-12 text-center">
+          <Trophy className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-3 sm:mb-4" />
+          <p className="text-sm sm:text-lg text-gray-600 dark:text-gray-400">
             No predictions available yet. Predictions will appear here after the edit deadline passes.
           </p>
         </div>
       ) : (
         <div>
-          {/* Leaderboard Style Table */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+          {/* Mobile Card View - Single Column Only */}
+          <div className="md:hidden">
+            {/* Filters and Controls */}
+            <div className="sticky top-14 z-40 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 mb-4 pb-4">
+              {/* Search Bar */}
+              <div className="relative mb-3">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search by match number or team..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-10 py-2.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-gold-500 focus:border-transparent"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+
+              {/* Status Filter */}
+              <div className="flex items-center gap-2 mb-3">
+                <Filter className="h-4 w-4 text-gray-500 dark:text-gray-400 flex-shrink-0" />
+                <div className="flex gap-2 flex-1 overflow-x-auto">
+                  <button
+                    onClick={() => setStatusFilter('all')}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-lg whitespace-nowrap transition-colors min-h-[36px] ${
+                      statusFilter === 'all'
+                        ? 'bg-navy-500 text-gold-500 font-bold'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
+                    }`}
+                  >
+                    All ({allUniqueMatches.length})
+                  </button>
+                  <button
+                    onClick={() => setStatusFilter('upcoming')}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-lg whitespace-nowrap transition-colors min-h-[36px] ${
+                      statusFilter === 'upcoming'
+                        ? 'bg-cool-500 text-white font-bold'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
+                    }`}
+                  >
+                    Upcoming ({upcomingVisibleMatches.length})
+                  </button>
+                  <button
+                    onClick={() => setStatusFilter('completed')}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-lg whitespace-nowrap transition-colors min-h-[36px] ${
+                      statusFilter === 'completed'
+                        ? 'bg-slate-500 text-white font-bold'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
+                    }`}
+                  >
+                    Completed ({allUniqueMatches.filter(m => m.status === 'completed').length})
+                  </button>
+                </div>
+              </div>
+
+              {/* Expand/Collapse Controls */}
+              <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
+                <span>
+                  Showing {filteredMatches.length} of {allUniqueMatches.length} matches
+                </span>
+                <div className="flex gap-2">
+                  <button
+                    onClick={expandAll}
+                    className="px-2 py-1 text-xs font-medium text-navy-600 dark:text-gold-400 hover:underline"
+                  >
+                    Expand All
+                  </button>
+                  <span className="text-gray-300 dark:text-gray-600">|</span>
+                  <button
+                    onClick={collapseAll}
+                    className="px-2 py-1 text-xs font-medium text-navy-600 dark:text-gold-400 hover:underline"
+                  >
+                    Collapse All
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Match Cards */}
+            <div className="space-y-4">
+              {filteredMatches.length === 0 ? (
+                <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 text-center">
+                  <Search className="h-10 w-10 text-gray-400 mx-auto mb-3" />
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    No matches found matching your filters.
+                  </p>
+                </div>
+              ) : (
+                filteredMatches.map((match) => {
+                  const isExpanded = expandedMatches.has(match.id);
+                  const matchPredictions = predictionsByMatch.get(match.id) || [];
+                  const userIds = Array.from(new Set(predictionsWithUsers.map(p => p.userEntry.userId)));
+                  const sortedUserIds = userIds.sort((a, b) => {
+                    if (a === user?.uid) return -1;
+                    if (b === user?.uid) return 1;
+                    return 0;
+                  });
+                  
+                  return (
+                    <div
+                      key={match.id}
+                      className="bg-white dark:bg-gray-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden"
+                    >
+                      {/* Match Header - Clickable to Expand/Collapse */}
+                      <button
+                        onClick={() => toggleMatch(match.id)}
+                        className={`w-full bg-gradient-to-br from-navy-50 via-navy-100 to-navy-200 dark:from-navy-900 dark:via-navy-800 dark:to-navy-900 px-3 py-2.5 border-b border-navy-200 dark:border-navy-700 text-left transition-colors hover:bg-navy-100 dark:hover:bg-navy-800 ${
+                          nextMatch?.id === match.id ? 'border-l-4 border-l-gold-500' : 
+                          match.status === 'upcoming' ? 'border-l-2 border-l-cool-500' : ''
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1.5">
+                          <div className="flex items-center gap-1.5 flex-wrap flex-1">
+                            <span className="text-sm font-semibold text-navy-700 dark:text-navy-100">
+                              Match {match.matchNumber} {match.matchType !== 'league' && `(${match.matchType})`}
+                            </span>
+                            {nextMatch?.id === match.id && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-gold-500 to-gold-400 text-navy-500 text-[10px] font-bold rounded-full shadow-sm">
+                                <ArrowRight className="h-3 w-3" />
+                                Next Match
+                              </span>
+                            )}
+                            {match.status === 'upcoming' && nextMatch?.id !== match.id && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-cool-500 text-white text-[10px] font-bold rounded-full">
+                                <Clock className="h-3 w-3" />
+                                Upcoming
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
+                              {matchPredictions.length} {matchPredictions.length === 1 ? 'prediction' : 'predictions'}
+                            </span>
+                            {isExpanded ? (
+                              <ChevronUp className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                            ) : (
+                              <ChevronDown className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-xs mb-1">
+                          <span className="font-medium truncate text-navy-700 dark:text-navy-100">{teams.get(match.teamAId)?.shortCode || match.teamAName}</span>
+                          <span className="text-navy-400 dark:text-navy-500">vs</span>
+                          <span className="font-medium truncate text-navy-700 dark:text-navy-100">{teams.get(match.teamBId)?.shortCode || match.teamBName}</span>
+                        </div>
+                        <div className="text-[10px] text-navy-500 dark:text-navy-400">
+                          {format(match.matchDate.toDate(), 'MMM dd, h:mm a')}
+                        </div>
+                      </button>
+                      
+                      {/* Predictions List - Collapsible */}
+                      {isExpanded && (
+                        <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                    {sortedUserIds.map((userId) => {
+                      const prediction = matchPredictions.find(p => p.userEntry.userId === userId);
+                      const isCurrentUser = userId === user?.uid;
+                      const userEntry = predictionsWithUsers.find(p => p.userEntry.userId === userId)?.userEntry;
+                      const userName = userEntry?.userName || userEntry?.userEmail || 'Unknown User';
+                      
+                      return (
+                        <div
+                          key={`${userId}_${match.id}`}
+                          className={`px-3 py-2.5 ${
+                            isCurrentUser 
+                              ? 'bg-gradient-to-r from-gold-50 to-amber-50 dark:from-gold-900/20 dark:to-amber-900/20' 
+                              : ''
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 ${
+                              isCurrentUser 
+                                ? 'bg-gradient-to-br from-gold-500 to-gold-400' 
+                                : 'bg-gradient-to-br from-navy-500 to-cool-500'
+                            }`}>
+                              {userName.charAt(0).toUpperCase()}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <div className="text-xs font-medium text-gray-900 dark:text-white truncate">
+                                  {userName}
+                                </div>
+                                {isCurrentUser && (
+                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-gradient-to-r from-gold-500 to-amber-500 text-white text-[10px] font-semibold rounded-full shadow-sm">
+                                    <span>👤</span>
+                                    <span>You</span>
+                                  </span>
+                                )}
+                              </div>
+                              {userEntry?.currentRank && (
+                                <div className="text-[10px] text-gray-500 dark:text-gray-400">
+                                  Rank #{userEntry.currentRank}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          {prediction ? (
+                            <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-2 font-mono text-[10px] text-gray-800 dark:text-gray-200 whitespace-pre-wrap leading-tight">
+                              {formatPrediction(prediction.prediction, match)}
+                            </div>
+                          ) : (
+                            <div className="text-gray-400 dark:text-gray-600 text-[10px] italic">
+                              No prediction
+                            </div>
+                          )}
+                        </div>
+                      );
+                        })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
+          {/* Tablet/Foldable/Desktop Table View */}
+          <div className="hidden md:block bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
             <div className="overflow-x-auto">
               <div className="inline-flex min-w-full">
                 {/* Left Column - Users (Sticky) */}
                 <div className="flex-shrink-0 sticky left-0 z-10 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
                   <div className="w-64">
                     {/* Header */}
-                    <div className="bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 px-3 py-2 font-semibold text-sm h-16 flex items-center border-b border-slate-200 dark:border-slate-700">
-                      <span className="text-slate-700 dark:text-slate-200">Player</span>
+                    <div className="bg-gradient-to-br from-navy-50 via-navy-100 to-navy-200 dark:from-navy-900 dark:via-navy-800 dark:to-navy-900 px-3 py-2 font-semibold text-sm h-16 flex items-center border-b border-navy-200 dark:border-navy-700">
+                      <span className="text-navy-700 dark:text-navy-100">Player</span>
                     </div>
                     {/* User Rows */}
                     <div className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -1217,34 +1527,34 @@ export default function BattleGroundPage() {
                           return (
                             <div
                               key={userId}
-                              className={`px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors h-20 flex items-center ${
+                              className={`px-3 sm:px-4 py-2.5 sm:py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors h-16 sm:h-20 flex items-center ${
                                 isCurrentUser 
                                   ? 'bg-gradient-to-r from-gold-50 to-amber-50 dark:from-gold-900/20 dark:to-amber-900/20 border-l-4 border-l-gold-500' 
                                   : ''
                               }`}
                             >
-                              <div className="flex items-center gap-3 w-full">
-                                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0 ${
+                              <div className="flex items-center gap-2 sm:gap-3 w-full">
+                                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center text-white text-xs sm:text-sm font-bold flex-shrink-0 ${
                                   isCurrentUser 
-                                    ? 'bg-gradient-to-br from-gold-500 to-amber-500' 
-                                    : 'bg-gradient-to-br from-blue-500 to-purple-500'
+                                    ? 'bg-gradient-to-br from-gold-500 to-gold-400' 
+                                    : 'bg-gradient-to-br from-navy-500 to-cool-500'
                                 }`}>
                                   {userName.charAt(0).toUpperCase()}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <div className="flex items-center gap-2">
-                                    <div className="font-medium text-gray-900 dark:text-white text-sm truncate">
+                                  <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                                    <div className="font-medium text-gray-900 dark:text-white text-xs sm:text-sm truncate">
                                       {userName}
                                     </div>
                                     {isCurrentUser && (
-                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-gold-500 to-amber-500 text-white text-xs font-semibold rounded-full shadow-sm">
+                                      <span className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 bg-gradient-to-r from-gold-500 to-amber-500 text-white text-[10px] sm:text-xs font-semibold rounded-full shadow-sm">
                                         <span>👤</span>
                                         <span>You</span>
                                       </span>
                                     )}
                                   </div>
                                   {userEntry.currentRank && (
-                                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                                    <div className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
                                       Rank #{userEntry.currentRank}
                                     </div>
                                   )}
@@ -1261,7 +1571,7 @@ export default function BattleGroundPage() {
                 {/* Right Side - Match Columns (Horizontally Scrollable) */}
                 <div className="flex-1 overflow-x-auto">
                   <div className="inline-flex">
-                    {uniqueMatches.map((match) => {
+                    {allUniqueMatches.map((match) => {
                       const matchPredictions = predictionsByMatch.get(match.id) || [];
                       const userIds = Array.from(new Set(predictionsWithUsers.map(p => p.userEntry.userId)));
                       // Sort: current user first, then others
@@ -1274,38 +1584,38 @@ export default function BattleGroundPage() {
                       return (
                         <div
                           key={match.id}
-                          className="flex-shrink-0 w-80 border-r border-gray-200 dark:border-gray-700"
+                          className="flex-shrink-0 w-72 sm:w-80 border-r border-gray-200 dark:border-gray-700"
                         >
                           {/* Match Header - Compact */}
-                          <div className={`bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 px-3 py-2 h-16 flex flex-col justify-center border-b border-slate-200 dark:border-slate-700 ${
-                            nextMatch?.id === match.id ? 'border-l-4 border-l-blue-500' : 
-                            match.status === 'upcoming' ? 'border-l-2 border-l-green-400' : ''
+                          <div className={`bg-gradient-to-br from-navy-50 via-navy-100 to-navy-200 dark:from-navy-900 dark:via-navy-800 dark:to-navy-900 px-3 py-2 h-16 flex flex-col justify-center border-b border-navy-200 dark:border-navy-700 ${
+                            nextMatch?.id === match.id ? 'border-l-4 border-l-gold-500' : 
+                            match.status === 'upcoming' ? 'border-l-2 border-l-cool-500' : ''
                           }`}>
                             <div className="flex items-center justify-between mb-1">
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                                <span className="text-xs sm:text-sm font-semibold text-navy-700 dark:text-navy-100">
                                   Match {match.matchNumber} {match.matchType !== 'league' && `(${match.matchType})`}
                                 </span>
                                 {nextMatch?.id === match.id && (
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-500 text-white text-xs font-bold rounded-full">
+                                  <span className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 bg-gradient-to-r from-gold-500 to-gold-400 text-navy-500 text-[10px] sm:text-xs font-bold rounded-full shadow-sm">
                                     <ArrowRight className="h-3 w-3" />
                                     Next Match
                                   </span>
                                 )}
                                 {match.status === 'upcoming' && nextMatch?.id !== match.id && (
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-500 text-white text-xs font-bold rounded-full">
+                                  <span className="inline-flex items-center gap-1 px-1.5 sm:px-2 py-0.5 bg-cool-500 text-white text-[10px] sm:text-xs font-bold rounded-full">
                                     <Clock className="h-3 w-3" />
                                     Upcoming
                                   </span>
                                 )}
                               </div>
-                              <div className="flex items-center gap-1.5 text-sm">
-                                <span className="font-medium truncate max-w-[100px] text-slate-700 dark:text-slate-200">{teams.get(match.teamAId)?.shortCode || match.teamAName}</span>
-                                <span className="text-slate-500 dark:text-slate-400">vs</span>
-                                <span className="font-medium truncate max-w-[100px] text-slate-700 dark:text-slate-200">{teams.get(match.teamBId)?.shortCode || match.teamBName}</span>
+                              <div className="flex items-center gap-1 sm:gap-1.5 text-xs sm:text-sm">
+                                <span className="font-medium truncate max-w-[80px] sm:max-w-[100px] text-navy-700 dark:text-navy-100">{teams.get(match.teamAId)?.shortCode || match.teamAName}</span>
+                                <span className="text-navy-400 dark:text-navy-500">vs</span>
+                                <span className="font-medium truncate max-w-[80px] sm:max-w-[100px] text-navy-700 dark:text-navy-100">{teams.get(match.teamBId)?.shortCode || match.teamBName}</span>
                               </div>
                             </div>
-                            <div className="text-xs text-slate-500 dark:text-slate-400">
+                            <div className="text-[10px] sm:text-xs text-navy-500 dark:text-navy-400">
                               {format(match.matchDate.toDate(), 'MMM dd, h:mm a')}
                             </div>
                           </div>
@@ -1319,18 +1629,18 @@ export default function BattleGroundPage() {
                               return (
                                 <div
                                   key={`${userId}_${match.id}`}
-                                  className={`px-3 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors h-20 flex items-center ${
+                                  className={`px-2.5 sm:px-3 py-2.5 sm:py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors h-16 sm:h-20 flex items-center ${
                                     isCurrentUser 
                                       ? 'bg-gradient-to-r from-gold-50 to-amber-50 dark:from-gold-900/20 dark:to-amber-900/20' 
                                       : ''
                                   }`}
                                 >
                                   {prediction ? (
-                                    <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-2 font-mono text-xs text-gray-800 dark:text-gray-200 whitespace-pre-wrap leading-tight w-full">
+                                    <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-1.5 sm:p-2 font-mono text-[10px] sm:text-xs text-gray-800 dark:text-gray-200 whitespace-pre-wrap leading-tight w-full">
                                       {formatPrediction(prediction.prediction, match)}
                                     </div>
                                   ) : (
-                                    <div className="text-gray-400 dark:text-gray-600 text-xs italic w-full">
+                                    <div className="text-gray-400 dark:text-gray-600 text-[10px] sm:text-xs italic w-full">
                                       No prediction
                                     </div>
                                   )}

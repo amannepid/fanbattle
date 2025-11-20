@@ -286,99 +286,99 @@ export default function PredictPage() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="bg-white dark:bg-navy-600 rounded-card shadow-glass p-8 border-2 border-gold-500">
+      <div className="bg-white dark:bg-navy-600 rounded-card shadow-glass p-4 sm:p-6 md:p-8 border-2 border-gold-500">
         {/* Match Info */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center space-x-2 text-sm text-navy-500 dark:text-slate-100 mb-4">
-            <Trophy className="h-4 w-4 text-gold-500" />
-            <span className="font-bold capitalize">{match.matchType}</span>
-            <span>•</span>
-            <span>Match {match.matchNumber}</span>
+        <div className="text-center mb-6 sm:mb-8">
+          <div className="flex items-center justify-center space-x-1.5 sm:space-x-2 text-xs sm:text-sm text-navy-500 dark:text-slate-100 mb-3 sm:mb-4">
+            <Trophy className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gold-500" />
+            <span className="font-bold capitalize whitespace-nowrap">{match.matchType}</span>
+            <span className="whitespace-nowrap">•</span>
+            <span className="whitespace-nowrap">Match {match.matchNumber}</span>
           </div>
 
-          <div className="grid grid-cols-[1fr_auto_1fr] gap-4 items-center mb-4">
+          <div className="grid grid-cols-[1fr_auto_1fr] gap-2 sm:gap-4 items-center mb-3 sm:mb-4">
             <div className="text-center">
               {match.teamALogoUrl && (
                 <img 
                   src={match.teamALogoUrl} 
                   alt={match.teamAName}
-                  className="h-20 w-20 object-cover rounded-full border-2 border-gray-200 dark:border-gray-700 shadow-md mx-auto mb-2"
+                  className="h-16 w-16 sm:h-20 sm:w-20 object-cover rounded-full border-2 border-gray-200 dark:border-gray-700 shadow-md mx-auto mb-1.5 sm:mb-2"
                 />
               )}
-              <h2 className="text-2xl font-bold text-navy-500 dark:text-white">
+              <h2 className="text-xl sm:text-2xl font-bold text-navy-500 dark:text-white truncate">
                 {match.teamAName}
               </h2>
             </div>
-            <div className="px-6 text-2xl font-bold text-gray-400">VS</div>
+            <div className="px-3 sm:px-6 text-xl sm:text-2xl font-bold text-gray-400">VS</div>
             <div className="text-center">
               {match.teamBLogoUrl && (
                 <img 
                   src={match.teamBLogoUrl} 
                   alt={match.teamBName}
-                  className="h-20 w-20 object-cover rounded-full border-2 border-gray-200 dark:border-gray-700 shadow-md mx-auto mb-2"
+                  className="h-16 w-16 sm:h-20 sm:w-20 object-cover rounded-full border-2 border-gray-200 dark:border-gray-700 shadow-md mx-auto mb-1.5 sm:mb-2"
                 />
               )}
-              <h2 className="text-2xl font-bold text-navy-500 dark:text-white">
+              <h2 className="text-xl sm:text-2xl font-bold text-navy-500 dark:text-white truncate">
                 {match.teamBName}
               </h2>
             </div>
           </div>
 
-          <p className="text-gray-600 dark:text-gray-400 mb-2">
+          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-1.5 sm:mb-2 whitespace-nowrap">
             {format(match.matchDate.toDate(), 'MMMM dd, yyyy • h:mm a')}
           </p>
           {!isPastDeadline && (
-            <p className="text-gold-500 font-bold">
+            <p className="text-sm sm:text-base text-gold-500 font-bold whitespace-nowrap">
               Deadline: {formatDistanceToNow(editCutoffTime, { addSuffix: true })} ({deadlineText})
             </p>
           )}
         </div>
 
         {isPastDeadline ? (
-          <div className="bg-red-50 dark:bg-red-900/20 border-2 border-red-400 dark:border-red-600 rounded-button p-6 text-center">
-            <p className="text-red-800 dark:text-red-200 font-bold">
+          <div className="bg-red-50 dark:bg-red-900/20 border-2 border-red-400 dark:border-red-600 rounded-button p-4 sm:p-6 text-center">
+            <p className="text-sm sm:text-base text-red-800 dark:text-red-200 font-bold">
               Prediction deadline has passed
             </p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="space-y-8">
+          <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
             {/* Winner Selection */}
             <div>
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-2">
-                  <Target className="h-5 w-5 text-gold-500" />
-                  <h3 className="text-lg font-bold text-navy-500 dark:text-white">
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <div className="flex items-center space-x-1.5 sm:space-x-2">
+                  <Target className="h-4 w-4 sm:h-5 sm:w-5 text-gold-500" />
+                  <h3 className="text-base sm:text-lg font-bold text-navy-500 dark:text-white whitespace-nowrap">
                     Who will win? <span className="text-crimson-500">*</span>
                   </h3>
                 </div>
-                <span className="text-sm text-gold-500 font-bold">
+                <span className="text-xs sm:text-sm text-gold-500 font-bold whitespace-nowrap">
                   {match.matchType === 'league' ? '+3 points' : match.matchType === 'playoff' ? '+5 points' : '+7 points'}
                 </span>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 <button
                   type="button"
                   onClick={() => setPredictedWinnerId(match.teamAId)}
-                  className={`p-6 border-2 rounded-button transition shadow-card hover:shadow-card-hover ${
+                  className={`p-4 sm:p-6 border-2 rounded-button transition shadow-card hover:shadow-card-hover min-h-[60px] sm:min-h-[72px] flex items-center justify-center ${
                     predictedWinnerId === match.teamAId
                       ? 'border-gold-500 bg-gold-50 dark:bg-gold-900/20 ring-2 ring-gold-500'
                       : 'border-gray-300 dark:border-navy-400 hover:border-gold-400'
                   }`}
                 >
-                  <h4 className="text-lg font-bold text-navy-500 dark:text-white">
+                  <h4 className="text-base sm:text-lg font-bold text-navy-500 dark:text-white truncate">
                     {match.teamAName}
                   </h4>
                 </button>
                 <button
                   type="button"
                   onClick={() => setPredictedWinnerId(match.teamBId)}
-                  className={`p-6 border-2 rounded-button transition shadow-card hover:shadow-card-hover ${
+                  className={`p-4 sm:p-6 border-2 rounded-button transition shadow-card hover:shadow-card-hover min-h-[60px] sm:min-h-[72px] flex items-center justify-center ${
                     predictedWinnerId === match.teamBId
                       ? 'border-gold-500 bg-gold-50 dark:bg-gold-900/20 ring-2 ring-gold-500'
                       : 'border-gray-300 dark:border-navy-400 hover:border-gold-400'
                   }`}
                 >
-                  <h4 className="text-lg font-bold text-navy-500 dark:text-white">
+                  <h4 className="text-base sm:text-lg font-bold text-navy-500 dark:text-white truncate">
                     {match.teamBName}
                   </h4>
                 </button>
@@ -387,14 +387,14 @@ export default function PredictPage() {
 
             {/* Player of the Match */}
             <div>
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-2">
-                  <User className="h-5 w-5 text-gold-500" />
-                  <h3 className="text-lg font-bold text-navy-500 dark:text-white">
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <div className="flex items-center space-x-1.5 sm:space-x-2">
+                  <User className="h-4 w-4 sm:h-5 sm:w-5 text-gold-500" />
+                  <h3 className="text-base sm:text-lg font-bold text-navy-500 dark:text-white whitespace-nowrap">
                     Player of the Match
                   </h3>
                 </div>
-                <span className="text-sm text-gray-500 dark:text-gray-400 font-bold">+1 point</span>
+                <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-bold whitespace-nowrap">+1 point</span>
               </div>
               <PlayerSearchSelect
                 players={matchPlayers}
@@ -407,53 +407,53 @@ export default function PredictPage() {
             </div>
 
             {/* First Innings Predictions */}
-            <div className="bg-cool-50 dark:bg-navy-700 rounded-button p-6 border border-cool-200 dark:border-navy-500">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center space-x-2">
-                  <BarChart3 className="h-5 w-5 text-cool-500" />
-                  <h3 className="text-lg font-bold text-navy-500 dark:text-white">
+            <div className="bg-cool-50 dark:bg-navy-700 rounded-button p-4 sm:p-6 border border-cool-200 dark:border-navy-500">
+              <div className="flex items-center justify-between mb-4 sm:mb-6">
+                <div className="flex items-center space-x-1.5 sm:space-x-2">
+                  <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 text-cool-500" />
+                  <h3 className="text-base sm:text-lg font-bold text-navy-500 dark:text-white whitespace-nowrap">
                     First Innings Predictions
                   </h3>
                 </div>
-                <span className="text-sm text-gray-500 dark:text-gray-400 font-bold">+1 point each</span>
+                <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-bold whitespace-nowrap">+1 point each</span>
               </div>
               
               {/* Team A Batting First */}
-              <div className="mb-6">
-                <h4 className="text-md font-bold text-navy-500 dark:text-white mb-3">
+              <div className="mb-4 sm:mb-6">
+                <h4 className="text-sm sm:text-md font-bold text-navy-500 dark:text-white mb-2 sm:mb-3 whitespace-nowrap">
                   If {match.teamAName} bats first:
                 </h4>
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Score Category <span className="text-xs text-gray-500">(+1 pt)</span>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2 whitespace-nowrap">
+                      Score Category <span className="text-[10px] sm:text-xs text-gray-500">(+1 pt)</span>
                     </label>
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                       {SCORE_CATEGORIES.map((cat) => (
                         <button
                           key={cat.value}
                           type="button"
                           onClick={() => setTeamAScoreCategory(cat.value)}
-                          className={`p-3 border-2 rounded-button transition text-center ${
+                          className={`p-2 sm:p-3 border-2 rounded-button transition text-center min-h-[44px] ${
                             teamAScoreCategory === cat.value
                               ? 'border-gold-500 bg-gold-50 dark:bg-gold-900/20'
                               : 'border-gray-300 dark:border-navy-400 hover:border-gold-400 bg-white dark:bg-navy-600'
                           }`}
                         >
                           <div className="text-sm font-bold text-navy-500 dark:text-white">{cat.value}</div>
-                          <div className="text-xs text-gray-600 dark:text-gray-400">{cat.label}</div>
+                          <div className="text-[10px] text-gray-600 dark:text-gray-400">{cat.label}</div>
                         </button>
                       ))}
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Wickets <span className="text-xs text-gray-500">(+1 pt)</span>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2 whitespace-nowrap">
+                      Wickets <span className="text-[10px] sm:text-xs text-gray-500">(+1 pt)</span>
                     </label>
                     <select
                       value={teamAWickets}
                       onChange={(e) => setTeamAWickets(e.target.value === '' ? '' : Number(e.target.value))}
-                      className="w-full px-4 py-3 border-2 border-gray-300 dark:border-navy-400 rounded-button focus:border-gold-500 focus:outline-none bg-white dark:bg-navy-600 text-navy-500 dark:text-white"
+                      className="w-full px-3 py-2.5 sm:px-4 sm:py-3 border-2 border-gray-300 dark:border-navy-400 rounded-button focus:border-gold-500 focus:outline-none bg-white dark:bg-navy-600 text-navy-500 dark:text-white text-sm sm:text-base min-h-[44px]"
                     >
                       <option value="">Select wickets</option>
                       {Array.from({ length: 11 }, (_, i) => (
@@ -468,40 +468,40 @@ export default function PredictPage() {
 
               {/* Team B Batting First */}
               <div>
-                <h4 className="text-md font-bold text-navy-500 dark:text-white mb-3">
+                <h4 className="text-sm sm:text-md font-bold text-navy-500 dark:text-white mb-2 sm:mb-3 whitespace-nowrap">
                   If {match.teamBName} bats first:
                 </h4>
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Score Category <span className="text-xs text-gray-500">(+1 pt)</span>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2 whitespace-nowrap">
+                      Score Category <span className="text-[10px] sm:text-xs text-gray-500">(+1 pt)</span>
                     </label>
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                       {SCORE_CATEGORIES.map((cat) => (
                         <button
                           key={cat.value}
                           type="button"
                           onClick={() => setTeamBScoreCategory(cat.value)}
-                          className={`p-3 border-2 rounded-button transition text-center ${
+                          className={`p-2 sm:p-3 border-2 rounded-button transition text-center min-h-[44px] ${
                             teamBScoreCategory === cat.value
                               ? 'border-gold-500 bg-gold-50 dark:bg-gold-900/20'
                               : 'border-gray-300 dark:border-navy-400 hover:border-gold-400 bg-white dark:bg-navy-600'
                           }`}
                         >
                           <div className="text-sm font-bold text-navy-500 dark:text-white">{cat.value}</div>
-                          <div className="text-xs text-gray-600 dark:text-gray-400">{cat.label}</div>
+                          <div className="text-[10px] text-gray-600 dark:text-gray-400">{cat.label}</div>
                         </button>
                       ))}
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Wickets <span className="text-xs text-gray-500">(+1 pt)</span>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5 sm:mb-2 whitespace-nowrap">
+                      Wickets <span className="text-[10px] sm:text-xs text-gray-500">(+1 pt)</span>
                     </label>
                     <select
                       value={teamBWickets}
                       onChange={(e) => setTeamBWickets(e.target.value === '' ? '' : Number(e.target.value))}
-                      className="w-full px-4 py-3 border-2 border-gray-300 dark:border-navy-400 rounded-button focus:border-gold-500 focus:outline-none bg-white dark:bg-navy-600 text-navy-500 dark:text-white"
+                      className="w-full px-3 py-2.5 sm:px-4 sm:py-3 border-2 border-gray-300 dark:border-navy-400 rounded-button focus:border-gold-500 focus:outline-none bg-white dark:bg-navy-600 text-navy-500 dark:text-white text-sm sm:text-base min-h-[44px]"
                     >
                       <option value="">Select wickets</option>
                       {Array.from({ length: 11 }, (_, i) => (
@@ -516,14 +516,14 @@ export default function PredictPage() {
             </div>
 
             {error && (
-              <div className="p-4 bg-red-50 dark:bg-red-900/20 border-2 border-red-400 dark:border-red-600 rounded-button">
-                <p className="text-red-800 dark:text-red-200 text-sm font-medium">{error}</p>
+              <div className="p-3 sm:p-4 bg-red-50 dark:bg-red-900/20 border-2 border-red-400 dark:border-red-600 rounded-button">
+                <p className="text-xs sm:text-sm text-red-800 dark:text-red-200 font-medium">{error}</p>
               </div>
             )}
 
-            <div className="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-400 dark:border-blue-600 rounded-button p-4">
-              <h4 className="font-bold text-blue-900 dark:text-blue-200 mb-2">Scoring Guide:</h4>
-              <ul className="text-sm text-blue-800 dark:text-blue-300 space-y-1">
+            <div className="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-400 dark:border-blue-600 rounded-button p-3 sm:p-4">
+              <h4 className="font-bold text-blue-900 dark:text-blue-200 mb-1.5 sm:mb-2 text-sm sm:text-base">Scoring Guide:</h4>
+              <ul className="text-xs sm:text-sm text-blue-800 dark:text-blue-300 space-y-1">
                 <li>• <strong>Winner:</strong> {match.matchType === 'league' ? '3' : match.matchType === 'playoff' ? '5' : '7'} points (Required)</li>
                 <li>• <strong>Optional bonuses:</strong> +1 point each for Player of Match, Score Category, Wickets</li>
                 <li>• <strong>Season team:</strong> +1 if your team wins (when you predict correctly), -1 if they lose</li>
@@ -533,11 +533,11 @@ export default function PredictPage() {
             <button
               type="submit"
               disabled={!predictedWinnerId || submitting}
-              className="w-full px-6 py-4 bg-gold-500 text-navy-500 rounded-button hover:bg-gold-400 transition disabled:opacity-50 disabled:cursor-not-allowed font-black text-lg shadow-lg hover:shadow-xl"
+              className="w-full px-5 py-3.5 sm:px-6 sm:py-4 bg-gold-500 text-navy-500 rounded-button hover:bg-gold-400 transition disabled:opacity-50 disabled:cursor-not-allowed font-black text-base sm:text-lg shadow-lg hover:shadow-xl min-h-[44px]"
             >
               {submitting ? (
-                <span className="flex items-center justify-center">
-                  <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                <span className="flex items-center justify-center text-sm sm:text-base">
+                  <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin mr-2" />
                   Submitting Prediction...
                 </span>
               ) : (

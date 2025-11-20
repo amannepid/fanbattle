@@ -21,11 +21,53 @@ body {
   color: rgb(var(--foreground-rgb));
   background: var(--background);
   min-height: 100vh;
+  /* Safe area insets for foldable devices and notches */
+  padding-left: env(safe-area-inset-left, 0);
+  padding-right: env(safe-area-inset-right, 0);
+  padding-top: env(safe-area-inset-top, 0);
+  padding-bottom: env(safe-area-inset-bottom, 0);
+  /* Prevent horizontal scrolling */
+  overflow-x: hidden;
+  /* Ensure minimum readable font size for body text */
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+/* Ensure images don't cause overflow */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Ensure readable text sizes on mobile */
+@media (max-width: 640px) {
+  body {
+    font-size: 16px;
+  }
+  
+  /* Override any text sizes that are too small */
+  p, span, div {
+    font-size: inherit;
+  }
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+  
+  /* Safe area utilities for foldable devices */
+  .safe-top {
+    padding-top: env(safe-area-inset-top, 0);
+  }
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+  .safe-left {
+    padding-left: env(safe-area-inset-left, 0);
+  }
+  .safe-right {
+    padding-right: env(safe-area-inset-right, 0);
   }
 }
 
