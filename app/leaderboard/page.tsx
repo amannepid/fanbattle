@@ -363,7 +363,7 @@ export default function LeaderboardPage() {
           <div className="px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-gold-50 to-gold-100 dark:from-gold-900/20 dark:to-gold-800/20 border-b border-gold-200 dark:border-gold-700/50 flex-shrink-0">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
               {/* Money in the Bank */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-3 sm:p-4 border border-gold-300 dark:border-gold-700/50 shadow-sm">
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-3 sm:p-4 border border-gold-300 dark:border-gold-700/50 shadow-sm h-full flex flex-col">
                 <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
                   <DollarSign className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 dark:text-green-400" />
                   <h3 className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">Money in the Bank</h3>
@@ -377,7 +377,7 @@ export default function LeaderboardPage() {
               </div>
 
               {/* Penalties */}
-              <div className="bg-white dark:bg-gray-800 rounded-lg p-3 sm:p-4 border border-red-300 dark:border-red-700/50 shadow-sm">
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-3 sm:p-4 border border-red-300 dark:border-red-700/50 shadow-sm h-full flex flex-col">
                 <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
                   <AlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-600 dark:text-red-400" />
                   <h3 className="text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">Penalties</h3>
@@ -391,7 +391,7 @@ export default function LeaderboardPage() {
               </div>
 
               {/* Total Honey Pot */}
-              <div className="bg-gradient-to-br from-gold-400 to-gold-500 dark:from-gold-600 dark:to-gold-700 rounded-lg p-3 sm:p-4 border border-gold-500 dark:border-gold-600 shadow-lg">
+              <div className="bg-gradient-to-br from-gold-400 to-gold-500 dark:from-gold-600 dark:to-gold-700 rounded-lg p-3 sm:p-4 border border-gold-500 dark:border-gold-600 shadow-lg h-full flex flex-col">
                 <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
                   <Trophy className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                   <h3 className="text-xs sm:text-sm font-semibold text-white">Total Honey Pot</h3>

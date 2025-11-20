@@ -67,10 +67,13 @@ export default function RegisterPage() {
       
       // Load all players
       const playersSnapshot = await getDocs(collection(db, 'players'));
-      const playersData = playersSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      } as Player));
+      const playersData: Player[] = playersSnapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data
+        } as Player;
+      });
       setPlayers(playersData);
     } catch (error) {
       console.error('Error loading data:', error);
