@@ -109,55 +109,55 @@ export default function MatchCard({
         </span>
       </div>
 
-      <div className="grid grid-cols-[1fr_auto_1fr] gap-2 sm:gap-3 md:gap-4 items-start mb-3 sm:mb-4">
+      <div className="grid grid-cols-[1fr_auto_1fr] gap-1.5 sm:gap-2 md:gap-3 lg:gap-4 items-start mb-3 sm:mb-4">
         {/* Team A */}
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col items-center min-w-0 max-w-full">
           <div className="flex justify-center mb-2 sm:mb-3">
             {match.teamALogoUrl ? (
               <img 
                 src={match.teamALogoUrl} 
                 alt={match.teamAName}
-                className="h-14 w-14 sm:h-16 sm:w-16 md:h-20 md:w-20 object-cover rounded-full border-2 border-gray-200 dark:border-gray-700 shadow-md"
+                className="h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 lg:h-20 lg:w-20 object-cover rounded-full border-2 border-gray-200 dark:border-gray-700 shadow-md flex-shrink-0"
               />
             ) : (
-              <div className="h-14 w-14 sm:h-16 sm:w-16 md:h-20 md:w-20 rounded-full border-2 border-gray-300 dark:border-gray-600 shadow-md bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center">
-                <span className="text-xl sm:text-2xl font-bold text-gray-400 dark:text-gray-500">?</span>
+              <div className="h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 lg:h-20 lg:w-20 rounded-full border-2 border-gray-300 dark:border-gray-600 shadow-md bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center flex-shrink-0">
+                <span className="text-lg sm:text-xl md:text-2xl font-bold text-gray-400 dark:text-gray-500">?</span>
               </div>
             )}
           </div>
-          <div className="text-center h-16 sm:h-20 flex flex-col justify-center px-1 sm:px-2 min-w-0">
-            <h3 className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white mb-0.5 sm:mb-1 line-clamp-2 leading-tight truncate">
+          <div className="text-center h-14 sm:h-16 md:h-20 flex flex-col justify-center px-0.5 sm:px-1 md:px-2 w-full min-w-0 max-w-full">
+            <h3 className="text-[10px] sm:text-xs md:text-sm font-bold text-gray-900 dark:text-white mb-0.5 sm:mb-1 line-clamp-2 leading-tight break-words overflow-hidden">
               {match.teamAName}
             </h3>
-            <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 uppercase truncate">{match.teamAId}</p>
+            <p className="text-[9px] sm:text-[10px] md:text-xs text-gray-600 dark:text-gray-400 uppercase truncate">{match.teamAId}</p>
           </div>
         </div>
 
         {/* VS Divider */}
-        <div className="flex flex-col items-center justify-start pt-7 sm:pt-8 md:pt-10 px-1 sm:px-2 md:px-3">
-          <div className="text-lg sm:text-xl font-bold text-gray-400 dark:text-gray-500">VS</div>
+        <div className="flex flex-col items-center justify-start pt-6 sm:pt-7 md:pt-8 lg:pt-10 px-0.5 sm:px-1 md:px-2 lg:px-3 flex-shrink-0">
+          <div className="text-base sm:text-lg md:text-xl font-bold text-gray-400 dark:text-gray-500">VS</div>
         </div>
 
         {/* Team B */}
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col items-center min-w-0 max-w-full">
           <div className="flex justify-center mb-2 sm:mb-3">
             {match.teamBLogoUrl ? (
               <img 
                 src={match.teamBLogoUrl} 
                 alt={match.teamBName}
-                className="h-14 w-14 sm:h-16 sm:w-16 md:h-20 md:w-20 object-cover rounded-full border-2 border-gray-200 dark:border-gray-700 shadow-md"
+                className="h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 lg:h-20 lg:w-20 object-cover rounded-full border-2 border-gray-200 dark:border-gray-700 shadow-md flex-shrink-0"
               />
             ) : (
-              <div className="h-14 w-14 sm:h-16 sm:w-16 md:h-20 md:w-20 rounded-full border-2 border-gray-300 dark:border-gray-600 shadow-md bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center">
-                <span className="text-xl sm:text-2xl font-bold text-gray-400 dark:text-gray-500">?</span>
+              <div className="h-12 w-12 sm:h-14 sm:w-14 md:h-16 md:w-16 lg:h-20 lg:w-20 rounded-full border-2 border-gray-300 dark:border-gray-600 shadow-md bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 flex items-center justify-center flex-shrink-0">
+                <span className="text-lg sm:text-xl md:text-2xl font-bold text-gray-400 dark:text-gray-500">?</span>
               </div>
             )}
           </div>
-          <div className="text-center h-16 sm:h-20 flex flex-col justify-center px-1 sm:px-2 min-w-0">
-            <h3 className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white mb-0.5 sm:mb-1 line-clamp-2 leading-tight truncate">
+          <div className="text-center h-14 sm:h-16 md:h-20 flex flex-col justify-center px-0.5 sm:px-1 md:px-2 w-full min-w-0 max-w-full">
+            <h3 className="text-[10px] sm:text-xs md:text-sm font-bold text-gray-900 dark:text-white mb-0.5 sm:mb-1 line-clamp-2 leading-tight break-words overflow-hidden">
               {match.teamBName}
             </h3>
-            <p className="text-[10px] sm:text-xs text-gray-600 dark:text-gray-400 uppercase truncate">{match.teamBId}</p>
+            <p className="text-[9px] sm:text-[10px] md:text-xs text-gray-600 dark:text-gray-400 uppercase truncate">{match.teamBId}</p>
           </div>
         </div>
       </div>
