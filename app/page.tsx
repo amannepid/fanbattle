@@ -2,17 +2,19 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
-import { getActiveTournament, getMatches, getUserEntry, getUserPredictions } from '@/lib/firestore';
+import { getActiveTournament, getMatches, getTeams, getUserEntry, getUserPredictions } from '@/lib/firestore';
 import { getPredictableMatches } from '@/lib/prediction-rules';
 import MatchCard from '@/components/MatchCard';
+import PointsTable from '@/components/PointsTable';
 import Link from 'next/link';
 import { Trophy, Loader2, Calendar } from 'lucide-react';
-import type { Match, Tournament, UserEntry, Prediction } from '@/types';
+import type { Match, Tournament, Team, UserEntry, Prediction } from '@/types';
 
 export default function Home() {
   const { user, loading: authLoading } = useAuth();
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [matches, setMatches] = useState<Match[]>([]);
+  const [teams, setTeams] = useState<Team[]>([]);
   const [userEntry, setUserEntry] = useState<UserEntry | null>(null);
   const [userPredictions, setUserPredictions] = useState<Prediction[]>([]);
   const [predictableMatchIds, setPredictableMatchIds] = useState<Set<string>>(new Set());
@@ -33,9 +35,13 @@ export default function Home() {
 
       setTournament(activeTournament);
       
-      // Fetch matches first (needed for both logged in and logged out users)
-      const matchesData = await getMatches(activeTournament.id);
+      // Fetch matches and teams (needed for both logged in and logged out users)
+      const [matchesData, teamsData] = await Promise.all([
+        getMatches(activeTournament.id),
+        getTeams(activeTournament.id)
+      ]);
       setMatches(matchesData);
+      setTeams(teamsData);
 
       if (user) {
         // Fetch user-specific data in parallel
@@ -106,43 +112,55 @@ export default function Home() {
 
   return (
     <div className="max-w-7xl mx-auto min-h-screen">
-      {/* Hero Section with Banner */}
-      <div className="relative mb-8 rounded-card overflow-hidden shadow-glass border-2 border-gold-500">
-        {/* Background Image */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{ backgroundImage: 'url(/hero-banner.jpg)' }}
-        >
-          {/* Overlay gradient for text readability */}
-          <div className="absolute inset-0 bg-gradient-to-r from-navy-500/95 via-navy-600/85 to-transparent"></div>
-        </div>
-        
-        {/* Content */}
-        <div className="relative z-10 px-4 py-12 sm:px-6 sm:py-16 md:px-8 md:py-20 lg:py-32">
-          <div className="max-w-2xl">
-            <div className="flex items-start mb-4">
-              <Trophy className="h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 text-gold-500 mr-2 sm:mr-3 flex-shrink-0" />
-              <div className="h-8 w-0.5 sm:h-10 sm:w-1 bg-gold-500 mr-3 sm:mr-4 flex-shrink-0"></div>
-              <div className="flex-1">
-                <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-gold-500 leading-tight">
-                  Nepal Premier League
-                </h1>
-                <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-white leading-tight mt-1">
-                  FanBattle
-                </h2>
-                <p className="text-xs sm:text-sm md:text-base text-white/60 font-medium mt-2">
-                  {tournament.name}
-                </p>
-                <div className="flex flex-wrap items-center gap-x-2 sm:gap-x-4 text-white/80 mt-4">
-                  <span className="text-xs sm:text-sm md:text-base whitespace-nowrap">📅 Nov 17 - Dec 13, 2025</span>
-                  <span className="hidden min-[375px]:inline text-xs sm:text-sm md:text-base">•</span>
-                  <span className="text-xs sm:text-sm md:text-base whitespace-nowrap">🏆 32 Matches</span>
-                  <span className="hidden min-[375px]:inline text-xs sm:text-sm md:text-base">•</span>
-                  <span className="text-xs sm:text-sm md:text-base whitespace-nowrap">8 Teams</span>
+      {/* Hero Section with Banner and Points Table */}
+      <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 mb-8">
+        {/* Hero Section - Takes remaining width on desktop, full width on mobile */}
+        <div className="relative flex-1 rounded-card overflow-hidden shadow-glass border-2 border-gold-500 min-w-0">
+          {/* Background Image */}
+          <div 
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            style={{ backgroundImage: 'url(/hero-banner.jpg)' }}
+          >
+            {/* Overlay gradient for text readability */}
+            <div className="absolute inset-0 bg-gradient-to-r from-navy-500/95 via-navy-600/85 to-transparent"></div>
+          </div>
+          
+          {/* Content */}
+          <div className="relative z-10 px-4 py-12 sm:px-6 sm:py-16 md:px-8 md:py-20 lg:py-24">
+            <div className="max-w-2xl">
+              <div className="flex items-start mb-4">
+                <Trophy className="h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 text-gold-500 mr-2 sm:mr-3 flex-shrink-0" />
+                <div className="h-8 w-0.5 sm:h-10 sm:w-1 bg-gold-500 mr-3 sm:mr-4 flex-shrink-0"></div>
+                <div className="flex-1">
+                  <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-gold-500 leading-tight">
+                    Nepal Premier League
+                  </h1>
+                  <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-white leading-tight mt-1">
+                    FanBattle
+                  </h2>
+                  <p className="text-xs sm:text-sm md:text-base text-white/60 font-medium mt-2">
+                    {tournament.name}
+                  </p>
+                  <div className="flex flex-wrap items-center gap-x-2 sm:gap-x-4 text-white/80 mt-4">
+                    <span className="text-xs sm:text-sm md:text-base whitespace-nowrap">📅 Nov 17 - Dec 13, 2025</span>
+                    <span className="hidden min-[375px]:inline text-xs sm:text-sm md:text-base">•</span>
+                    <span className="text-xs sm:text-sm md:text-base whitespace-nowrap">🏆 32 Matches</span>
+                    <span className="hidden min-[375px]:inline text-xs sm:text-sm md:text-base">•</span>
+                    <span className="text-xs sm:text-sm md:text-base whitespace-nowrap">8 Teams</span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Points Table - Fixed width on desktop, full width on mobile */}
+        <div className="w-full lg:w-[400px] lg:flex-shrink-0">
+          <PointsTable 
+            matches={matches} 
+            teams={teams} 
+            tournamentId={tournament.id}
+          />
         </div>
       </div>
 
