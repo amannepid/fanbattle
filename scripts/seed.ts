@@ -1,5 +1,5 @@
 import { initializeApp, getApps } from 'firebase/app';
-import { getFirestore, collection, doc, setDoc, Timestamp } from 'firebase/firestore';
+import { getFirestore, collection, doc, setDoc, getDoc, Timestamp } from 'firebase/firestore';
 import { config } from 'dotenv';
 
 // Load environment variables from .env.local
@@ -206,6 +206,8 @@ async function seedDatabase() {
       const teamAData = teams.find(t => t.name === teamAName);
       const teamBData = teams.find(t => t.name === teamBName);
       
+      // Use merge: true to preserve existing match data (status, winnerId, etc.)
+      // This prevents overwriting completed matches when re-seeding
       await setDoc(matchRef, {
         tournamentId,
         matchNumber,
@@ -219,8 +221,16 @@ async function seedDatabase() {
         venue: 'TU Cricket Ground, Kirtipur',
         matchDate: Timestamp.fromDate(matchDate),
         deadline: Timestamp.fromDate(deadline), // Deadline is at match start time
-        status: 'upcoming' as const,
-      });
+        // Only set status to 'upcoming' if match doesn't exist yet
+        // If match already exists with 'completed' status, preserve it
+      }, { merge: true });
+      
+      // Only set status to 'upcoming' if the match doesn't already have a status
+      // Check if match exists and has status before setting it
+      const matchDoc = await getDoc(matchRef);
+      if (!matchDoc.exists() || !matchDoc.data().status) {
+        await setDoc(matchRef, { status: 'upcoming' as const }, { merge: true });
+      }
       
       // Display match name based on type
       let displayName: string;
