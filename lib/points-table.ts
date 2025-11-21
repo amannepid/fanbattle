@@ -19,9 +19,21 @@ export interface TeamStanding {
  * @returns Array of team standings sorted by position
  */
 export function calculatePointsTable(matches: Match[], teams: Team[]): TeamStanding[] {
-  // Filter only completed league matches
+  // Handle empty inputs
+  if (!matches || matches.length === 0 || !teams || teams.length === 0) {
+    return [];
+  }
+
+  // Filter only completed league matches with valid team IDs
   const completedLeagueMatches = matches.filter(
-    (match) => match.matchType === 'league' && match.status === 'completed' && match.winnerId
+    (match) => 
+      match.matchType === 'league' && 
+      match.status === 'completed' && 
+      match.winnerId &&
+      match.teamAId &&
+      match.teamBId &&
+      match.teamAId !== 'tbd' &&
+      match.teamBId !== 'tbd'
   );
 
   // Initialize standings for all teams
@@ -29,6 +41,7 @@ export function calculatePointsTable(matches: Match[], teams: Team[]): TeamStand
 
   // Initialize all teams with zero stats
   for (const team of teams) {
+    if (!team.id) continue; // Skip teams without IDs
     standingsMap.set(team.id, {
       position: 0,
       teamId: team.id,
@@ -47,7 +60,11 @@ export function calculatePointsTable(matches: Match[], teams: Team[]): TeamStand
     const teamAStanding = standingsMap.get(match.teamAId);
     const teamBStanding = standingsMap.get(match.teamBId);
 
-    if (!teamAStanding || !teamBStanding) continue;
+    // Skip if teams not found in standings (shouldn't happen, but defensive)
+    if (!teamAStanding || !teamBStanding) {
+      console.warn(`Team not found in standings for match ${match.id}: teamAId=${match.teamAId}, teamBId=${match.teamBId}`);
+      continue;
+    }
 
     // Both teams played a match
     teamAStanding.matches++;

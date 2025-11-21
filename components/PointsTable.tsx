@@ -13,11 +13,36 @@ interface PointsTableProps {
 
 export default function PointsTable({ matches, teams }: PointsTableProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  
+  // Handle empty or undefined inputs
+  if (!matches || !teams || matches.length === 0 || teams.length === 0) {
+    return (
+      <div className="bg-white dark:bg-navy-600 rounded-card shadow-card border border-slate-200 dark:border-navy-400 p-4 sm:p-6">
+        <div className="flex items-center space-x-2 mb-3 sm:mb-4">
+          <Trophy className="h-5 w-5 sm:h-6 sm:w-6 text-gold-500" />
+          <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white">Points Table</h3>
+        </div>
+        <div className="text-center py-6 sm:py-8">
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
+            Loading...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   const standings = calculatePointsTable(matches, teams);
 
-  // Check if there are any completed league matches
+  // Check if there are any completed league matches with valid team IDs
   const hasCompletedMatches = matches.some(
-    (match) => match.matchType === 'league' && match.status === 'completed' && match.winnerId
+    (match) => 
+      match.matchType === 'league' && 
+      match.status === 'completed' && 
+      match.winnerId &&
+      match.teamAId &&
+      match.teamBId &&
+      match.teamAId !== 'tbd' &&
+      match.teamBId !== 'tbd'
   );
 
   if (!hasCompletedMatches) {
