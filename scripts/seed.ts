@@ -78,10 +78,10 @@ const scheduleData = [
   { date: "Dec 06, SAT", match: "Sudurpaschim Royals vs Biratnagar Kings", time: "11:15 AM" },
   { date: "Dec 06, SAT", match: "Chitwan Rhinos vs Pokhara Avengers", time: "3:30 PM" },
   { date: "Dec 07, SUN", match: "Karnali Yaks vs Janakpur Bolts", time: "3:30 PM" },
-  { date: "Dec 09, TUE", match: "Qualifier 1 (1st vs 2nd)", time: "4:00 PM" },
-  { date: "Dec 10, WED", match: "Eliminator (3rd vs 4th)", time: "4:00 PM" },
-  { date: "Dec 11, THU", match: "Qualifier 2 (Loser Q1 vs Winner Eliminator)", time: "4:00 PM" },
-  { date: "Dec 13, SAT", match: "Grand Finale", time: "3:30 PM" },
+  { date: "Dec 09, TUE", match: "Qualifier 1", time: "4:00 PM" },
+  { date: "Dec 10, WED", match: "Eliminator", time: "4:00 PM" },
+  { date: "Dec 11, THU", match: "Qualifier 2", time: "4:00 PM" },
+  { date: "Dec 13, SAT", match: "Final", time: "3:30 PM" },
 ];
 
 // 8 NPL teams
@@ -149,29 +149,50 @@ async function seedDatabase() {
       
       // Determine match type from match name
       let matchType: 'league' | 'qualifier' | 'eliminator' | 'final';
-      if (item.match.includes('Qualifier 1') || item.match.includes('Qualifier 2')) {
-        matchType = 'qualifier';
-      } else if (item.match.includes('Eliminator')) {
-        matchType = 'eliminator';
-      } else if (item.match.includes('Final') || item.match.includes('Finale')) {
-        matchType = 'final';
-      } else {
-        matchType = 'league';
-      }
-      
-      // Parse teams
       let teamAName, teamBName, teamAId, teamBId;
       
-      if (item.match.includes('vs')) {
-        [teamAName, teamBName] = item.match.split(' vs ').map(t => t.trim());
-        teamAId = teamMap[teamAName];
-        teamBId = teamMap[teamBName];
-      } else {
-        // Playoff matches (TBD teams)
-        teamAName = item.match;
-        teamBName = '';
+      if (item.match === 'Qualifier 1') {
+        matchType = 'qualifier';
+        // Qualifier 1: 1st vs 2nd (will be updated after league matches complete)
+        teamAName = 'TBD';
+        teamBName = 'TBD';
         teamAId = 'tbd';
         teamBId = 'tbd';
+      } else if (item.match === 'Qualifier 2') {
+        matchType = 'qualifier';
+        // Qualifier 2: Loser Q1 vs Winner Eliminator (will be updated after Q1 and Eliminator complete)
+        teamAName = 'TBD';
+        teamBName = 'TBD';
+        teamAId = 'tbd';
+        teamBId = 'tbd';
+      } else if (item.match === 'Eliminator') {
+        matchType = 'eliminator';
+        // Eliminator: 3rd vs 4th (will be updated after league matches complete)
+        teamAName = 'TBD';
+        teamBName = 'TBD';
+        teamAId = 'tbd';
+        teamBId = 'tbd';
+      } else if (item.match === 'Final') {
+        matchType = 'final';
+        // Final: Winner Q1 vs Winner Q2 (will be updated after Q1 and Q2 complete)
+        teamAName = 'TBD';
+        teamBName = 'TBD';
+        teamAId = 'tbd';
+        teamBId = 'tbd';
+      } else {
+        // League matches
+        matchType = 'league';
+        if (item.match.includes('vs')) {
+          [teamAName, teamBName] = item.match.split(' vs ').map(t => t.trim());
+          teamAId = teamMap[teamAName];
+          teamBId = teamMap[teamBName];
+        } else {
+          // Fallback for league matches without vs
+          teamAName = item.match;
+          teamBName = '';
+          teamAId = 'tbd';
+          teamBId = 'tbd';
+        }
       }
       
       const matchDate = parseNepalTime(item.date, item.time);
@@ -201,7 +222,15 @@ async function seedDatabase() {
         status: 'upcoming' as const,
       });
       
-      console.log(`  ✓ Match ${matchNumber}: ${teamAName} vs ${teamBName} (${item.date} ${item.time})`);
+      // Display match name based on type
+      let displayName: string;
+      if (matchType === 'league') {
+        displayName = `${teamAName} vs ${teamBName}`;
+      } else {
+        displayName = item.match; // Use the match name from schedule (e.g., "Qualifier 1", "Eliminator", "Final")
+      }
+      
+      console.log(`  ✓ Match ${matchNumber}: ${displayName} (${item.date} ${item.time})`);
     }
     console.log('✅ All 31 matches created\n');
 
