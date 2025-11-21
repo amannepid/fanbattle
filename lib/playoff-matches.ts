@@ -35,11 +35,17 @@ export async function updatePlayoffMatchTeams(tournamentId: string): Promise<voi
   const eliminator = matches.find(m => m.matchType === 'eliminator');
   const final = matches.find(m => m.matchType === 'final');
 
-  // Helper to update a match with teams (only if teams are still TBD)
+  // Helper to update a match with teams (only if teams are still TBD or descriptive placeholders)
   async function updateMatchTeams(match: Match, teamAId: string, teamAName: string, teamBId: string, teamBName: string) {
-    // Only update if teams are still TBD
-    if (match.teamAId !== 'tbd' && match.teamAName !== 'TBD') {
-      return; // Already assigned
+    // Only update if teams are still TBD or descriptive placeholders (e.g., "1st Place", "Winner E.", "Loser Q1")
+    const isPlaceholder = (name: string) => 
+      name === 'TBD' || 
+      name.includes('Place') || 
+      name.includes('Winner') || 
+      name.includes('Loser');
+    
+    if (match.teamAId !== 'tbd' && !isPlaceholder(match.teamAName)) {
+      return; // Already assigned with actual team name
     }
 
     const teamA = teams.find(t => t.id === teamAId);
@@ -66,12 +72,18 @@ export async function updatePlayoffMatchTeams(tournamentId: string): Promise<voi
 
   // Helper to update a single team in a match (for partial updates)
   async function updateMatchTeam(match: Match, isTeamA: boolean, teamId: string, teamName: string) {
-    // Only update if team is still TBD
+    // Only update if team is still TBD or descriptive placeholder
     const currentTeamId = isTeamA ? match.teamAId : match.teamBId;
     const currentTeamName = isTeamA ? match.teamAName : match.teamBName;
     
-    if (currentTeamId !== 'tbd' && currentTeamName !== 'TBD') {
-      return; // Already assigned
+    const isPlaceholder = (name: string) => 
+      name === 'TBD' || 
+      name.includes('Place') || 
+      name.includes('Winner') || 
+      name.includes('Loser');
+    
+    if (currentTeamId !== 'tbd' && !isPlaceholder(currentTeamName)) {
+      return; // Already assigned with actual team name
     }
 
     const team = teams.find(t => t.id === teamId);
@@ -124,9 +136,9 @@ export async function updatePlayoffMatchTeams(tournamentId: string): Promise<voi
     const q1LoserId = qualifier1.winnerId === qualifier1.teamAId ? qualifier1.teamBId : qualifier1.teamAId;
     const q1LoserName = qualifier1.winnerId === qualifier1.teamAId ? qualifier1.teamBName : qualifier1.teamAName;
 
-    // Update Qualifier 2 Team A: Loser Q1
+    // Update Qualifier 2 Team B: Qualifier 1 Loser (Team B = Loser Q1)
     if (qualifier2) {
-      await updateMatchTeam(qualifier2, true, q1LoserId, q1LoserName);
+      await updateMatchTeam(qualifier2, false, q1LoserId, q1LoserName);
     }
 
     // Update Final Team A: Winner Q1
@@ -135,11 +147,12 @@ export async function updatePlayoffMatchTeams(tournamentId: string): Promise<voi
     }
   }
 
-  // Update Qualifier 2 Team B: Winner Eliminator (after Eliminator completes)
+  // Update Qualifier 2 Team A: Winner Eliminator (after Eliminator completes)
+  // Qualifier 2 format: Eliminator Winner vs Qualifier 1 Loser
   if (eliminator && eliminator.status === 'completed' && eliminator.winnerId && qualifier2) {
     const eliminatorWinnerId = eliminator.winnerId;
     const eliminatorWinnerName = eliminator.winnerName!;
-    await updateMatchTeam(qualifier2, false, eliminatorWinnerId, eliminatorWinnerName);
+    await updateMatchTeam(qualifier2, true, eliminatorWinnerId, eliminatorWinnerName);
   }
 
   // Update Final Team B: Winner Q2 (after Qualifier 2 completes)

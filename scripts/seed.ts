@@ -154,29 +154,29 @@ async function seedDatabase() {
       if (item.match === 'Qualifier 1') {
         matchType = 'qualifier';
         // Qualifier 1: 1st vs 2nd (will be updated after league matches complete)
-        teamAName = 'TBD';
-        teamBName = 'TBD';
+        teamAName = '1st Place';
+        teamBName = '2nd Place';
         teamAId = 'tbd';
         teamBId = 'tbd';
       } else if (item.match === 'Qualifier 2') {
         matchType = 'qualifier';
-        // Qualifier 2: Loser Q1 vs Winner Eliminator (will be updated after Q1 and Eliminator complete)
-        teamAName = 'TBD';
-        teamBName = 'TBD';
+        // Qualifier 2: Winner E. vs Loser Q1 (will be updated after Q1 and Eliminator complete)
+        teamAName = 'Winner E.';
+        teamBName = 'Loser Q1';
         teamAId = 'tbd';
         teamBId = 'tbd';
       } else if (item.match === 'Eliminator') {
         matchType = 'eliminator';
         // Eliminator: 3rd vs 4th (will be updated after league matches complete)
-        teamAName = 'TBD';
-        teamBName = 'TBD';
+        teamAName = '3rd Place';
+        teamBName = '4th Place';
         teamAId = 'tbd';
         teamBId = 'tbd';
       } else if (item.match === 'Final') {
         matchType = 'final';
         // Final: Winner Q1 vs Winner Q2 (will be updated after Q1 and Q2 complete)
-        teamAName = 'TBD';
-        teamBName = 'TBD';
+        teamAName = 'Winner Q1';
+        teamBName = 'Winner Q2';
         teamAId = 'tbd';
         teamBId = 'tbd';
       } else {
