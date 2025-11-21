@@ -20,7 +20,9 @@
     "bulk-insert-prediction": "tsx scripts/bulk-insert-prediction.ts",
     "restore-prediction": "tsx scripts/restore-prediction.ts",
     "test-8pm-cutoff": "tsx scripts/test-8pm-cutoff.ts",
-    "update-playoff-teams": "tsx scripts/update-playoff-teams.ts"
+    "update-playoff-teams": "tsx scripts/update-playoff-teams.ts",
+    "recalculate-all-user-points": "tsx scripts/recalculate-all-user-points.ts",
+    "backup-user-data": "tsx scripts/backup-user-data.ts"
   },
   "dependencies": {
     "date-fns": "^4.1.0",
