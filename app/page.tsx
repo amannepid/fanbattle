@@ -85,11 +85,24 @@ export default function Home() {
     );
   }
 
-  const filteredMatches = matches.filter((match) => {
-    if (filter === 'upcoming') return match.status === 'upcoming';
-    if (filter === 'completed') return match.status === 'completed';
-    return true;
-  });
+  const filteredMatches = matches
+    .filter((match) => {
+      if (filter === 'upcoming') return match.status === 'upcoming';
+      if (filter === 'completed') return match.status === 'completed';
+      return true;
+    })
+    .sort((a, b) => {
+      // For completed matches, sort by latest first (descending by matchDate)
+      if (filter === 'completed') {
+        return b.matchDate.toDate().getTime() - a.matchDate.toDate().getTime();
+      }
+      // For upcoming matches, sort by earliest first (ascending by matchDate)
+      if (filter === 'upcoming') {
+        return a.matchDate.toDate().getTime() - b.matchDate.toDate().getTime();
+      }
+      // For 'all', sort by matchDate ascending (upcoming first, then completed)
+      return a.matchDate.toDate().getTime() - b.matchDate.toDate().getTime();
+    });
 
   return (
     <div className="max-w-7xl mx-auto min-h-screen">
