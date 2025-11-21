@@ -237,3 +237,6 @@ For questions or support, please contact: aman.nepid@gmail.com
 **Built with ❤️ for Nepal Premier League fans**
 
 🏏 Good luck with your predictions!
+
+---
+*Last updated: 2025*
