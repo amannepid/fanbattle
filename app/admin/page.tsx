@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
 import { getActiveTournament, getMatches, getAllPlayers, getMatchPredictions, updatePrediction, getLeaderboard, getUserEntry, updateUserEntry, getMatch, getUserPredictions, getTeams, updateTournament } from '@/lib/firestore';
+import { updatePlayoffMatchTeams } from '@/lib/playoff-matches';
 import { cache, CACHE_KEYS } from '@/lib/cache';
 import { doc, updateDoc, Timestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
@@ -136,6 +137,16 @@ export default function AdminPage() {
 
       // Calculate scores for all predictions
       await calculateScoresForMatch(selectedMatch.id, isEdit);
+
+      // Automatically update playoff match teams if needed
+      if (tournament) {
+        try {
+          await updatePlayoffMatchTeams(tournament.id);
+        } catch (error) {
+          console.error('Error updating playoff teams:', error);
+          // Don't fail the whole operation if playoff update fails
+        }
+      }
 
       setMessage(`✅ ${isEdit ? 'Results updated' : 'Results saved'} and scores ${isEdit ? 'recalculated' : 'calculated'} for Match ${selectedMatch.matchNumber}`);
       
@@ -275,6 +286,25 @@ export default function AdminPage() {
     cache.delete(CACHE_KEYS.leaderboard(match.tournamentId));
   }
 
+  async function handleUpdatePlayoffTeams() {
+    if (!tournament) return;
+    
+    setProcessing(true);
+    setMessage('');
+    
+    try {
+      await updatePlayoffMatchTeams(tournament.id);
+      setMessage('✅ Playoff match teams updated successfully!');
+      // Reload data to show updated teams
+      await loadData();
+    } catch (error) {
+      console.error('Error updating playoff teams:', error);
+      setMessage('❌ Error updating playoff teams. Please try again.');
+    } finally {
+      setProcessing(false);
+    }
+  }
+
   async function handleTournamentResults(e: React.FormEvent) {
     e.preventDefault();
     
@@ -397,6 +427,40 @@ export default function AdminPage() {
           </p>
         </div>
       )}
+
+      {/* Playoff Teams Update Section */}
+      <div className="mb-6 sm:mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-2 border-blue-400 dark:border-blue-600 rounded-lg p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+          <div className="flex-1">
+            <h2 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-1 sm:mb-2">
+              Update Playoff Match Teams
+            </h2>
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+              Automatically assign teams to playoff matches based on:
+              <br />
+              • Qualifier 1 & Eliminator: Points table standings (1st-4th)
+              <br />
+              • Qualifier 2: Results from Qualifier 1 & Eliminator
+              <br />
+              • Final: Results from Qualifier 1 & Qualifier 2
+            </p>
+          </div>
+          <button
+            onClick={handleUpdatePlayoffTeams}
+            disabled={processing || !tournament}
+            className="px-4 sm:px-6 py-2.5 sm:py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-sm sm:text-base transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px] whitespace-nowrap flex-shrink-0"
+          >
+            {processing ? (
+              <span className="flex items-center">
+                <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin mr-2" />
+                Updating...
+              </span>
+            ) : (
+              'Update Playoff Teams'
+            )}
+          </button>
+        </div>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
         {/* Match List */}
