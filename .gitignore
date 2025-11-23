@@ -43,8 +43,9 @@ scripts/players-by-team.csv
 scripts/*-data.csv
 scripts/*-test.csv
 
-# markdown files (except README)
+# markdown files (except README and documentation)
 *.md
 !README.md
 !readme.md
+!NOTIFICATION_SYSTEM_DOCUMENTATION.md
 
