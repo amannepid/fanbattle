@@ -1,5 +1,6 @@
 import { INotificationScheduler } from './scheduler.interface';
 import type { Notification } from '../core/types';
+import { NotificationType, NotificationPriority } from '../core/types';
 import { ruleEngine } from './rule-engine';
 import { firestoreStorage } from '../storage/firestore-storage';
 import { FCMChannel } from '../channels/fcm-channel';
@@ -38,6 +39,16 @@ export class ServerNotificationScheduler implements INotificationScheduler {
 
   async checkAndTrigger(): Promise<void> {
     try {
+      // Check if test mode is enabled via environment variable
+      const testMode = process.env.NOTIFICATION_TEST_MODE === 'true' || process.env.NOTIFICATION_TEST_MODE === '1';
+      
+      if (testMode) {
+        logger.info('🧪 TEST MODE ENABLED - Sending test notifications to all subscribed users');
+        await this.sendTestNotificationsToAll();
+        return;
+      }
+
+      // Normal production mode - check for actual cutoff reminders
       // Get all users with FCM subscriptions
       const subscriptions = await firestoreStorage.getAllSubscriptions();
       const fcmSubscriptions = subscriptions.filter(
@@ -90,6 +101,69 @@ export class ServerNotificationScheduler implements INotificationScheduler {
       }
     } catch (error) {
       logger.error('Error in server scheduler checkAndTrigger', { error });
+    }
+  }
+
+  /**
+   * Send test notifications to all subscribed users
+   * This is used when NOTIFICATION_TEST_MODE is enabled
+   */
+  private async sendTestNotificationsToAll(): Promise<void> {
+    try {
+      const subscriptions = await firestoreStorage.getAllSubscriptions();
+      const fcmSubscriptions = subscriptions.filter(
+        sub => sub.channels.fcm?.enabled && sub.channels.fcm?.token
+      );
+
+      if (fcmSubscriptions.length === 0) {
+        logger.info('No FCM subscriptions found for test notification');
+        return;
+      }
+
+      logger.info(`Sending test notifications to ${fcmSubscriptions.length} subscribed user(s)`);
+
+      // Create test notification
+      const testNotification: Notification = {
+        id: `test-all-${Date.now()}`,
+        type: NotificationType.CUTOFF_REMINDER,
+        userId: 'test-all-users', // Special ID for test notifications
+        title: '🧪 Test Notification - NPL Fan Battle',
+        body: 'This is a test notification sent to all subscribed users! Match #1 (Team A vs Team B) cutoff in 2 hours. Make your prediction!',
+        data: {
+          type: 'cutoff_reminder',
+          notificationId: `test-all-${Date.now()}`,
+          matchId: 'test-match-123',
+          matchNumber: 1,
+          teamAName: 'Team A',
+          teamBName: 'Team B',
+          url: '/predict/test-match-123',
+        },
+        priority: NotificationPriority.HIGH,
+        createdAt: new Date(),
+      };
+
+      // Send to all subscribed users
+      for (const subscription of fcmSubscriptions) {
+        try {
+          await this.sendFCMNotification(
+            {
+              userId: subscription.userId,
+              channels: subscription.channels,
+            },
+            testNotification
+          );
+          logger.info('Test notification sent', { userId: subscription.userId });
+        } catch (error) {
+          logger.error('Error sending test notification', {
+            error,
+            userId: subscription.userId,
+          });
+        }
+      }
+
+      logger.info(`✅ Test notifications sent to ${fcmSubscriptions.length} user(s)`);
+    } catch (error) {
+      logger.error('Error sending test notifications to all', { error });
     }
   }
 

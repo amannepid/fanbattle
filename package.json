@@ -22,7 +22,8 @@
     "test-8pm-cutoff": "tsx scripts/test-8pm-cutoff.ts",
     "update-playoff-teams": "tsx scripts/update-playoff-teams.ts",
     "recalculate-all-user-points": "tsx scripts/recalculate-all-user-points.ts",
-    "backup-user-data": "tsx scripts/backup-user-data.ts"
+    "backup-user-data": "tsx scripts/backup-user-data.ts",
+    "send-test-notification-all": "tsx scripts/send-test-to-all-subscribed.ts"
   },
   "dependencies": {
     "date-fns": "^4.1.0",
