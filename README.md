@@ -2,6 +2,8 @@
 
 A modern Progressive Web App (PWA) for predicting Nepal Premier League (NPL) matches and competing with friends.
 
+<!-- Deployment trigger: 2025-01-23 -->
+
 ![NPL Fan Battle](public/logo.png)
 
 ## ✨ Features
