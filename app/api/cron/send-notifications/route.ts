@@ -17,6 +17,8 @@ import { ServerNotificationScheduler } from '@/lib/notifications/schedulers/serv
 
 export const runtime = 'nodejs';
 export const maxDuration = 300; // 5 minutes max execution time
+export const dynamic = 'force-dynamic'; // Prevent caching for cron jobs
+export const dynamic = 'force-dynamic'; // Prevent caching for cron jobs
 
 export async function GET(request: NextRequest) {
   try {
