@@ -9,9 +9,49 @@ import { getMatches } from '@/lib/firestore';
 import { getActiveTournament } from '@/lib/firestore';
 import { getUserPredictions } from '@/lib/firestore';
 import { getPrediction } from '@/lib/firestore';
-// Note: This requires Firebase Admin SDK on the server for actual FCM sending
-// For now, this is a placeholder that can be implemented when needed
-// To use: import { admin } from 'firebase-admin'; import { getMessaging } from 'firebase-admin/messaging';
+
+// Firebase Admin SDK for FCM sending
+let messaging: any = null;
+let adminInitialized = false;
+
+async function initializeFirebaseAdmin() {
+  if (adminInitialized && messaging) {
+    return true;
+  }
+
+  try {
+    // Dynamic import to avoid build errors if firebase-admin is not installed
+    const admin = await import('firebase-admin');
+    const { getMessaging } = await import('firebase-admin/messaging');
+
+    if (!admin.getApps().length) {
+      const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+      
+      if (!serviceAccountKey) {
+        logger.warn('FIREBASE_SERVICE_ACCOUNT_KEY not found, FCM sending will not work');
+        return false;
+      }
+
+      try {
+        const serviceAccount = JSON.parse(serviceAccountKey);
+        admin.initializeApp({
+          credential: admin.cert(serviceAccount),
+        });
+        logger.info('Firebase Admin initialized for FCM');
+      } catch (error) {
+        logger.error('Error initializing Firebase Admin', { error });
+        return false;
+      }
+    }
+
+    messaging = getMessaging();
+    adminInitialized = true;
+    return true;
+  } catch (error) {
+    logger.warn('Firebase Admin SDK not available, FCM sending disabled', { error });
+    return false;
+  }
+}
 
 export class ServerNotificationScheduler implements INotificationScheduler {
   async schedule(notification: Notification, when: Date): Promise<string> {
@@ -172,41 +212,75 @@ export class ServerNotificationScheduler implements INotificationScheduler {
     notification: Notification
   ): Promise<void> {
     try {
-      // This requires Firebase Admin SDK
-      // For now, log that it would be sent
-      logger.info('Would send FCM notification', {
-        userId: subscription.userId,
-        notificationId: notification.id,
-        token: subscription.channels.fcm?.token?.substring(0, 20) + '...',
-      });
+      const token = subscription.channels.fcm?.token;
+      if (!token) {
+        logger.warn('No FCM token available', { userId: subscription.userId });
+        return;
+      }
 
-      // Actual implementation would use:
-      // const messaging = getMessaging();
-      // await messaging.send({
-      //   token: subscription.channels.fcm!.token!,
-      //   notification: {
-      //   title: notification.title,
-      //   body: notification.body,
-      //   icon: '/logo.png',
-      //   badge: '/logo.png',
-      //   },
-      //   data: {
-      //     ...notification.data,
-      //     notificationId: notification.id,
-      //     type: notification.type,
-      //   },
-      //   webpush: {
-      //     fcmOptions: {
-      //       link: notification.data.url || '/',
-      //     },
-      //   },
-      // });
-    } catch (error) {
-      logger.error('Error sending FCM notification', {
-        error,
+      // Initialize Firebase Admin if not already done
+      const initialized = await initializeFirebaseAdmin();
+      if (!initialized || !messaging) {
+        logger.warn('Firebase Admin not initialized, cannot send FCM notification', {
+          userId: subscription.userId,
+        });
+        return;
+      }
+
+      // Send FCM notification
+      const message = {
+        token: token,
+        notification: {
+          title: notification.title,
+          body: notification.body,
+        },
+        data: {
+          ...notification.data,
+          notificationId: notification.id,
+          type: notification.type,
+        },
+        webpush: {
+          notification: {
+            icon: '/logo.png',
+            badge: '/logo.png',
+            requireInteraction: false,
+          },
+          fcmOptions: {
+            link: notification.data?.url || '/',
+          },
+        },
+        apns: {
+          payload: {
+            aps: {
+              sound: 'default',
+              badge: 1,
+            },
+          },
+        },
+      };
+
+      await messaging.send(message);
+      
+      logger.info('FCM notification sent successfully', {
         userId: subscription.userId,
         notificationId: notification.id,
       });
+    } catch (error: any) {
+      // Handle specific FCM errors
+      if (error?.code === 'messaging/invalid-registration-token' || 
+          error?.code === 'messaging/registration-token-not-registered') {
+        logger.warn('Invalid FCM token, user may need to resubscribe', {
+          userId: subscription.userId,
+          error: error.code,
+        });
+        // Optionally: Remove invalid token from subscription
+      } else {
+        logger.error('Error sending FCM notification', {
+          error: error?.message || error,
+          userId: subscription.userId,
+          notificationId: notification.id,
+        });
+      }
     }
   }
 }
