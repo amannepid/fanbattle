@@ -1,0 +1,31 @@
+// Public API exports
+export { NotificationManager, getNotificationManager } from './core/notification-manager';
+export type { INotificationManager } from './core/notification-manager';
+export { NotificationType, NotificationPriority } from './core/types';
+export type { Notification, NotificationPreferences, NotificationStatus, NotificationContext } from './core/types';
+export type { NotificationResult, SubscriptionResult, ProviderResult } from './core/result';
+export { createSuccessResult, createErrorResult } from './core/result';
+export { Platform, platformDetector } from './platform/platform-detector';
+export type { NotificationConfig } from './config/config';
+export { NotificationConfigManager, configManager } from './config/config';
+export { logger, LogLevel } from './utils/logger';
+export { errorHandler, ErrorType, NotificationError } from './utils/error-handler';
+export { retryHandler, RetryHandler } from './utils/retry-handler';
+export { NotificationPermissionHelper } from './utils/permission-helper';
+export type { PermissionState } from './utils/permission-helper';
+export { eventBus } from './handlers/event-handler';
+export type { NotificationEvent, NotificationEventHandler } from './handlers/event-handler';
+export { clickHandler } from './handlers/click-handler';
+export type { NotificationClickHandler } from './handlers/click-handler';
+export { channelFactory, ChannelFactory } from './channels/channel-factory';
+export { channelSelector, ChannelSelector } from './channels/channel-selector';
+export type { INotificationChannel } from './channels/channel.interface';
+export { LocalNotificationChannel } from './channels/local-channel';
+export { FCMChannel } from './channels/fcm-channel';
+export { firestoreStorage, FirestoreNotificationStorage } from './storage/firestore-storage';
+export type { INotificationStorage } from './storage/storage.interface';
+export { NotificationSubscription, NotificationPreference, NotificationLog } from './storage/storage.interface';
+export { ruleEngine, RuleEngine, NotificationRule } from './schedulers/rule-engine';
+export { ClientNotificationScheduler, INotificationScheduler } from './schedulers/client-scheduler';
+export { CutoffReminderRule } from './schedulers/rules/cutoff-reminder-rule';
+

@@ -3,6 +3,8 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { AuthProvider } from '@/lib/auth-context'
 import Navbar from '@/components/Navbar'
+import { NotificationInitializer } from '@/components/NotificationInitializer'
+import { NotificationPrompt } from '@/components/NotificationPrompt'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -37,6 +39,8 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <AuthProvider>
+          <NotificationInitializer />
+          <NotificationPrompt />
           <div className="min-h-screen bg-slate-50 dark:bg-gray-900">
             <Navbar />
             <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
