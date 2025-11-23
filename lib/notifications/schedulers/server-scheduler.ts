@@ -1,3 +1,5 @@
+import 'server-only';
+
 import { INotificationScheduler } from './scheduler.interface';
 import type { Notification } from '../core/types';
 import { NotificationType, NotificationPriority } from '../core/types';
@@ -9,6 +11,8 @@ import { getMatches } from '@/lib/firestore';
 import { getActiveTournament } from '@/lib/firestore';
 import { getUserPredictions } from '@/lib/firestore';
 import { getPrediction } from '@/lib/firestore';
+import { initializeApp, cert, getApps } from 'firebase-admin/app';
+import { getMessaging, Message } from 'firebase-admin/messaging';
 
 // Firebase Admin SDK for FCM sending
 let messaging: any = null;
@@ -20,28 +24,29 @@ async function initializeFirebaseAdmin() {
   }
 
   try {
-    // Dynamic import to avoid build errors if firebase-admin is not installed
-    const admin = await import('firebase-admin');
-    const { getMessaging } = await import('firebase-admin/messaging');
+    // Check if already initialized
+    if (getApps().length > 0) {
+      messaging = getMessaging();
+      adminInitialized = true;
+      return true;
+    }
 
-    if (!admin.getApps().length) {
-      const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
-      
-      if (!serviceAccountKey) {
-        logger.warn('FIREBASE_SERVICE_ACCOUNT_KEY not found, FCM sending will not work');
-        return false;
-      }
+    const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+    
+    if (!serviceAccountKey) {
+      logger.warn('FIREBASE_SERVICE_ACCOUNT_KEY not found, FCM sending will not work');
+      return false;
+    }
 
-      try {
-        const serviceAccount = JSON.parse(serviceAccountKey);
-        admin.initializeApp({
-          credential: admin.cert(serviceAccount),
-        });
-        logger.info('Firebase Admin initialized for FCM');
-      } catch (error) {
-        logger.error('Error initializing Firebase Admin', { error });
-        return false;
-      }
+    try {
+      const serviceAccount = JSON.parse(serviceAccountKey);
+      initializeApp({
+        credential: cert(serviceAccount),
+      });
+      logger.info('Firebase Admin initialized for FCM');
+    } catch (error) {
+      logger.error('Error initializing Firebase Admin', { error });
+      return false;
     }
 
     messaging = getMessaging();
