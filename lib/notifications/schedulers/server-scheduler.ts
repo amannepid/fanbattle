@@ -233,33 +233,46 @@ export class ServerNotificationScheduler implements INotificationScheduler {
       }
 
       // Send FCM notification
-      const message = {
+      const message: Message = {
         token: token,
         notification: {
           title: notification.title,
           body: notification.body,
+          imageUrl: notification.data.imageUrl || undefined,
         },
         data: {
           ...notification.data,
           notificationId: notification.id,
           type: notification.type,
+          url: notification.data.url || '/',
         },
         webpush: {
-          notification: {
-            icon: '/logo.png',
-            badge: '/logo.png',
-            requireInteraction: false,
+          headers: {
+            Urgency: notification.priority === NotificationPriority.URGENT ? 'high' : 'normal',
           },
           fcmOptions: {
-            link: notification.data?.url || '/',
+            link: notification.data.url || '/',
           },
         },
         apns: {
           payload: {
             aps: {
+              alert: {
+                title: notification.title,
+                body: notification.body,
+              },
+              badge: 1, // Increment badge count
               sound: 'default',
-              badge: 1,
             },
+          },
+          fcmOptions: {
+            imageUrl: notification.data.imageUrl || undefined,
+          },
+        },
+        android: {
+          notification: {
+            icon: notification.data.icon || '/logo.png',
+            color: '#0A233F',
           },
         },
       };
