@@ -197,11 +197,15 @@ export class ServerNotificationScheduler implements INotificationScheduler {
             },
             testNotification
           );
-          logger.info('Test notification sent', { userId: subscription.userId });
+          logger.info('Test notification sent', { 
+            userId: subscription.userId,
+            platform: subscription.channels.fcm?.platform,
+          });
         } catch (error) {
           logger.error('Error sending test notification', {
             error,
             userId: subscription.userId,
+            platform: subscription.channels.fcm?.platform,
           });
         }
       }
@@ -213,11 +217,13 @@ export class ServerNotificationScheduler implements INotificationScheduler {
   }
 
   private async sendFCMNotification(
-    subscription: { userId: string; channels: { fcm?: { token: string } } },
+    subscription: { userId: string; channels: { fcm?: { token: string; platform?: string } } },
     notification: Notification
   ): Promise<void> {
     try {
       const token = subscription.channels.fcm?.token;
+      const platform = subscription.channels.fcm?.platform;
+      
       if (!token) {
         logger.warn('No FCM token available', { userId: subscription.userId });
         return;
@@ -232,7 +238,13 @@ export class ServerNotificationScheduler implements INotificationScheduler {
         return;
       }
 
-      // Send FCM notification
+      logger.info('Sending FCM notification', {
+        userId: subscription.userId,
+        platform,
+        notificationId: notification.id,
+      });
+
+      // Build base message
       const message: Message = {
         token: token,
         notification: {
@@ -246,41 +258,91 @@ export class ServerNotificationScheduler implements INotificationScheduler {
           type: notification.type,
           url: notification.data.url || '/',
         },
-        webpush: {
-          headers: {
-            Urgency: notification.priority === NotificationPriority.URGENT ? 'high' : 'normal',
-          },
-          fcmOptions: {
-            link: notification.data.url || '/',
-          },
-        },
-        apns: {
+      };
+
+      // iOS-specific configuration
+      if (platform === 'ios') {
+        // iOS requires specific APNs configuration
+        message.apns = {
           payload: {
             aps: {
               alert: {
                 title: notification.title,
                 body: notification.body,
               },
-              badge: 1, // Increment badge count
+              badge: 1,
+              sound: 'default',
+              'content-available': 1, // Enable background fetch
+            },
+          },
+          headers: {
+            'apns-priority': '10', // High priority (10 = immediate, 5 = power-efficient)
+            'apns-push-type': 'alert', // Required for iOS 13+
+          },
+          fcmOptions: {
+            imageUrl: notification.data.imageUrl || undefined,
+          },
+        };
+        
+        // For iOS PWAs, also include webpush (Safari supports web push)
+        message.webpush = {
+          headers: {
+            Urgency: notification.priority === NotificationPriority.URGENT ? 'high' : 'normal',
+          },
+          notification: {
+            title: notification.title,
+            body: notification.body,
+            icon: notification.data.icon || '/logo.png',
+            badge: '/logo.png',
+            requireInteraction: false,
+          },
+          fcmOptions: {
+            link: notification.data.url || '/',
+          },
+        };
+      } else {
+        // Android/Desktop configuration
+        message.webpush = {
+          headers: {
+            Urgency: notification.priority === NotificationPriority.URGENT ? 'high' : 'normal',
+          },
+          fcmOptions: {
+            link: notification.data.url || '/',
+          },
+        };
+        
+        message.android = {
+          notification: {
+            icon: notification.data.icon || '/logo.png',
+            color: '#0A233F',
+            sound: 'default',
+            priority: notification.priority === NotificationPriority.URGENT ? 'high' : 'normal',
+          },
+        };
+        
+        // Also include APNs for cross-platform compatibility
+        message.apns = {
+          payload: {
+            aps: {
+              alert: {
+                title: notification.title,
+                body: notification.body,
+              },
+              badge: 1,
               sound: 'default',
             },
           },
           fcmOptions: {
             imageUrl: notification.data.imageUrl || undefined,
           },
-        },
-        android: {
-          notification: {
-            icon: notification.data.icon || '/logo.png',
-            color: '#0A233F',
-          },
-        },
-      };
+        };
+      }
 
       await messaging.send(message);
       
       logger.info('FCM notification sent successfully', {
         userId: subscription.userId,
+        platform,
         notificationId: notification.id,
       });
     } catch (error: any) {
@@ -289,16 +351,25 @@ export class ServerNotificationScheduler implements INotificationScheduler {
           error?.code === 'messaging/registration-token-not-registered') {
         logger.warn('Invalid FCM token, user may need to resubscribe', {
           userId: subscription.userId,
+          platform: subscription.channels.fcm?.platform,
           error: error.code,
         });
-        // Optionally: Remove invalid token from subscription
+      } else if (error?.code === 'messaging/authentication-error') {
+        logger.error('Firebase authentication error - check APNs configuration in Firebase Console', {
+          userId: subscription.userId,
+          platform: subscription.channels.fcm?.platform,
+          error: error.code,
+        });
       } else {
         logger.error('Error sending FCM notification', {
           error: error?.message || error,
+          errorCode: error?.code,
           userId: subscription.userId,
+          platform: subscription.channels.fcm?.platform,
           notificationId: notification.id,
         });
       }
+      throw error; // Re-throw to be caught by caller
     }
   }
 }
