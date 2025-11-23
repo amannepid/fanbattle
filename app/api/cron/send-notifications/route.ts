@@ -7,7 +7,7 @@
  * {
  *   "crons": [{
  *     "path": "/api/cron/send-notifications",
- *     "schedule": "*/15 * * * *"
+ *     "schedule": "0 0 * * *"
  *   }]
  * }
  */
