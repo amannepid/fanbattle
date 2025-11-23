@@ -95,13 +95,29 @@ export class ServerNotificationScheduler implements INotificationScheduler {
 
       // Normal production mode - check for actual cutoff reminders
       // Get all users with FCM subscriptions
+      // Note: Skip iOS subscriptions if APNs is not configured (they won't work anyway)
       const subscriptions = await firestoreStorage.getAllSubscriptions();
       const fcmSubscriptions = subscriptions.filter(
-        sub => sub.channels.fcm?.enabled && sub.channels.fcm?.token
+        sub => {
+          const hasFCM = sub.channels.fcm?.enabled && sub.channels.fcm?.token;
+          if (!hasFCM) return false;
+          
+          // Skip iOS if APNs might not be configured (will fail with auth error)
+          // This is a graceful fallback - iOS users will rely on client-side local notifications
+          const isIOS = sub.channels.fcm?.platform === 'ios';
+          if (isIOS) {
+            logger.debug('Skipping iOS FCM notification (APNs may not be configured). iOS users will use local notifications when app is open.', {
+              userId: sub.userId,
+            });
+            return false; // Skip iOS FCM, rely on local notifications
+          }
+          
+          return true;
+        }
       );
 
       if (fcmSubscriptions.length === 0) {
-        logger.debug('No FCM subscriptions found');
+        logger.debug('No FCM subscriptions found (excluding iOS)');
         return;
       }
 
@@ -156,12 +172,27 @@ export class ServerNotificationScheduler implements INotificationScheduler {
   private async sendTestNotificationsToAll(): Promise<void> {
     try {
       const subscriptions = await firestoreStorage.getAllSubscriptions();
+      // Filter FCM subscriptions, but skip iOS if APNs might not be configured
       const fcmSubscriptions = subscriptions.filter(
-        sub => sub.channels.fcm?.enabled && sub.channels.fcm?.token
+        sub => {
+          const hasFCM = sub.channels.fcm?.enabled && sub.channels.fcm?.token;
+          if (!hasFCM) return false;
+          
+          // Skip iOS if APNs might not be configured
+          const isIOS = sub.channels.fcm?.platform === 'ios';
+          if (isIOS) {
+            logger.info('Skipping iOS FCM test notification (APNs may not be configured). iOS users can test local notifications via the test page.', {
+              userId: sub.userId,
+            });
+            return false;
+          }
+          
+          return true;
+        }
       );
 
       if (fcmSubscriptions.length === 0) {
-        logger.info('No FCM subscriptions found for test notification');
+        logger.info('No FCM subscriptions found for test notification (excluding iOS)');
         return;
       }
 
