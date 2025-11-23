@@ -130,35 +130,42 @@ export class ServerNotificationScheduler implements INotificationScheduler {
 
       const allMatches = await getMatches(tournament.id);
 
-      // Check each user
-      for (const subscription of fcmSubscriptions) {
-        try {
-          const userPredictions = await getUserPredictions(subscription.userId);
+      // Process users in parallel batches to improve performance
+      const BATCH_SIZE = 10; // Process 10 users at a time
+      for (let i = 0; i < fcmSubscriptions.length; i += BATCH_SIZE) {
+        const batch = fcmSubscriptions.slice(i, i + BATCH_SIZE);
+        
+        await Promise.allSettled(
+          batch.map(async (subscription) => {
+            try {
+              const userPredictions = await getUserPredictions(subscription.userId);
 
-          const context = {
-            userId: subscription.userId,
-            tournamentId: tournament.id,
-            allMatches,
-            userPredictions,
-            hasUserPredicted: async (matchId: string) => {
-              const prediction = await getPrediction(subscription.userId, matchId);
-              return prediction !== null;
-            },
-          };
+              const context = {
+                userId: subscription.userId,
+                tournamentId: tournament.id,
+                allMatches,
+                userPredictions,
+                hasUserPredicted: async (matchId: string) => {
+                  const prediction = await getPrediction(subscription.userId, matchId);
+                  return prediction !== null;
+                },
+              };
 
-          // Evaluate rules
-          const notifications = await ruleEngine.evaluate(context);
+              // Evaluate rules
+              const notifications = await ruleEngine.evaluate(context);
 
-          // Send FCM notifications
-          for (const notification of notifications) {
-            await this.sendFCMNotification(subscription, notification);
-          }
-        } catch (error) {
-          logger.error('Error processing user subscription', {
-            error,
-            userId: subscription.userId,
-          });
-        }
+              // Send FCM notifications
+              for (const notification of notifications) {
+                await this.sendFCMNotification(subscription, notification);
+              }
+            } catch (error) {
+              logger.error('Error processing user subscription', {
+                error,
+                userId: subscription.userId,
+              });
+            }
+          })
+        );
       }
     } catch (error) {
       logger.error('Error in server scheduler checkAndTrigger', { error });
@@ -391,6 +398,13 @@ export class ServerNotificationScheduler implements INotificationScheduler {
           platform: subscription.channels.fcm?.platform,
           error: error.code,
         });
+      } else if (error?.code === 'messaging/invalid-argument') {
+        logger.error('Invalid FCM message argument', {
+          userId: subscription.userId,
+          platform: subscription.channels.fcm?.platform,
+          error: error.code,
+          notificationId: notification.id,
+        });
       } else {
         logger.error('Error sending FCM notification', {
           error: error?.message || error,
@@ -400,7 +414,8 @@ export class ServerNotificationScheduler implements INotificationScheduler {
           notificationId: notification.id,
         });
       }
-      throw error; // Re-throw to be caught by caller
+      // Don't re-throw - allow other users' notifications to be processed
+      // The error is already logged for monitoring
     }
   }
 }
