@@ -354,7 +354,7 @@ export class ServerNotificationScheduler implements INotificationScheduler {
             icon: notification.data.icon || '/logo.png',
             color: '#0A233F',
             sound: 'default',
-            priority: notification.priority === NotificationPriority.URGENT ? 'high' : 'normal',
+            priority: notification.priority === NotificationPriority.URGENT ? 'high' : 'default',
           },
         };
         
