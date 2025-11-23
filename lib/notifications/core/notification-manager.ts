@@ -1,11 +1,13 @@
-import { Notification, NotificationResult, NotificationStatus, NotificationContext, NotificationPreferences } from './types';
+import { Notification, NotificationStatus, NotificationContext, NotificationPreferences } from './types';
+import type { NotificationResult } from './result';
 import { channelFactory } from '../channels/channel-factory';
 import { channelSelector } from '../channels/channel-selector';
 import { platformDetector, Platform } from '../platform/platform-detector';
 import { capabilityChecker } from '../platform/capability-checker';
 import { LocalNotificationChannel } from '../channels/local-channel';
 import { FCMChannel } from '../channels/fcm-channel';
-import { firestoreStorage, INotificationStorage } from '../storage/firestore-storage';
+import { firestoreStorage } from '../storage/firestore-storage';
+import type { INotificationStorage } from '../storage/storage.interface';
 import { eventBus } from '../handlers/event-handler';
 import { clickHandler } from '../handlers/click-handler';
 import { retryHandler } from '../utils/retry-handler';
@@ -290,7 +292,14 @@ export class NotificationManager implements INotificationManager {
             subscribed: !!subscription?.channels.fcm?.token,
           },
         },
-        preferences: preference || subscription?.preferences || {
+        preferences: (preference?.enabled !== undefined 
+          ? {
+              cutoffReminders: preference.reminderEnabled ?? true,
+              matchAvailable: preference.matchAvailable ?? false,
+              scoreUpdates: preference.scoreUpdates ?? false,
+              leaderboardUpdates: preference.leaderboardUpdates ?? false,
+            }
+          : subscription?.preferences) || {
           cutoffReminders: true,
           matchAvailable: false,
           scoreUpdates: false,

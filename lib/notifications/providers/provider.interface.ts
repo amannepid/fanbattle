@@ -9,15 +9,9 @@ export interface NotificationPayload {
   silent?: boolean;
 }
 
-export interface ProviderResult {
-  success: true;
-  messageId?: string;
-} | {
-  success: false;
-  error: string;
-  retryable: boolean;
-  errorCode?: string;
-}
+export type ProviderResult = 
+  | { success: true; messageId?: string }
+  | { success: false; error: string; retryable: boolean; errorCode?: string };
 
 export interface INotificationProvider {
   send(payload: NotificationPayload): Promise<ProviderResult>;

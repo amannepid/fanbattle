@@ -24,8 +24,10 @@ export { LocalNotificationChannel } from './channels/local-channel';
 export { FCMChannel } from './channels/fcm-channel';
 export { firestoreStorage, FirestoreNotificationStorage } from './storage/firestore-storage';
 export type { INotificationStorage } from './storage/storage.interface';
-export { NotificationSubscription, NotificationPreference, NotificationLog } from './storage/storage.interface';
-export { ruleEngine, RuleEngine, NotificationRule } from './schedulers/rule-engine';
-export { ClientNotificationScheduler, INotificationScheduler } from './schedulers/client-scheduler';
+export type { NotificationSubscription, NotificationPreference, NotificationLog } from './storage/storage.interface';
+export { ruleEngine, RuleEngine } from './schedulers/rule-engine';
+export type { NotificationRule } from './schedulers/rule-engine';
+export { ClientNotificationScheduler } from './schedulers/client-scheduler';
+export type { INotificationScheduler } from './schedulers/scheduler.interface';
 export { CutoffReminderRule } from './schedulers/rules/cutoff-reminder-rule';
 

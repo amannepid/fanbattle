@@ -185,7 +185,7 @@ export class FCMProvider implements INotificationProvider {
         const initialized = await this.initialize();
         if (!initialized) {
           return {
-            success: false,
+            success: false as const,
             error: 'FCM not initialized',
             retryable: false,
             errorCode: ErrorType.SERVICE_UNAVAILABLE,
@@ -193,7 +193,7 @@ export class FCMProvider implements INotificationProvider {
         }
       } else {
         return {
-          success: false,
+          success: false as const,
           error: 'Invalid notification payload',
           retryable: false,
           errorCode: ErrorType.INVALID_PAYLOAD,
@@ -205,12 +205,12 @@ export class FCMProvider implements INotificationProvider {
     // Actual sending happens on server
     const token = await this.getToken();
     if (!token) {
-      return {
-        success: false,
-        error: 'FCM token not available',
-        retryable: true,
-        errorCode: ErrorType.INVALID_TOKEN,
-      };
+        return {
+          success: false as const,
+          error: 'FCM token not available',
+          retryable: true,
+          errorCode: ErrorType.INVALID_TOKEN,
+        };
     }
 
     logger.debug('FCM payload validated', { title: payload.title });

@@ -58,11 +58,14 @@ export class FCMChannel implements INotificationChannel {
         // Note: Actual sending happens on server
         return createSuccessResult(this.name, notification.id);
       } else {
+        // TypeScript discriminated union - when success is false, we know error properties exist
+        // Use type assertion through unknown to properly narrow the type
+        const errorResult = result as unknown as { success: false; error: string; retryable: boolean; errorCode?: string };
         logger.error('Failed to validate FCM notification', {
           notificationId: notification.id,
-          error: result.error,
+          error: errorResult.error,
         });
-        return createErrorResult(result.error, result.retryable, this.name, result.errorCode);
+        return createErrorResult(errorResult.error, errorResult.retryable, this.name, errorResult.errorCode);
       }
     } catch (error) {
       const errorType = errorHandler.handle(error);
@@ -165,15 +168,17 @@ export class FCMChannel implements INotificationChannel {
       if (this.storage) {
         const subscription = await this.storage.getSubscription(userId);
         if (subscription) {
+          const updatedChannels = { ...subscription.channels };
+          if (updatedChannels.fcm) {
+            // Keep existing token and platform, just disable
+            updatedChannels.fcm = {
+              ...updatedChannels.fcm,
+              enabled: false,
+            };
+          }
           await this.storage.saveSubscription({
             ...subscription,
-            channels: {
-              ...subscription.channels,
-              fcm: {
-                ...subscription.channels.fcm,
-                enabled: false,
-              },
-            },
+            channels: updatedChannels,
             updatedAt: new Date(),
           });
         }

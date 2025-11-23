@@ -93,7 +93,7 @@ class PlatformDetector {
       window.matchMedia('(display-mode: standalone)').matches ||
       (window.navigator as any).standalone;
 
-    this.pwaInstalled = isStandalone || isInstalled || false;
+    this.pwaInstalled = !!(isStandalone || isInstalled || false);
     return this.pwaInstalled;
   }
 

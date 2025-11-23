@@ -33,11 +33,13 @@ export class LocalNotificationChannel implements INotificationChannel {
         logger.info('Local notification sent', { notificationId: notification.id });
         return createSuccessResult(this.name, notification.id);
       } else {
+        // TypeScript discriminated union - when success is false, we know error properties exist
+        const errorResult = result as unknown as { success: false; error: string; retryable: boolean; errorCode?: string };
         logger.error('Failed to send local notification', {
           notificationId: notification.id,
-          error: result.error,
+          error: errorResult.error,
         });
-        return createErrorResult(result.error, result.retryable, this.name, result.errorCode);
+        return createErrorResult(errorResult.error, errorResult.retryable, this.name, errorResult.errorCode);
       }
     } catch (error) {
       const errorType = errorHandler.handle(error);

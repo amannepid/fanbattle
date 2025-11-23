@@ -57,19 +57,19 @@ export class LocalNotificationProvider implements INotificationProvider {
       const permission = this.getPermissionState();
       if (permission !== 'granted') {
         return {
-          success: false,
+          success: false as const,
           error: `Notification permission not granted: ${permission}`,
           retryable: false,
           errorCode: ErrorType.PERMISSION_DENIED,
         };
       }
 
-      return {
-        success: false,
-        error: 'Invalid notification payload',
-        retryable: false,
-        errorCode: ErrorType.INVALID_PAYLOAD,
-      };
+        return {
+          success: false as const,
+          error: 'Invalid notification payload',
+          retryable: false,
+          errorCode: ErrorType.INVALID_PAYLOAD,
+        };
     }
 
     try {
@@ -91,7 +91,7 @@ export class LocalNotificationProvider implements INotificationProvider {
       logger.error('Failed to send local notification', { error, payload });
 
       return {
-        success: false,
+        success: false as const,
         error: error instanceof Error ? error.message : String(error),
         retryable,
         errorCode: errorType,
