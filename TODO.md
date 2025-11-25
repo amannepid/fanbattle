@@ -126,12 +126,19 @@ This file tracks the current tasks and improvements for the FanBattle project.
 - Old planning documents (PRD, timeline, deliverables, etc.)
 - Duplicate guides and setup files
 - JSON import related files and scripts
-- Test mode documentation (consolidated)  
+- Test mode documentation (consolidated)
+- Troubleshooting/fix guides (one-time issues)
+- Step-by-step testing guides (14 files)
+- Firebase optimization analysis (outdated)
+- Admin email update guide (consolidated into Firestore setup)  
 **Kept:**
 - `README.md` - Main project documentation
-- `SCORING_LOGIC_REVIEW.md` - Scoring logic review
-- `scripts/PLAYERS_CSV_GUIDE.md` - Seed-related guide
 - `TODO.md` - This file
+- `FIRESTORE_SETUP.md` - Consolidated Firestore security rules and indexes guide
+- `SCORING_LOGIC_REVIEW.md` - Scoring logic documentation
+- `PLAYOFF_TEAM_ASSIGNMENT_EXAMPLE.md` - Playoff bracket flow example
+- `scripts/PLAYERS_CSV_GUIDE.md` - CSV import guide
+- Other essential setup and feature documentation
 
 ---
 
@@ -160,7 +167,7 @@ This file tracks the current tasks and improvements for the FanBattle project.
 ---
 
 ### ✅ 12. Clean up Users, Predictions, Matches, and Players to test fresh
-**Completed:** Just now  
+**Completed:** Recent  
 **Description:** Removed all test data (users, predictions, matches, and players) from the database to start with a clean slate.  
 **Results:**
 - Deleted 6 user entries (including test users and real users)
@@ -169,6 +176,21 @@ This file tracks the current tasks and improvements for the FanBattle project.
 - Deleted 72 players (including test players)
 - Database is now completely clean and ready for fresh seeding  
 **Files Changed:** Updated `scripts/cleanup-users.ts` to also delete matches and players
+
+---
+
+### ✅ 13. Documentation Consolidation and Cleanup
+**Completed:** Just now  
+**Description:** Consolidated Firestore setup documentation and cleaned up redundant markdown files.  
+**Changes:**
+- Created `FIRESTORE_SETUP.md` - Consolidated security rules and indexes guide
+- Removed `FIRESTORE_SECURITY_RULES_SETUP.md` (consolidated)
+- Removed `FIRESTORE_INDEXES_GUIDE.md` (consolidated)
+- Removed `FIRESTORE_OPTIMIZATION_ANALYSIS.md` (outdated)
+- Removed `UPDATE_ADMIN_EMAILS.md` (consolidated)
+- Updated `SCORING_LOGIC_REVIEW.md` - Added tournament bonuses implementation status
+- Updated `README.md` - Improved setup instructions and scoring details
+- Updated `TODO.md` - Added documentation cleanup task
 
 ---
 

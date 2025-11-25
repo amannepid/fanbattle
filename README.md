@@ -97,20 +97,13 @@ NEXT_PUBLIC_ADMIN_EMAIL=your_admin_email
 2. Create a new project
 3. Enable **Firestore Database**
 4. Enable **Authentication** with Google provider
-5. Update Firestore Security Rules:
+5. **Configure Firestore Security Rules and Indexes**:
+   - See `FIRESTORE_SETUP.md` for complete setup instructions
+   - Deploy security rules from `firestore.rules`
+   - Deploy indexes from `firestore.indexes.json`
+   - Update admin emails in `firestore.rules`
 
-```javascript
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if true; // For development only
-    }
-  }
-}
-```
-
-**Note**: Update security rules for production!
+**Important**: Never use `allow read, write: if true;` in production! See `FIRESTORE_SETUP.md` for proper security rules.
 
 ### 5. Seed the Database
 
@@ -154,11 +147,18 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 2. **Register**: Pick your season team and tournament predictions
 3. **Predict Matches**: Make predictions before each match starts
 4. **Earn Points**: 
-   - Winner: +3 points
-   - Player of the Match: +1 point
-   - First Innings Score Category: +1 point
-   - First Innings Wickets: +1 point
-   - Season Team Bonus: +5 points (if your team wins the tournament)
+   - **Match Predictions**:
+     - Winner: +3 points (league), +5 points (playoff), +7 points (final)
+     - Player of the Match: +1 point
+     - First Innings Score Category: +1 point
+     - First Innings Wickets: +1 point
+     - Season Team Adjustment: +1 bonus (if season team wins and you predicted them), -1 penalty (if season team loses)
+   - **Tournament Predictions** (end of tournament):
+     - Season Team Wins Title: +5 points
+     - Player of Tournament: +5 points if correct
+     - Highest Run Scorer: +5 points if correct
+     - Highest Wicket Taker: +5 points if correct
+   - **Penalties**: Wrong predictions incur fees ($2 league, $3 playoff, $5 final)
 5. **Climb the Leaderboard**: Compete with friends!
 
 ## 🎨 Design System
@@ -201,6 +201,9 @@ Your app will be live at `https://your-app.vercel.app`
 - `npm start` - Start production server
 - `npm run lint` - Run ESLint
 - `npm run seed` - Seed database with initial data
+- `npm run import-players` - Import players from CSV file
+- `npm run test-scoring` - Run scoring logic test suite
+- `npm run recalculate-match` - Recalculate scores for a specific match
 
 ## 📝 Environment Variables
 
@@ -213,7 +216,10 @@ Your app will be live at `https://your-app.vercel.app`
 | `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | Firebase messaging sender ID |
 | `NEXT_PUBLIC_FIREBASE_APP_ID` | Firebase app ID |
 | `NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID` | Firebase measurement ID |
-| `NEXT_PUBLIC_ADMIN_EMAIL` | Admin user email |
+| `NEXT_PUBLIC_FIREBASE_VAPID_KEY` | Firebase VAPID key (for notifications) |
+| `NEXT_PUBLIC_ADMIN_EMAILS` | Comma-separated list of admin emails |
+| `FIREBASE_SERVICE_ACCOUNT_KEY` | Firebase service account JSON (for server-side operations) |
+| `NOTIFICATION_TEST_MODE` | Set to `true` for test mode (optional) |
 
 ## 🤝 Contributing
 

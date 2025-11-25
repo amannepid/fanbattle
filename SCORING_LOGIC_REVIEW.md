@@ -98,7 +98,7 @@ final: 5
 ```
 - Only charged if winner prediction is wrong ✅
 
-### ⚠️ Tournament End Bonuses (NOT YET IMPLEMENTED)
+### ✅ Tournament End Bonuses
 
 **Rules:**
 - Season team wins title: +5 points
@@ -106,8 +106,11 @@ final: 5
 - Highest wicket taker: +5 points
 - Player of tournament: +5 points
 
-**Current Implementation:** ❌ NOT IMPLEMENTED
-- These bonuses are not yet calculated or stored
+**Current Implementation:** ✅ IMPLEMENTED
+- All tournament bonuses are calculated and stored in `userEntry.tournamentBonuses`
+- Bonuses are applied when admin sets tournament results
+- Implemented in `lib/tournament-bonuses.ts`
+- Displayed in dashboard and leaderboard
 
 ### ✅ Match Rules
 
@@ -130,11 +133,26 @@ final: 5
 - Base points (3/5/7)
 - Penalty fees ($2/$3/$5)
 - Reduced overs handling
-
-❌ **Missing:**
 - Tournament end bonuses (title winner, highest run/wicket, POT)
 
 ⚠️ **Needs Verification:**
 - Draw/cancelled match handling
 - Super over/DWL method handling
+
+## Implementation Details
+
+### Scoring Logic
+- **Location**: `lib/scoring.ts`
+- **Main Function**: `calculatePoints()` - Calculates points for a single prediction
+- **Helper Functions**: 
+  - `getBasePoints()` - Returns base points by match type
+  - `getPenaltyFee()` - Returns penalty fee by match type
+  - `calculateSeasonTeamAdjustment()` - Calculates season team bonus/penalty
+  - `getScoreCategory()` - Determines score category from score value
+
+### Tournament Bonuses
+- **Location**: `lib/tournament-bonuses.ts`
+- **Main Function**: `applyTournamentBonuses()` - Applies bonuses to all users
+- **Calculation**: `calculateTournamentBonuses()` - Calculates bonuses for a single user
+- **Trigger**: Called when admin sets tournament results in admin panel
 
