@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, Suspense } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { getActiveTournament, getMatches, getAllPlayers, getTeams, getUserPredictions, createPrediction, updatePrediction, getPrediction } from '@/lib/firestore';
@@ -21,7 +21,7 @@ const SCORE_CATEGORIES: { value: ScoreCategory; label: string }[] = [
   { value: 'F', label: '191+' },
 ];
 
-export default function SchedulePredictionPage() {
+function SchedulePredictionPageContent() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -588,6 +588,18 @@ export default function SchedulePredictionPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SchedulePredictionPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary-600" />
+      </div>
+    }>
+      <SchedulePredictionPageContent />
+    </Suspense>
   );
 }
 
