@@ -3,6 +3,8 @@ const nextConfig = {
   images: {
     domains: ['firebasestorage.googleapis.com'],
   },
+  // Disable source maps in production to prevent 404 errors
+  productionBrowserSourceMaps: false,
   // Ensure service worker is served correctly
   async headers() {
     return [
