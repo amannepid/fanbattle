@@ -149,6 +149,10 @@ export interface Prediction {
   
   submittedAt: Timestamp;
   scoredAt?: Timestamp;
+  
+  // Scheduled prediction fields
+  scheduledFor?: Timestamp; // When the prediction should become active
+  scheduledAt?: Timestamp; // When the user scheduled it
 }
 
 export interface ScoringResult {

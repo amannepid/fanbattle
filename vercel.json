@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/send-notifications",
       "schedule": "0 0 * * *"
+    },
+    {
+      "path": "/api/cron/activate-scheduled-predictions",
+      "schedule": "0 9 * * *"
     }
   ]
 }

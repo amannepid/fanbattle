@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
-import { getActiveTournament, getLeaderboard, getAllPredictions, getMatches, getTeams } from '@/lib/firestore';
+import { getActiveTournament, getLeaderboard, getAllPredictions, getMatches, getTeams, activateScheduledPrediction } from '@/lib/firestore';
 import { Loader2, Users, Trophy, Clock, ArrowRight, ChevronDown, ChevronUp, Search, Filter, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { Timestamp } from 'firebase/firestore';
@@ -102,6 +102,9 @@ export default function BattleGroundPage() {
   }
 
   // Check if prediction should be visible (completed or past edit cutoff)
+  // Scheduled predictions follow the same visibility rules as regular predictions:
+  // - Become visible when their activation time passes (7 PM CST or 6 hours before match)
+  // - This allows users to schedule predictions for locked matches while traveling
   function isPredictionVisible(prediction: Prediction, match: Match, allMatches: Match[]): boolean {
     // If match is completed, always show
     if (match.status === 'completed') {
@@ -111,6 +114,20 @@ export default function BattleGroundPage() {
     // If match is upcoming, check if past edit cutoff
     if (match.status === 'upcoming') {
       const now = new Date();
+      
+      // For scheduled predictions: if scheduledFor time has passed, treat as visible
+      // (same visibility rules as regular predictions - allows scheduling locked matches)
+      if (prediction.scheduledFor) {
+        const scheduledTime = prediction.scheduledFor.toDate();
+        // If activation time has passed, use same visibility rules as regular predictions
+        // This ensures scheduled predictions for locked matches become visible at the correct time
+        if (now >= scheduledTime) {
+          // Continue with normal visibility check below (7 PM CST or 6 hours before match)
+        } else {
+          // Scheduled but not yet activated - not visible to others
+          return false;
+        }
+      }
       
       // All matches: 6 hours before first match of day
       const firstMatchOfDay = getFirstMatchOfDay(match, allMatches);
@@ -129,15 +146,15 @@ export default function BattleGroundPage() {
       // Check if past edit cutoff (6 hours before first match of day)
       const isPastEditCutoff = now >= editCutoffTime;
       
-      // For matches on the same Nepal day as the "next" match, also check 8 PM CST cutoff
+      // For matches on the same Nepal day as the "next" match, also check 7 PM CST cutoff
       // Predictions are visible if EITHER:
       // 1. Past the 6-hour edit cutoff, OR
-      // 2. Past 8 PM CST cutoff (for same Nepal day matches)
+      // 2. Past 7 PM CST cutoff (for same Nepal day matches)
       const nextMatchDayMatches = getNextMatchDayMatches(allMatches);
       const isOnNextMatchDay = nextMatchDayMatches.some(m => m.id === match.id);
       
       if (isOnNextMatchDay) {
-        // For same Nepal day matches, also check if past 8 PM CST cutoff
+        // For same Nepal day matches, also check if past 7 PM CST cutoff
         const isPast8PM = shouldBlockMatchAt8PMCST(match, allMatches);
         return isPastEditCutoff || isPast8PM;
       }
@@ -1112,7 +1129,35 @@ export default function BattleGroundPage() {
       const teamMap = new Map(teamsData.map((t) => [t.id, { name: t.name, shortCode: t.shortCode }]));
       setTeams(teamMap);
 
+      // Activate scheduled predictions that should be visible (client-side activation)
+      // This removes scheduledFor when visibility rules apply, making them regular predictions
+      const activationPromises: Promise<boolean>[] = [];
+      for (const prediction of allPredictions) {
+        if (prediction.scheduledFor) {
+          const match = matchMap.get(prediction.matchId);
+          if (match && isPredictionVisible(prediction, match, matchesData)) {
+            // Scheduled prediction should be visible - activate it by removing scheduledFor
+            activationPromises.push(activateScheduledPrediction(prediction.id));
+          }
+        }
+      }
+      
+      // Wait for all activations to complete (fire and forget - don't block UI)
+      if (activationPromises.length > 0) {
+        Promise.all(activationPromises).then(results => {
+          const activatedCount = results.filter(r => r).length;
+          if (activatedCount > 0) {
+            console.log(`✅ Activated ${activatedCount} scheduled prediction(s)`);
+            // Reload data after activation to show updated predictions
+            loadData();
+          }
+        }).catch(error => {
+          console.error('Error activating scheduled predictions:', error);
+        });
+      }
+
       // Filter predictions that should be visible
+      // Note: After activation, scheduled predictions become regular predictions (no scheduledFor field)
       const visiblePredictions: PredictionWithUser[] = [];
       for (const prediction of allPredictions) {
         const match = matchMap.get(prediction.matchId);

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
 import { getActiveTournament, getMatches, getAllPlayers, getMatchPredictions, updatePrediction, getLeaderboard, getUserEntry, updateUserEntry, getMatch, getUserPredictions, getTeams, updateTournament } from '@/lib/firestore';
@@ -24,6 +24,7 @@ export default function AdminPage() {
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
+  const formRef = useRef<HTMLDivElement>(null);
   
   // Tournament results state
   const [playerOfTournamentId, setPlayerOfTournamentId] = useState('');
@@ -97,8 +98,16 @@ export default function AdminPage() {
     setIsReducedOvers(match.isReducedOvers || false);
     setMessage('');
     
-    // Scroll to top to show the edit form
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // Scroll to form on mobile (form appears below match list on mobile)
+    // Use setTimeout to ensure DOM has updated
+    setTimeout(() => {
+      if (formRef.current) {
+        formRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        // Fallback to top if form ref not available
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }, 100);
   }
 
   async function handleSubmitResult(e: React.FormEvent) {
@@ -410,8 +419,8 @@ export default function AdminPage() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
-        {/* Match List */}
-        <div>
+        {/* Match List - Show first on desktop, second on mobile when form is selected */}
+        <div className={`${selectedMatch ? 'order-2 lg:order-1' : 'order-1'}`}>
           <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">Upcoming Matches</h2>
           <div className="space-y-2 sm:space-y-3">
             {upcomingMatches.length === 0 ? (
@@ -507,8 +516,8 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {/* Result Entry Form */}
-        <div>
+        {/* Result Entry Form - Show second on desktop, first on mobile when selected */}
+        <div ref={formRef} className={`${selectedMatch ? 'order-1 lg:order-2' : 'order-2'}`}>
           {selectedMatch ? (
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
               {/* Header */}

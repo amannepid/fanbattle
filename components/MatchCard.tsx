@@ -20,7 +20,8 @@ export default function MatchCard({
   showPredictButton = true,
   canPredict = true,
   hasPredicted = false,
-  allMatches = []
+  allMatches = [],
+  userPredictions = []
 }: MatchCardProps) {
   const matchDate = match.matchDate.toDate();
   const now = new Date();
@@ -196,25 +197,69 @@ export default function MatchCard({
 
       {showPredictButton && !isPastDeadline && match.status === 'upcoming' && (
         <>
-          {hasPredicted ? (
-            <Link
-              href={`/predict/${match.id}`}
-              className="block w-full text-center px-3 py-2.5 sm:px-4 sm:py-3 bg-cool-500 text-white rounded-button hover:bg-cool-400 transition font-bold shadow-md hover:shadow-lg min-h-[44px] text-sm sm:text-base"
-            >
-              ✓ Update Prediction
-            </Link>
-          ) : canPredict ? (
-            <Link
-              href={`/predict/${match.id}`}
-              className="block w-full text-center px-3 py-2.5 sm:px-4 sm:py-3 bg-gold-500 text-navy-500 rounded-button hover:bg-gold-400 transition font-bold shadow-md hover:shadow-lg min-h-[44px] text-sm sm:text-base"
-            >
-              Make Prediction
-            </Link>
-          ) : (
-            <div className="w-full text-center px-3 py-2.5 sm:px-4 sm:py-3 bg-gray-100 dark:bg-navy-700 text-gray-500 dark:text-gray-400 rounded-button border-2 border-gray-300 dark:border-navy-500 min-h-[44px]">
-              <div className="text-sm font-bold">🔒 Locked</div>
-            </div>
-          )}
+          {(() => {
+            // Check if user has a scheduled prediction for this match
+            const hasScheduledPrediction = userPredictions?.some(p => {
+              if (p.matchId !== match.id || !p.scheduledFor) return false;
+              try {
+                const scheduledTime = p.scheduledFor.toDate ? p.scheduledFor.toDate() : new Date(p.scheduledFor);
+                return scheduledTime > new Date();
+              } catch (e) {
+                return false;
+              }
+            });
+            
+            // Check if user has an active (non-scheduled) prediction
+            const hasActivePrediction = userPredictions?.some(p => 
+              p.matchId === match.id && !p.scheduledFor
+            );
+            
+            if (hasActivePrediction || (hasScheduledPrediction && canPredict)) {
+              // User has predicted (active or scheduled and match is now predictable)
+              return (
+                <Link
+                  href={`/predict/${match.id}`}
+                  className="block w-full text-center px-3 py-2.5 sm:px-4 sm:py-3 bg-cool-500 text-white rounded-button hover:bg-cool-400 transition font-bold shadow-md hover:shadow-lg min-h-[44px] text-sm sm:text-base"
+                >
+                  ✓ Update Prediction
+                </Link>
+              );
+            } else if (hasScheduledPrediction && !canPredict) {
+              // User has scheduled prediction but match is still locked
+              return (
+                <div className="flex flex-col items-center justify-center py-3 px-3 sm:py-4 sm:px-4 bg-navy-800 dark:bg-navy-900 rounded-lg border-2 border-primary-400 dark:border-primary-500">
+                  <div className="flex items-center space-x-1.5 sm:space-x-2">
+                    <Lock className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 dark:text-gray-500" />
+                    <span className="text-sm font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wide">
+                      Locked (scheduled)
+                    </span>
+                  </div>
+                </div>
+              );
+            } else if (canPredict) {
+              // Match is predictable and user hasn't predicted
+              return (
+                <Link
+                  href={`/predict/${match.id}`}
+                  className="block w-full text-center px-3 py-2.5 sm:px-4 sm:py-3 bg-gold-500 text-navy-500 rounded-button hover:bg-gold-400 transition font-bold shadow-md hover:shadow-lg min-h-[44px] text-sm sm:text-base"
+                >
+                  Make Prediction
+                </Link>
+              );
+            } else {
+              // Match is locked and user hasn't predicted
+              return (
+                <div className="flex flex-col items-center justify-center py-3 px-3 sm:py-4 sm:px-4 bg-navy-800 dark:bg-navy-900 rounded-lg border-2 border-primary-400 dark:border-primary-500">
+                  <div className="flex items-center space-x-1.5 sm:space-x-2">
+                    <Lock className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 dark:text-gray-500" />
+                    <span className="text-sm font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wide">
+                      Locked
+                    </span>
+                  </div>
+                </div>
+              );
+            }
+          })()}
         </>
       )}
 

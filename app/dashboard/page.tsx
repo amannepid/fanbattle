@@ -3,10 +3,10 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { useRouter } from 'next/navigation';
-import { getActiveTournament, getUserEntry, getUserPredictions, getMatches, getTeams } from '@/lib/firestore';
+import { getActiveTournament, getUserEntry, getUserPredictions, getMatches, getTeams, filterScheduledPredictions, filterActivePredictions } from '@/lib/firestore';
 import { shouldBlockMatchAt8PMCST, getNepalDay } from '@/lib/prediction-rules';
 import { getBasePoints } from '@/lib/scoring';
-import { Loader2, Trophy, Target, CheckCircle, XCircle, Clock, TrendingUp, ChevronDown, ChevronUp, Copy, CheckCircle2 } from 'lucide-react';
+import { Loader2, Trophy, Target, CheckCircle, XCircle, Clock, TrendingUp, ChevronDown, ChevronUp, Copy, CheckCircle2, Calendar } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
 import Link from 'next/link';
 import type { Tournament, UserEntry, Prediction, Match } from '@/types';
@@ -86,20 +86,25 @@ export default function DashboardPage() {
   }
 
   const totalMatches = 31;
-  const predictedMatches = predictions.length;
-  const scoredPredictions = predictions.filter((p) => p.scoredAt);
+  
+  // Filter active and scheduled predictions (client-side, zero Firestore reads)
+  const activePredictions = filterActivePredictions(predictions);
+  const scheduledPredictions = filterScheduledPredictions(predictions);
+  
+  const predictedMatches = activePredictions.length;
+  const scoredPredictions = activePredictions.filter((p) => p.scoredAt);
   const correctPredictions = scoredPredictions.filter((p) => p.isCorrectWinner).length;
   const accuracy = scoredPredictions.length > 0 
     ? Math.round((correctPredictions / scoredPredictions.length) * 100) 
     : 0;
 
-  // Group predictions by status
-  const upcomingPredictions = predictions.filter((p) => {
+  // Group active predictions by status (exclude scheduled)
+  const upcomingPredictions = activePredictions.filter((p) => {
     const match = matches.get(p.matchId);
     return match && match.status === 'upcoming';
   });
 
-  const completedPredictions = predictions.filter((p) => {
+  const completedPredictions = activePredictions.filter((p) => {
     const match = matches.get(p.matchId);
     return match && match.status === 'completed';
   }).sort((a, b) => b.matchNumber - a.matchNumber);
@@ -130,7 +135,16 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-6 sm:mb-8">My Dashboard</h1>
+      <div className="flex items-center justify-between mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">My Dashboard</h1>
+        <Link
+          href="/dashboard/schedule"
+          className="px-4 py-2 bg-purple-500 text-white rounded-button hover:bg-purple-400 transition font-bold shadow-md hover:shadow-lg min-h-[44px] text-sm sm:text-base flex items-center space-x-2"
+        >
+          <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
+          <span>Schedule Prediction</span>
+        </Link>
+      </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8">
@@ -217,6 +231,103 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* Scheduled Predictions */}
+      {scheduledPredictions.length > 0 && (
+        <div className="mb-6 sm:mb-8">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">
+            Scheduled Predictions ({scheduledPredictions.length})
+          </h2>
+          <div className="space-y-3">
+            {scheduledPredictions.map((prediction) => {
+              const match = matches.get(prediction.matchId);
+              if (!match) return null;
+
+              const now = new Date();
+              const scheduledTime = prediction.scheduledFor!.toDate();
+              const canEdit = now < scheduledTime;
+
+              return (
+                <div key={prediction.id} className="bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-400 dark:border-yellow-600 rounded-lg shadow-md p-4 sm:p-6">
+                  <div className="flex items-center justify-between mb-2 sm:mb-3">
+                    <div className="flex items-center space-x-1.5 sm:space-x-2">
+                      <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-600 flex-shrink-0" />
+                      <span className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400 whitespace-nowrap">
+                        Match {prediction.matchNumber}
+                      </span>
+                      <span className="text-xs sm:text-sm font-medium text-yellow-700 dark:text-yellow-300">
+                        (Scheduled)
+                      </span>
+                    </div>
+                    {canEdit && (
+                      <Link
+                        href="/dashboard/schedule"
+                        className="text-xs sm:text-sm text-primary-600 hover:text-primary-700 font-medium min-h-[44px] px-2 py-1 sm:px-3 sm:py-1.5 flex items-center justify-center rounded-lg"
+                      >
+                        Update Schedule
+                      </Link>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-bold text-gray-900 dark:text-white text-sm sm:text-base truncate">{match.teamAName}</h4>
+                    </div>
+                    <div className="px-2 sm:px-4 text-xs sm:text-sm text-gray-400">vs</div>
+                    <div className="flex-1 text-right min-w-0">
+                      <h4 className="font-bold text-gray-900 dark:text-white text-sm sm:text-base truncate">{match.teamBName}</h4>
+                    </div>
+                  </div>
+                  <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2 sm:mb-3">
+                    {format(match.matchDate.toDate(), 'MMM dd, h:mm a')}
+                  </div>
+                  <div className="bg-yellow-100 dark:bg-yellow-800/30 rounded-lg p-2 sm:p-3 mb-2 sm:mb-3">
+                    <div className="text-xs sm:text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                      Will activate at: {format(scheduledTime, 'MMM dd, h:mm a')}
+                    </div>
+                    <div className="text-[10px] sm:text-xs text-yellow-700 dark:text-yellow-300 mt-1">
+                      {formatDistanceToNow(scheduledTime, { addSuffix: true })}
+                    </div>
+                  </div>
+                  <div className="border-t pt-2 sm:pt-3 mt-2 sm:mt-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-2 text-xs sm:text-sm">
+                      <div>
+                        <span className="text-gray-600 dark:text-gray-400">Winner: </span>
+                        <span className="font-medium text-gray-900 dark:text-white">
+                          {prediction.predictedWinnerName}
+                        </span>
+                      </div>
+                      {prediction.predictedPomName && (
+                        <div>
+                          <span className="text-gray-600 dark:text-gray-400">Player of Match: </span>
+                          <span className="font-medium text-gray-900 dark:text-white">
+                            {prediction.predictedPomName}
+                          </span>
+                        </div>
+                      )}
+                      {prediction.teamAScoreCategory && (
+                        <div>
+                          <span className="text-gray-600 dark:text-gray-400">If {match.teamAName} bats: </span>
+                          <span className="font-medium text-gray-900 dark:text-white">
+                            {prediction.teamAScoreCategory}/{prediction.teamAWickets} wickets
+                          </span>
+                        </div>
+                      )}
+                      {prediction.teamBScoreCategory && (
+                        <div>
+                          <span className="text-gray-600 dark:text-gray-400">If {match.teamBName} bats: </span>
+                          <span className="font-medium text-gray-900 dark:text-white">
+                            {prediction.teamBScoreCategory}/{prediction.teamBWickets} wickets
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Upcoming Predictions */}
       {upcomingPredictions.length > 0 && (
         <div className="mb-6 sm:mb-8">
@@ -234,14 +345,14 @@ export default function DashboardPage() {
 
               const now = new Date();
               
-              // Check 8 PM CST cutoff for matches on the same Nepal day as the "next" match
+              // Check 7 PM CST cutoff for matches on the same Nepal day as the "next" match
               const shouldBlock = shouldBlockMatchAt8PMCST(match, Array.from(matches.values()));
               
               const firstMatchStartTime = firstMatchOfDay.matchDate.toDate();
               
               // Edit button: visible until 6 hours before first match start time
               // Also block if first match is already completed or started
-              // Also block if this match is on the same Nepal day and past 8 PM CST cutoff
+              // Also block if this match is on the same Nepal day and past 7 PM CST cutoff
               const editCutoffTime = new Date(firstMatchStartTime);
               editCutoffTime.setHours(editCutoffTime.getHours() - 6);
               const canEdit = !shouldBlock && 

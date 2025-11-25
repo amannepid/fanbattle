@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
-import { getActiveTournament, getMatches, getTeams, getUserEntry, getUserPredictions } from '@/lib/firestore';
+import { getActiveTournament, getMatches, getTeams, getUserEntry, getUserPredictions, filterActivePredictions } from '@/lib/firestore';
 import { getPredictableMatches } from '@/lib/prediction-rules';
 import MatchCard from '@/components/MatchCard';
 import PointsTable from '@/components/PointsTable';
@@ -51,10 +51,15 @@ export default function Home() {
         ]);
         
         setUserEntry(entry);
+        
+        // Store all predictions (including scheduled) for MatchCard to check
         setUserPredictions(predictions);
         
-        // Calculate which matches can be predicted
-        const predictable = getPredictableMatches(matchesData, predictions);
+        // Filter out scheduled predictions (only show active predictions) for predictable matches calculation
+        const activePredictions = filterActivePredictions(predictions);
+        
+        // Calculate which matches can be predicted (using active predictions only)
+        const predictable = getPredictableMatches(matchesData, activePredictions);
         setPredictableMatchIds(predictable);
       } else {
         // Clear user-specific data when logged out
