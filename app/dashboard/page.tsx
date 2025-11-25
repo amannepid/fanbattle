@@ -258,14 +258,6 @@ export default function DashboardPage() {
                         (Scheduled)
                       </span>
                     </div>
-                    {canEdit && (
-                      <Link
-                        href="/dashboard/schedule"
-                        className="text-xs sm:text-sm text-primary-600 hover:text-primary-700 font-medium min-h-[44px] px-2 py-1 sm:px-3 sm:py-1.5 flex items-center justify-center rounded-lg"
-                      >
-                        Update Schedule
-                      </Link>
-                    )}
                   </div>
                   <div className="flex items-center justify-between mb-1.5 sm:mb-2">
                     <div className="flex-1 min-w-0">
@@ -320,6 +312,78 @@ export default function DashboardPage() {
                         </div>
                       )}
                     </div>
+                  </div>
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mt-3 sm:mt-4 gap-2 sm:gap-3 pt-3 border-t border-yellow-300 dark:border-yellow-700">
+                    {/* Copy Prediction Button */}
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const teamA = teams.get(match.teamAId);
+                        const teamB = teams.get(match.teamBId);
+                        const winnerTeam = teams.get(prediction.predictedWinnerId);
+                        
+                        const teamAShortCode = teamA?.shortCode || match.teamAName;
+                        const teamBShortCode = teamB?.shortCode || match.teamBName;
+                        const winnerShortCode = winnerTeam?.shortCode || prediction.predictedWinnerName || 'N/A';
+                        
+                        const matchType = match.matchType;
+                        
+                        let content = `Match ${prediction.matchNumber} . ${matchType}\n`;
+                        content += `${teamAShortCode} vs ${teamBShortCode}\n`;
+                        content += `Winner: ${winnerShortCode}\n`;
+                        
+                        // Team A prediction
+                        if (prediction.teamAScoreCategory || prediction.teamAWickets !== undefined) {
+                          const scoreCat = prediction.teamAScoreCategory || '-';
+                          const wickets = prediction.teamAWickets !== undefined ? prediction.teamAWickets : '-';
+                          content += `${teamAShortCode} / ${scoreCat} / ${wickets}\n`;
+                        }
+                        
+                        // Team B prediction
+                        if (prediction.teamBScoreCategory || prediction.teamBWickets !== undefined) {
+                          const scoreCat = prediction.teamBScoreCategory || '-';
+                          const wickets = prediction.teamBWickets !== undefined ? prediction.teamBWickets : '-';
+                          content += `${teamBShortCode} / ${scoreCat} / ${wickets}\n`;
+                        }
+                        
+                        // MoM
+                        if (prediction.predictedPomName) {
+                          content += `MoM: ${prediction.predictedPomName}`;
+                        }
+                        
+                        try {
+                          await navigator.clipboard.writeText(content);
+                          setCopiedPredictionId(prediction.id);
+                          setTimeout(() => setCopiedPredictionId(null), 2000);
+                        } catch (err) {
+                          console.error('Failed to copy:', err);
+                        }
+                      }}
+                      className="flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors text-xs sm:text-sm font-medium min-h-[44px]"
+                    >
+                      {copiedPredictionId === prediction.id ? (
+                        <>
+                          <CheckCircle2 className="h-4 w-4" />
+                          Copied!
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="h-4 w-4" />
+                          Copy Prediction
+                        </>
+                      )}
+                    </button>
+                    
+                    {/* Update Schedule Button */}
+                    {canEdit && (
+                      <Link
+                        href={`/dashboard/schedule?matchId=${match.id}`}
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors text-xs sm:text-sm font-medium min-h-[44px]"
+                      >
+                        <Calendar className="h-4 w-4" />
+                        Update Schedule
+                      </Link>
+                    )}
                   </div>
                 </div>
               );

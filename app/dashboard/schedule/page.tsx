@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useAuth } from '@/lib/auth-context';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { getActiveTournament, getMatches, getAllPlayers, getTeams, getUserPredictions, createPrediction, updatePrediction, getPrediction } from '@/lib/firestore';
 import { getActivationTime } from '@/lib/prediction-rules';
 import { Loader2, Calendar, ArrowLeft } from 'lucide-react';
@@ -24,6 +24,7 @@ const SCORE_CATEGORIES: { value: ScoreCategory; label: string }[] = [
 export default function SchedulePredictionPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [tournament, setTournament] = useState<any>(null);
   const [matches, setMatches] = useState<Match[]>([]);
   const [players, setPlayers] = useState<Player[]>([]);
@@ -54,7 +55,7 @@ export default function SchedulePredictionPage() {
     if (user) {
       loadData();
     }
-  }, [user, authLoading, router]);
+  }, [user, authLoading, router, searchParams]);
 
   async function loadData() {
     try {
@@ -79,6 +80,15 @@ export default function SchedulePredictionPage() {
       setPlayers(playersData);
       setTeams(teamsData);
       setUserPredictions(predictionsData);
+      
+      // Auto-select match from URL query parameter
+      const matchIdFromUrl = searchParams.get('matchId');
+      if (matchIdFromUrl) {
+        const matchToSelect = matchesData.find(m => m.id === matchIdFromUrl);
+        if (matchToSelect) {
+          selectMatch(matchToSelect);
+        }
+      }
     } catch (error) {
       console.error('Error loading data:', error);
       setError('Error loading data');

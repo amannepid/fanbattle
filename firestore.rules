@@ -1,0 +1,134 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user is the owner
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Helper function to check if user is admin
+    // Note: This checks email (lowercase). For better security, use Firebase Auth custom claims
+    // To set custom claims, use Firebase Admin SDK on backend: admin.auth().setCustomUserClaims(uid, { admin: true })
+    function isAdmin() {
+      return isAuthenticated() && 
+        request.auth.token.email != null &&
+        // Add your admin emails here (lowercase, comma-separated in the matches)
+        // Example: request.auth.token.email.matches('.*@(yourdomain\\.com|admin\\.example\\.com)')
+        // OR use specific emails (recommended for small number of admins):
+        (
+          request.auth.token.email.lower() == 'aman.nepid@gmail.com' ||
+          request.auth.token.email.lower() == 'sandeeprimal01@gmail.com'
+          // Add more admin emails here as needed
+        );
+      
+      // Alternative: Use custom claims (more secure - uncomment and set claims via Admin SDK)
+      // return isAuthenticated() && request.auth.token.admin == true;
+    }
+    
+    // ============================================
+    // TOURNAMENTS - Public read, Admin write
+    // ============================================
+    match /tournaments/{tournamentId} {
+      allow read: if true; // Public read for home page, etc.
+      allow write: if isAdmin(); // Only admins can create/update tournaments
+    }
+    
+    // ============================================
+    // TEAMS - Public read, Admin write
+    // ============================================
+    match /teams/{teamId} {
+      allow read: if true; // Public read
+      allow write: if isAdmin(); // Only admins can create/update teams
+    }
+    
+    // ============================================
+    // PLAYERS - Public read, Admin write
+    // ============================================
+    match /players/{playerId} {
+      allow read: if true; // Public read
+      allow write: if isAdmin(); // Only admins can create/update players
+    }
+    
+    // ============================================
+    // MATCHES - Public read, Admin write
+    // ============================================
+    match /matches/{matchId} {
+      allow read: if true; // Public read for home page, battleground, etc.
+      allow write: if isAdmin(); // Only admins can create/update matches
+    }
+    
+    // ============================================
+    // USER ENTRIES - Users can read/update their own
+    // ============================================
+    match /userEntries/{userId} {
+      // Users can read their own entry
+      allow read: if isOwner(userId);
+      
+      // Users can create their own entry (on first login)
+      allow create: if isOwner(userId) && 
+        request.resource.data.userId == userId;
+      
+      // Users can update their own entry
+      allow update: if isOwner(userId) && 
+        request.resource.data.userId == userId;
+      
+      // Admins can read/write any user entry
+      allow read, write: if isAdmin();
+    }
+    
+    // ============================================
+    // PREDICTIONS - Users can read all, write their own
+    // ============================================
+    match /predictions/{predictionId} {
+      // Anyone authenticated can read predictions (for battleground)
+      allow read: if isAuthenticated();
+      
+      // Users can create their own predictions
+      allow create: if isAuthenticated() && 
+        request.resource.data.userId == request.auth.uid;
+      
+      // Users can update their own predictions
+      allow update: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid &&
+        request.resource.data.userId == request.auth.uid;
+      
+      // Users can delete their own predictions (if needed)
+      allow delete: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid;
+      
+      // Admins can read/write any prediction
+      allow read, write: if isAdmin();
+    }
+    
+    // ============================================
+    // NOTIFICATIONS (if you have this collection)
+    // ============================================
+    match /notifications/{notificationId} {
+      // Users can only read their own notifications
+      allow read: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid;
+      
+      // Users can update their own notifications (mark as read)
+      allow update: if isAuthenticated() && 
+        resource.data.userId == request.auth.uid;
+      
+      // Admins can create notifications
+      allow create: if isAdmin();
+    }
+    
+    // ============================================
+    // DENY ALL OTHER COLLECTIONS
+    // ============================================
+    match /{document=**} {
+      allow read, write: if false; // Deny by default
+    }
+  }
+}
+
