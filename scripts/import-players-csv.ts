@@ -70,7 +70,26 @@ async function importPlayersFromCSV(csvPath: string) {
       // Skip comment lines (starting with #)
       if (line.trim().startsWith('#')) continue;
       
-      const [teamId, name, role, battingStyle, bowlingStyle, isAbroadPlayer, photoUrl] = line.split(',');
+      // Parse CSV line properly - handle commas in photoUrl (last field)
+      // Format: teamId,name,role,battingStyle,bowlingStyle,isAbroadPlayer,photoUrl
+      // Since photoUrl can contain commas, we need to split carefully
+      const parts = line.split(',');
+      
+      // We expect 7 fields, but photoUrl (last field) may contain commas
+      // So we take first 6 fields, and join the rest as photoUrl
+      if (parts.length < 6) {
+        console.log(`  ⚠️  Skipping invalid line (not enough fields): ${line.substring(0, 50)}...`);
+        continue;
+      }
+      
+      const teamId = parts[0];
+      const name = parts[1];
+      const role = parts[2];
+      const battingStyle = parts[3];
+      const bowlingStyle = parts[4];
+      const isAbroadPlayer = parts[5];
+      // Join remaining parts as photoUrl (in case URL contains commas)
+      const photoUrl = parts.slice(6).join(',');
       
       if (!teamId || !name) continue;
       
@@ -88,7 +107,7 @@ async function importPlayersFromCSV(csvPath: string) {
       });
       
       imported++;
-      console.log(`  ✓ ${imported}. ${name.trim()} (${teamId.trim()})`);
+      console.log(`  ✓ ${imported}. ${name.trim()} (${teamId.trim()})${photoUrl?.trim() ? ' [has photo]' : ''}`);
     }
     
     console.log(`\n✅ Successfully imported ${imported} players!`);

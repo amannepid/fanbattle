@@ -23,9 +23,14 @@ export default function PlayerSearchSelect({
 }: PlayerSearchSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
   
   const selectedPlayer = players.find(p => p.id === selectedPlayerId);
   const selectedTeam = selectedPlayer ? teams.find(t => t.id === selectedPlayer.teamId) : null;
+  
+  const handleImageError = (playerId: string) => {
+    setImageErrors(prev => new Set(prev).add(playerId));
+  };
 
   // Filter players based on search term
   const filteredPlayers = players.filter(player =>
@@ -54,9 +59,18 @@ export default function PlayerSearchSelect({
         <div className="flex items-center justify-between bg-white dark:bg-navy-600 border-2 border-gold-500 rounded-button p-3 shadow-card">
           <div className="flex items-center space-x-3">
             <div className="flex-shrink-0">
-              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-cool-500 to-navy-500 flex items-center justify-center text-white font-bold">
-                {selectedPlayer.name.charAt(0).toUpperCase()}
-              </div>
+              {selectedPlayer.photoUrl && !imageErrors.has(selectedPlayer.id) ? (
+                <img
+                  src={selectedPlayer.photoUrl}
+                  alt={selectedPlayer.name}
+                  className="h-10 w-10 rounded-full object-cover border-2 border-gold-500"
+                  onError={() => handleImageError(selectedPlayer.id)}
+                />
+              ) : (
+                <div className="h-10 w-10 rounded-full bg-gradient-to-br from-cool-500 to-navy-500 flex items-center justify-center text-white font-bold">
+                  {selectedPlayer.name.charAt(0).toUpperCase()}
+                </div>
+              )}
             </div>
             <div>
               <p className="font-bold text-navy-500 dark:text-white">{selectedPlayer.name}</p>
@@ -133,9 +147,18 @@ export default function PlayerSearchSelect({
                         className="flex items-center space-x-3 p-3 hover:bg-gray-100 dark:hover:bg-navy-700 rounded-button transition text-left"
                       >
                         <div className="flex-shrink-0">
-                          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-cool-500 to-navy-500 flex items-center justify-center text-white font-bold">
-                            {player.name.charAt(0).toUpperCase()}
-                          </div>
+                          {player.photoUrl && !imageErrors.has(player.id) ? (
+                            <img
+                              src={player.photoUrl}
+                              alt={player.name}
+                              className="h-10 w-10 rounded-full object-cover border-2 border-gray-200 dark:border-navy-500"
+                              onError={() => handleImageError(player.id)}
+                            />
+                          ) : (
+                            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-cool-500 to-navy-500 flex items-center justify-center text-white font-bold">
+                              {player.name.charAt(0).toUpperCase()}
+                            </div>
+                          )}
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-bold text-navy-500 dark:text-white truncate">
