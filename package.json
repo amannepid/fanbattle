@@ -23,7 +23,8 @@
     "update-playoff-teams": "tsx scripts/update-playoff-teams.ts",
     "recalculate-all-user-points": "tsx scripts/recalculate-all-user-points.ts",
     "backup-user-data": "tsx scripts/backup-user-data.ts",
-    "send-test-notification-all": "tsx scripts/send-test-to-all-subscribed.ts"
+    "send-test-notification-all": "tsx scripts/send-test-to-all-subscribed.ts",
+    "create-firestore-indexes": "tsx scripts/create-firestore-indexes.ts"
   },
   "dependencies": {
     "date-fns": "^4.1.0",

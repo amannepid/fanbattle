@@ -202,7 +202,7 @@ export default function MatchCard({
             const hasScheduledPrediction = userPredictions?.some(p => {
               if (p.matchId !== match.id || !p.scheduledFor) return false;
               try {
-                const scheduledTime = p.scheduledFor.toDate ? p.scheduledFor.toDate() : new Date(p.scheduledFor);
+                const scheduledTime = p.scheduledFor.toDate();
                 return scheduledTime > new Date();
               } catch (e) {
                 return false;
