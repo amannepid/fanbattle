@@ -297,7 +297,11 @@ export default function Home() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredMatches.map((match) => {
-            const hasPredicted = userPredictions.some(p => p.matchId === match.id);
+            // Only check for active (non-scheduled) predictions when determining if user has predicted
+            // Scheduled predictions are handled separately in MatchCard
+            const hasPredicted = userPredictions.some(p => 
+              p.matchId === match.id && !p.scheduledFor
+            );
             const canPredict = predictableMatchIds.has(match.id);
             
             return (

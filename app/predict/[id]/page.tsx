@@ -51,9 +51,10 @@ export default function PredictPage() {
   const [teamBScoreCategory, setTeamBScoreCategory] = useState<ScoreCategory | ''>('');
   const [teamBWickets, setTeamBWickets] = useState<number | ''>('');
   
-  // Schedule option
-  const [isScheduled, setIsScheduled] = useState(scheduleParam);
+  // Schedule option - only enabled if explicitly requested via URL param or editing existing scheduled prediction
+  const [isScheduled, setIsScheduled] = useState(false); // Default to false, will be set based on existing prediction or URL param
   const [existingPrediction, setExistingPrediction] = useState<Prediction | null>(null);
+  const [showScheduleOption, setShowScheduleOption] = useState(scheduleParam); // Only show if explicitly requested
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -149,12 +150,20 @@ export default function PredictPage() {
         if (existing.scheduledFor) {
           const scheduledTime = existing.scheduledFor.toDate();
           // Only treat as scheduled if activation time hasn't passed
-          setIsScheduled(scheduledTime > now);
+          const isStillScheduled = scheduledTime > now;
+          setIsScheduled(isStillScheduled);
+          // Show schedule option if editing an existing scheduled prediction
+          setShowScheduleOption(isStillScheduled || scheduleParam);
         } else {
           setIsScheduled(false);
+          // Only show schedule option if explicitly requested via URL param
+          setShowScheduleOption(scheduleParam);
         }
       } else {
         setExistingPrediction(null);
+        // Only show schedule option if explicitly requested via URL param
+        setShowScheduleOption(scheduleParam);
+        setIsScheduled(false);
       }
     } catch (error) {
       console.error('Error loading data:', error);
@@ -380,15 +389,23 @@ export default function PredictPage() {
             <p className="text-sm sm:text-base text-red-800 dark:text-red-200 font-bold">
               Prediction deadline has passed
             </p>
-            <p className="text-xs sm:text-sm text-red-700 dark:text-red-300 mt-2">
-              You can still schedule a prediction for this match
-            </p>
-            <button
-              onClick={() => setIsScheduled(true)}
-              className="mt-4 px-4 py-2 bg-purple-500 text-white rounded-button hover:bg-purple-400 transition font-bold"
-            >
-              Schedule Prediction Instead
-            </button>
+            {showScheduleOption ? (
+              <>
+                <p className="text-xs sm:text-sm text-red-700 dark:text-red-300 mt-2">
+                  You can still schedule a prediction for this match
+                </p>
+                <button
+                  onClick={() => setIsScheduled(true)}
+                  className="mt-4 px-4 py-2 bg-purple-500 text-white rounded-button hover:bg-purple-400 transition font-bold"
+                >
+                  Schedule Prediction Instead
+                </button>
+              </>
+            ) : (
+              <p className="text-xs sm:text-sm text-red-700 dark:text-red-300 mt-2">
+                Please visit the Dashboard to schedule a prediction for locked matches.
+              </p>
+            )}
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
@@ -565,38 +582,40 @@ export default function PredictPage() {
               </div>
             </div>
 
-            {/* Schedule Option */}
-            <div className="bg-purple-50 dark:bg-purple-900/20 border-2 border-purple-400 dark:border-purple-600 rounded-button p-3 sm:p-4">
-              <label className="flex items-center space-x-2 sm:space-x-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={isScheduled}
-                  onChange={(e) => setIsScheduled(e.target.checked)}
-                  className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
-                />
-                <div className="flex-1">
-                  <div className="flex items-center space-x-1.5 sm:space-x-2">
-                    <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
-                    <span className="text-sm sm:text-base font-bold text-purple-900 dark:text-purple-200">
-                      Schedule Prediction
-                    </span>
+            {/* Schedule Option - Only show if explicitly requested or editing existing scheduled prediction */}
+            {showScheduleOption && (
+              <div className="bg-purple-50 dark:bg-purple-900/20 border-2 border-purple-400 dark:border-purple-600 rounded-button p-3 sm:p-4">
+                <label className="flex items-center space-x-2 sm:space-x-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={isScheduled}
+                    onChange={(e) => setIsScheduled(e.target.checked)}
+                    className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-1.5 sm:space-x-2">
+                      <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
+                      <span className="text-sm sm:text-base font-bold text-purple-900 dark:text-purple-200">
+                        Schedule Prediction
+                      </span>
+                    </div>
+                    <p className="text-xs sm:text-sm text-purple-800 dark:text-purple-300 mt-1">
+                      Activate this prediction automatically after the cutoff time
+                    </p>
                   </div>
-                  <p className="text-xs sm:text-sm text-purple-800 dark:text-purple-300 mt-1">
-                    Activate this prediction automatically after the cutoff time
-                  </p>
-                </div>
-              </label>
-              {isScheduled && match && allMatches.length > 0 && (
-                <div className="mt-3 pt-3 border-t border-purple-300 dark:border-purple-700">
-                  <div className="text-xs sm:text-sm text-purple-800 dark:text-purple-200">
-                    <strong>Will activate at:</strong> {format(getActivationTime(match, allMatches), 'MMM dd, yyyy • h:mm a')}
+                </label>
+                {isScheduled && match && allMatches.length > 0 && (
+                  <div className="mt-3 pt-3 border-t border-purple-300 dark:border-purple-700">
+                    <div className="text-xs sm:text-sm text-purple-800 dark:text-purple-200">
+                      <strong>Will activate at:</strong> {format(getActivationTime(match, allMatches), 'MMM dd, yyyy • h:mm a')}
+                    </div>
+                    <div className="text-[10px] sm:text-xs text-purple-700 dark:text-purple-300 mt-1">
+                      {formatDistanceToNow(getActivationTime(match, allMatches), { addSuffix: true })}
+                    </div>
                   </div>
-                  <div className="text-[10px] sm:text-xs text-purple-700 dark:text-purple-300 mt-1">
-                    {formatDistanceToNow(getActivationTime(match, allMatches), { addSuffix: true })}
-                  </div>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
 
             {error && (
               <div className="p-3 sm:p-4 bg-red-50 dark:bg-red-900/20 border-2 border-red-400 dark:border-red-600 rounded-button">
