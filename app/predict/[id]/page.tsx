@@ -247,17 +247,30 @@ export default function PredictPage() {
         matchNumber: match.matchNumber,
         predictedWinnerId,
         predictedWinnerName: winnerTeam,
-        
-        predictedPomId: predictedPom?.id,
-        predictedPomName: predictedPom?.name,
-        
-        teamAScoreCategory: teamAScoreCategory || undefined,
-        teamAWickets: teamAWickets !== '' ? Number(teamAWickets) : undefined,
-        teamBScoreCategory: teamBScoreCategory || undefined,
-        teamBWickets: teamBWickets !== '' ? Number(teamBWickets) : undefined,
-        
         submittedAt: Timestamp.now(),
       };
+
+      // Only include optional fields if they have values (Firestore doesn't accept undefined)
+      if (predictedPom?.id) {
+        predictionData.predictedPomId = predictedPom.id;
+      }
+      if (predictedPom?.name) {
+        predictionData.predictedPomName = predictedPom.name;
+      }
+      
+      if (teamAScoreCategory) {
+        predictionData.teamAScoreCategory = teamAScoreCategory;
+      }
+      if (teamAWickets !== '') {
+        predictionData.teamAWickets = Number(teamAWickets);
+      }
+      
+      if (teamBScoreCategory) {
+        predictionData.teamBScoreCategory = teamBScoreCategory;
+      }
+      if (teamBWickets !== '') {
+        predictionData.teamBWickets = Number(teamBWickets);
+      }
 
       // Only include scheduledFor and scheduledAt if they are set (either as Timestamp or deleteField)
       if (scheduledFor !== undefined) {

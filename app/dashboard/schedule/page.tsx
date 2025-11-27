@@ -164,22 +164,38 @@ function SchedulePredictionPageContent() {
       const scheduledFor = Timestamp.fromDate(activationTime);
       const scheduledAt = Timestamp.now();
 
-      const predictionData = {
+      const predictionData: any = {
         userId: user.uid,
         matchId: selectedMatch.id,
         matchNumber: selectedMatch.matchNumber,
         predictedWinnerId,
         predictedWinnerName: winnerTeam,
-        predictedPomId: predictedPom?.id,
-        predictedPomName: predictedPom?.name,
-        teamAScoreCategory: teamAScoreCategory || undefined,
-        teamAWickets: teamAWickets !== '' ? Number(teamAWickets) : undefined,
-        teamBScoreCategory: teamBScoreCategory || undefined,
-        teamBWickets: teamBWickets !== '' ? Number(teamBWickets) : undefined,
         submittedAt: Timestamp.now(),
         scheduledFor,
         scheduledAt,
       };
+
+      // Only include optional fields if they have values (Firestore doesn't accept undefined)
+      if (predictedPom?.id) {
+        predictionData.predictedPomId = predictedPom.id;
+      }
+      if (predictedPom?.name) {
+        predictionData.predictedPomName = predictedPom.name;
+      }
+      
+      if (teamAScoreCategory) {
+        predictionData.teamAScoreCategory = teamAScoreCategory;
+      }
+      if (teamAWickets !== '') {
+        predictionData.teamAWickets = Number(teamAWickets);
+      }
+      
+      if (teamBScoreCategory) {
+        predictionData.teamBScoreCategory = teamBScoreCategory;
+      }
+      if (teamBWickets !== '') {
+        predictionData.teamBWickets = Number(teamBWickets);
+      }
 
       // Check if updating existing prediction
       if (existingPrediction) {
