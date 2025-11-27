@@ -8,7 +8,7 @@ import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Loader2, Trophy, User, BarChart3, Target, Calendar } from 'lucide-react';
 import { format, formatDistanceToNow } from 'date-fns';
-import { Timestamp } from 'firebase/firestore';
+import { Timestamp, deleteField, FieldValue } from 'firebase/firestore';
 import type { Match, Player, UserEntry, ScoreCategory, Prediction } from '@/types';
 import PlayerSearchSelect from '@/components/PlayerSearchSelect';
 import { shouldBlockMatchAt8PMCST, getNepalDay, getActivationTime } from '@/lib/prediction-rules';
@@ -217,8 +217,8 @@ export default function PredictPage() {
       const winnerTeam = predictedWinnerId === match.teamAId ? match.teamAName : match.teamBName;
 
       // Calculate activation time if scheduling
-      let scheduledFor: Timestamp | undefined;
-      let scheduledAt: Timestamp | undefined;
+      let scheduledFor: Timestamp | FieldValue | undefined;
+      let scheduledAt: Timestamp | FieldValue | undefined;
       
       // Check if updating an existing scheduled prediction
       const isUpdatingScheduled = existingPrediction?.scheduledFor;
@@ -236,12 +236,12 @@ export default function PredictPage() {
         scheduledFor = Timestamp.fromDate(activationTime);
         scheduledAt = Timestamp.now();
       } else if (isUpdatingScheduled) {
-        // If user unchecks schedule option, clear scheduled fields
-        scheduledFor = undefined;
-        scheduledAt = undefined;
+        // If user unchecks schedule option, clear scheduled fields using deleteField()
+        scheduledFor = deleteField();
+        scheduledAt = deleteField();
       }
 
-      const predictionData = {
+      const predictionData: any = {
         userId: user.uid,
         matchId: match.id,
         matchNumber: match.matchNumber,
@@ -257,9 +257,15 @@ export default function PredictPage() {
         teamBWickets: teamBWickets !== '' ? Number(teamBWickets) : undefined,
         
         submittedAt: Timestamp.now(),
-        scheduledFor,
-        scheduledAt,
       };
+
+      // Only include scheduledFor and scheduledAt if they are set (either as Timestamp or deleteField)
+      if (scheduledFor !== undefined) {
+        predictionData.scheduledFor = scheduledFor;
+      }
+      if (scheduledAt !== undefined) {
+        predictionData.scheduledAt = scheduledAt;
+      }
 
       // Check if updating existing prediction
       if (existingPrediction) {
