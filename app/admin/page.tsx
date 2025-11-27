@@ -114,6 +114,12 @@ export default function AdminPage() {
     e.preventDefault();
     if (!selectedMatch || !winnerId) return;
 
+    // Validate: If score or wickets are provided, firstInningsBattingTeamId is required
+    if ((firstInningsScore || firstInningsWickets) && !firstInningsBattingTeamId) {
+      setMessage('⚠️ Please select which team batted first when entering score/wickets');
+      return;
+    }
+
     setProcessing(true);
     setMessage('');
 
@@ -643,7 +649,10 @@ export default function AdminPage() {
                   {/* First Innings Batting Team */}
                   <div>
                     <label className="block text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 sm:mb-3">
-                      Team That Batted First
+                      Team That Batted First <span className="text-red-500">*</span>
+                      {(firstInningsScore || firstInningsWickets) && !firstInningsBattingTeamId && (
+                        <span className="text-red-500 text-xs ml-2">(Required when score/wickets are provided)</span>
+                      )}
                     </label>
                     <div className="grid grid-cols-2 gap-2 sm:gap-3">
                       <button

@@ -74,6 +74,11 @@ export function calculatePoints(
   match: Match,
   seasonTeamId: string
 ): ScoringResult {
+  console.log(`\n🎯 [SCORING] Starting calculation for Match ${match.matchNumber}`);
+  console.log(`   Prediction ID: ${prediction.id}`);
+  console.log(`   User ID: ${prediction.userId}`);
+  console.log(`   Is Scheduled: ${prediction.scheduledFor ? 'YES (scheduledFor: ' + prediction.scheduledFor.toDate().toISOString() + ')' : 'NO'}`);
+  
   const basePoints = getBasePoints(match.matchType);
   
   // Initialize result
@@ -127,16 +132,48 @@ export function calculatePoints(
   if (isInningsValid && match.firstInningsScore !== undefined && match.firstInningsBattingTeamId) {
     const actualCategory = getScoreCategory(match.firstInningsScore);
     
+    // Debug logging
+    console.log(`🔍 [SCORING DEBUG] Match ${match.matchNumber} - Score Category Check:`);
+    console.log(`   Match: ${match.teamAName} (${match.teamAId}) vs ${match.teamBName} (${match.teamBId})`);
+    console.log(`   First Innings Batting Team ID: ${match.firstInningsBattingTeamId}`);
+    console.log(`   Team A ID: ${match.teamAId}`);
+    console.log(`   Team B ID: ${match.teamBId}`);
+    console.log(`   Match? Team A: ${match.firstInningsBattingTeamId === match.teamAId}`);
+    console.log(`   Match? Team B: ${match.firstInningsBattingTeamId === match.teamBId}`);
+    console.log(`   Actual Score: ${match.firstInningsScore}, Category: ${actualCategory}`);
+    console.log(`   Prediction Team A Category: ${prediction.teamAScoreCategory || 'undefined'}`);
+    console.log(`   Prediction Team B Category: ${prediction.teamBScoreCategory || 'undefined'}`);
+    console.log(`   Prediction Team A Wickets: ${prediction.teamAWickets !== undefined ? prediction.teamAWickets : 'undefined'}`);
+    console.log(`   Prediction Team B Wickets: ${prediction.teamBWickets !== undefined ? prediction.teamBWickets : 'undefined'}`);
+    console.log(`   Prediction ID: ${prediction.id}`);
+    console.log(`   Is Scheduled: ${prediction.scheduledFor ? 'YES (scheduledFor: ' + prediction.scheduledFor.toDate().toISOString() + ')' : 'NO'}`);
+    
     // Get the prediction for the team that actually batted first
     const predictedCategory = match.firstInningsBattingTeamId === match.teamAId
       ? prediction.teamAScoreCategory
       : prediction.teamBScoreCategory;
     
+    console.log(`   Selected Prediction Category: ${predictedCategory || 'undefined'}`);
+    console.log(`   Comparison: ${predictedCategory} === ${actualCategory}? ${predictedCategory === actualCategory}`);
+    
     const isCorrectScoreCategory = predictedCategory !== undefined && predictedCategory === actualCategory;
     result.isCorrectScoreCategory = isCorrectScoreCategory;
     if (isCorrectScoreCategory) {
       result.breakdown.scoreBonus = 1;
+      console.log(`   ✅ Score category BONUS AWARDED (+1)`);
+    } else {
+      console.log(`   ❌ Score category bonus NOT awarded`);
+      if (predictedCategory === undefined) {
+        console.log(`   Reason: Predicted category is undefined`);
+      } else {
+        console.log(`   Reason: ${predictedCategory} !== ${actualCategory}`);
+      }
     }
+  } else {
+    console.log(`🔍 [SCORING DEBUG] Match ${match.matchNumber} - Score Category Check SKIPPED:`);
+    console.log(`   isInningsValid: ${isInningsValid}`);
+    console.log(`   firstInningsScore: ${match.firstInningsScore !== undefined ? match.firstInningsScore : 'undefined'}`);
+    console.log(`   firstInningsBattingTeamId: ${match.firstInningsBattingTeamId || 'undefined/null'}`);
   }
 
   // Wickets bonus (only if innings valid)
@@ -147,11 +184,29 @@ export function calculatePoints(
       ? prediction.teamAWickets
       : prediction.teamBWickets;
     
+    console.log(`🔍 [SCORING DEBUG] Match ${match.matchNumber} - Wickets Check:`);
+    console.log(`   Actual Wickets: ${match.firstInningsWickets}`);
+    console.log(`   Selected Prediction Wickets: ${predictedWickets !== undefined ? predictedWickets : 'undefined'}`);
+    console.log(`   Comparison: ${predictedWickets} === ${match.firstInningsWickets}? ${predictedWickets === match.firstInningsWickets}`);
+    
     const isCorrectWickets = predictedWickets !== undefined && predictedWickets === match.firstInningsWickets;
     result.isCorrectWickets = isCorrectWickets;
     if (isCorrectWickets) {
       result.breakdown.wicketsBonus = 1;
+      console.log(`   ✅ Wickets BONUS AWARDED (+1)`);
+    } else {
+      console.log(`   ❌ Wickets bonus NOT awarded`);
+      if (predictedWickets === undefined) {
+        console.log(`   Reason: Predicted wickets is undefined`);
+      } else {
+        console.log(`   Reason: ${predictedWickets} !== ${match.firstInningsWickets}`);
+      }
     }
+  } else {
+    console.log(`🔍 [SCORING DEBUG] Match ${match.matchNumber} - Wickets Check SKIPPED:`);
+    console.log(`   isInningsValid: ${isInningsValid}`);
+    console.log(`   firstInningsWickets: ${match.firstInningsWickets !== undefined ? match.firstInningsWickets : 'undefined'}`);
+    console.log(`   firstInningsBattingTeamId: ${match.firstInningsBattingTeamId || 'undefined/null'}`);
   }
 
   // Calculate total points
@@ -162,6 +217,18 @@ export function calculatePoints(
     result.breakdown.scoreBonus +
     result.breakdown.wicketsBonus +
     result.breakdown.seasonTeamAdjustment;
+
+  console.log(`📊 [SCORING] Final Result for Match ${match.matchNumber}:`);
+  console.log(`   Base Points: ${result.breakdown.basePoints}`);
+  console.log(`   POM Bonus: ${result.breakdown.momBonus}`);
+  console.log(`   Score Bonus: ${result.breakdown.scoreBonus}`);
+  console.log(`   Wickets Bonus: ${result.breakdown.wicketsBonus}`);
+  console.log(`   Season Team Adjustment: ${result.breakdown.seasonTeamAdjustment}`);
+  console.log(`   TOTAL POINTS: ${result.points}`);
+  console.log(`   ✅ Winner Correct: ${result.isCorrectWinner}`);
+  console.log(`   ✅ Score Category Correct: ${result.isCorrectScoreCategory}`);
+  console.log(`   ✅ Wickets Correct: ${result.isCorrectWickets}`);
+  console.log(`\n`);
 
   return result;
 }

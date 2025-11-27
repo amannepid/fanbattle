@@ -11,6 +11,7 @@
     "seed-test": "tsx scripts/seed-test-data.ts",
     "calculate-test-player-2": "tsx scripts/calculate-test-player-2.ts",
     "recalculate-match": "tsx scripts/recalculate-match.ts",
+    "find-match-id": "tsx scripts/find-match-id.ts",
     "test-scoring": "tsx scripts/test-scoring.ts",
     "cleanup-users": "tsx scripts/cleanup-users.ts",
     "import-players": "tsx scripts/import-players-csv.ts",
